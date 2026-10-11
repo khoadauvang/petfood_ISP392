@@ -7,8 +7,9 @@ import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 public class PetfoodBeApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PetfoodBeApplication.class, args);
-	}
+    public static void main(String[] args) {
+        System.out.println(">>> Working dir = " + System.getProperty("user.dir"));
+        SpringApplication.run(PetfoodBeApplication.class, args);
+    }
 
 }

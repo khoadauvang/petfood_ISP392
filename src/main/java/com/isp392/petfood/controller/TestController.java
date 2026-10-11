@@ -10,8 +10,8 @@ import java.util.List;
 public class TestController {
 
     @GetMapping("/test")
-    public String test(Model model) {
-        model.addAttribute("message", "JSP chạy rồi!");
+    public String test(Model model){
+        model.addAttribute("message", "JSP chay roi");
         model.addAttribute("items", List.of("Hạt cho chó", "Pate cho mèo", "Snack"));
         return "test";
     }
