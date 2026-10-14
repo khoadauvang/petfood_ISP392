@@ -12,7 +12,6 @@ import org.hibernate.annotations.Fetch;
 @Getter
 @Setter
 @NoArgsConstructor
-
 public class Customer {
 
     @Id
