@@ -1,4 +1,4 @@
-package com.isp392.petfood;
+package com.isp392.petfood.repository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

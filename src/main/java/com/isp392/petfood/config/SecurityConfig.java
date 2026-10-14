@@ -36,7 +36,7 @@ public class SecurityConfig {
                 // (2) Tai nguyen tinh
                 .requestMatchers("/css/**", "/js/**", "/images", "/favicon.ico", "/error").permitAll()
                 // (3) Guest: xem san pham, dang ky, dang nhap (BR-07)
-                .requestMatchers("/", "/login", "register", "product/**").permitAll()
+                .requestMatchers("/", "/login", "/register", "/product/**").permitAll()
                 // (4) Theo vai tro
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN")
