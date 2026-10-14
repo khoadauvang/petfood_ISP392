@@ -34,9 +34,9 @@ public class SecurityConfig {
                 // (1) Luot forward nội bộ toi file JSP va trang loi
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                 // (2) Tai nguyen tinh
-                .requestMatchers("/css/**", "/js/**", "/images", "/favicon.ico", "/error").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
                 // (3) Guest: xem san pham, dang ky, dang nhap (BR-07)
-                .requestMatchers("/", "/login", "/register", "/product/**").permitAll()
+                .requestMatchers("/", "/login", "/register", "/products/**").permitAll()
                 // (4) Theo vai tro
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN")
@@ -59,5 +59,4 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex.accessDeniedPage("/403"));
         return http.build();
     }
-
 }
