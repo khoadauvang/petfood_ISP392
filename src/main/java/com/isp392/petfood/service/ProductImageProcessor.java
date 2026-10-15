@@ -53,15 +53,20 @@ public class ProductImageProcessor {
 
     // Nhận nội dung file gốc, trả về nội dung file JPG đã chuẩn hoá
     public byte[] toJpeg(byte[] original) {
-        BufferedImage image = decode(original);
+        return toJpeg(original, MAX_SIDE, MIN_SIDE);
+    }
+
+    // Cùng các bước trên nhưng tự chọn kích thước, ví dụ ảnh đại diện khách hàng (nhỏ hơn ảnh sản phẩm)
+    public byte[] toJpeg(byte[] original, int maxSide, int minSide) {
+        BufferedImage image = decode(original, maxSide, minSide);
         image = flattenOnWhite(image);
         image = applyExifOrientation(image, ExifOrientationReader.read(original));
-        image = shrinkToFit(image, MAX_SIDE);
+        image = shrinkToFit(image, maxSide);
         return encodeJpeg(image);
     }
 
     // ---------- 1. Đọc ảnh ----------
-    private BufferedImage decode(byte[] data) {
+    private BufferedImage decode(byte[] data, int maxSide, int minSide) {
         try (ImageInputStream in = new MemoryCacheImageInputStream(new ByteArrayInputStream(data))) {
             Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
             if (!readers.hasNext()) {
@@ -83,14 +88,14 @@ public class ProductImageProcessor {
                     throw new InvalidImageException("Ảnh quá lớn (" + width + "×" + height
                             + " px), tối đa 30 megapixel");
                 }
-                if (Math.min(width, height) < MIN_SIDE) {
+                if (Math.min(width, height) < minSide) {
                     throw new InvalidImageException("Ảnh quá nhỏ (" + width + "×" + height
-                            + " px), cần tối thiểu " + MIN_SIDE + "×" + MIN_SIDE + " px");
+                            + " px), cần tối thiểu " + minSide + "×" + minSide + " px");
                 }
 
                 // Ảnh rất to (ví dụ 6000px) thì đọc cách điểm để đỡ tốn RAM, vẫn giữ >= 2 lần kích thước đích
                 ImageReadParam param = reader.getDefaultReadParam();
-                int step = Math.max(1, Math.max(width, height) / (MAX_SIDE * 2));
+                int step = Math.max(1, Math.max(width, height) / (maxSide * 2));
                 if (step > 1) {
                     param.setSourceSubsampling(step, step, 0, 0);
                 }

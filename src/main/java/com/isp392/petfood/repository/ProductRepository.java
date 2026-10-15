@@ -1,6 +1,7 @@
 package com.isp392.petfood.repository;
 
 import com.isp392.petfood.entity.Product;
+import com.isp392.petfood.enums.AgeGroup;
 import com.isp392.petfood.enums.CategoryStatus;
 import com.isp392.petfood.enums.ProductStatus;
 import com.isp392.petfood.enums.Species;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,44 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByStatusAndCategory_Status(ProductStatus status,
                                                  CategoryStatus categoryStatus,
                                                  Pageable pageable);
+
+    // ===== Trang sản phẩm của khách (Guest/Customer) =====
+    // Chỉ sản phẩm đang bán thuộc danh mục không bị ẩn. Tham số nào null thì bỏ qua điều kiện đó.
+    // Lọc độ tuổi YOUNG/ADULT/SENIOR thì lấy luôn sản phẩm ALL_AGES (dùng được cho mọi lứa tuổi).
+    @Query("""
+            select p from Product p join p.category c
+            where p.status = com.isp392.petfood.enums.ProductStatus.ACTIVE
+              and c.status = com.isp392.petfood.enums.CategoryStatus.ACTIVE
+              and (:keyword is null
+                   or p.name like concat('%', :keyword, '%')
+                   or p.brand like concat('%', :keyword, '%')
+                   or p.sku like concat('%', :keyword, '%'))
+              and (:categoryId is null or c.id = :categoryId)
+              and (:species is null or p.species = :species)
+              and (:ageGroup is null or p.ageGroup = :ageGroup
+                   or p.ageGroup = com.isp392.petfood.enums.AgeGroup.ALL_AGES)
+              and (:brand is null or p.brand = :brand)
+              and (:minPrice is null or p.sellingPrice >= :minPrice)
+              and (:maxPrice is null or p.sellingPrice <= :maxPrice)
+            """)
+    Page<Product> searchForShop(@Param("keyword") String keyword,
+                                @Param("categoryId") Long categoryId,
+                                @Param("species") Species species,
+                                @Param("ageGroup") AgeGroup ageGroup,
+                                @Param("brand") String brand,
+                                @Param("minPrice") BigDecimal minPrice,
+                                @Param("maxPrice") BigDecimal maxPrice,
+                                Pageable pageable);
+
+    // Danh sách thương hiệu cho ô lọc: chỉ lấy thương hiệu của sản phẩm khách đang thấy được
+    @Query("""
+            select distinct p.brand from Product p
+            where p.brand is not null
+              and p.status = com.isp392.petfood.enums.ProductStatus.ACTIVE
+              and p.category.status = com.isp392.petfood.enums.CategoryStatus.ACTIVE
+            order by p.brand
+            """)
+    List<String> findShopBrands();
 
     // ===== Kiểm tra trùng trước khi lưu (DB vẫn là chốt chặn cuối bằng UNIQUE) =====
     boolean existsBySku(String sku);

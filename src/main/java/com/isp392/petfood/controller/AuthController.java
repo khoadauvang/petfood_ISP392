@@ -6,7 +6,9 @@ import com.isp392.petfood.security.AccountPrincipal;
 import com.isp392.petfood.service.RegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,9 +21,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class AuthController {
 
     private final RegistrationService registrationService;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrations;
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(@AuthenticationPrincipal AccountPrincipal user, Model model) {
+        if (user != null) return "redirect:/";
+        // Nút "Đăng nhập bằng Google" chỉ hiện khi .env có client-id/secret (xem application.properties)
+        model.addAttribute("googleLoginEnabled", clientRegistrations.getIfAvailable() != null);
         return "auth/login";
         //Hãy nhớ trong application.properties có cái dòng
         //  spring.mvc.view.prefix=/WEB-INF/views/

@@ -14,19 +14,21 @@ import java.util.Optional;
 
 public interface LotRepository extends JpaRepository<Lot, Long> {
 
-    // Kết quả mỗi dòng: (productId, quantity). Tên getter khớp với alias trong câu query bên dưới.
+    // Kết quả mỗi dòng: (productId, quantity, nearestExpiry). Tên getter khớp với alias trong câu query bên dưới.
     interface StockRow {
         Long getProductId();
         Long getQuantity();
+        LocalDate getNearestExpiry();   // HSD của lô bán thường gần nhất = lô sẽ xuất trước theo FEFO (BR-53)
     }
 
-    // Tồn bán thường của một nhóm sản phẩm: chỉ cộng các lô còn hạn >= minExpiry (BR-54).
+    // Tồn bán thường của một nhóm sản phẩm: chỉ cộng các lô còn hàng, còn hạn >= minExpiry (BR-54).
     // Chạy 1 câu cho cả trang, tránh gọi 12 lần (mỗi sản phẩm một lần).
     @Query("""
-            select l.product.id as productId, sum(l.onHandQty) as quantity
+            select l.product.id as productId, sum(l.onHandQty) as quantity, min(l.expiryDate) as nearestExpiry
             from Lot l
             where l.product.id in :productIds
               and l.expiryDate >= :minExpiry
+              and l.onHandQty > 0
             group by l.product.id
             """)
     List<StockRow> sumSellableQuantity(@Param("productIds") Collection<Long> productIds,

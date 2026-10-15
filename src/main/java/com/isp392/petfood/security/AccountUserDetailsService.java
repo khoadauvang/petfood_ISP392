@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 public class AccountUserDetailsService implements UserDetailsService {
@@ -23,7 +25,9 @@ public class AccountUserDetailsService implements UserDetailsService {
     @Override
     @Transactional (readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Account account = accountRepository.findByEmail(email)
+        // Email lưu chữ thường (RegistrationService, GoogleAccountService) nên đổi về chữ thường trước khi tìm
+        String normalized = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        Account account = accountRepository.findByEmail(normalized)
                 .orElseThrow(() -> new UsernameNotFoundException(("Email not found")));
 
         if (account.getPasswordHash() == null) {

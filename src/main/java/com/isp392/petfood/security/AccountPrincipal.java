@@ -10,39 +10,79 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
+// Người dùng nằm trong Session. Dùng chung cho cả 2 cách đăng nhập:
+//   - email + mật khẩu (UserDetails)
+//   - Google (OidcUser, cũng là OAuth2User)
+// nhờ vậy controller / JSP chỉ cần biết một kiểu: @AuthenticationPrincipal AccountPrincipal, ${currentUser}.
 @Getter
-public class AccountPrincipal implements UserDetails, CredentialsContainer { //Người dùng nằm trong Session
+public class AccountPrincipal implements UserDetails, OidcUser, CredentialsContainer {
 
     private final Long accountId;
     private final String email;
     private final Role role;
     private final String fullName;
+    private final String avatarUrl;   // chỉ khách hàng có; null nếu chưa tải ảnh
     private final Long customerId; //khi role = CUSTOMER
     private final Long employeeId; //khi role = STAFF | ADMIN
 
     @Getter(AccessLevel.NONE)
     private String  passwordHash; //Bi xoa ngay sau khi dang nhap xong
 
-    public AccountPrincipal(Account account, String fullName, Long customerId, Long employeeId) {
-        this.employeeId = employeeId;
-        this.customerId = customerId;
-        this.passwordHash = account.getPasswordHash();
+    // Chỉ có khi đăng nhập bằng Google; đăng nhập mật khẩu thì rỗng / null
+    private final Map<String, Object> attributes;
+    private final OidcIdToken idToken;
+    private final OidcUserInfo userInfo;
+
+    private AccountPrincipal(Long accountId, String email, Role role, String passwordHash,
+                             String fullName, String avatarUrl, Long customerId, Long employeeId,
+                             Map<String, Object> attributes, OidcIdToken idToken, OidcUserInfo userInfo) {
+        this.accountId = accountId;
+        this.email = email;
+        this.role = role;
+        this.passwordHash = passwordHash;
         this.fullName = fullName;
-        this.role = account.getRole();
-        this.email = account.getEmail();
-        this.accountId = account.getId();
+        this.avatarUrl = avatarUrl;
+        this.customerId = customerId;
+        this.employeeId = employeeId;
+        this.attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
+        this.idToken = idToken;
+        this.userInfo = userInfo;
     }
 
     public static AccountPrincipal ofCustomer(Account account, Customer customer) {
-        return new AccountPrincipal(account, customer.getFullName(), customer.getId(), null);
-        //Gọi method Constructor ở trên
+        return new AccountPrincipal(account.getId(), account.getEmail(), account.getRole(), account.getPasswordHash(),
+                customer.getFullName(), customer.getAvatarUrl(), customer.getId(), null, null, null, null);
     }
+
     public static AccountPrincipal ofEmployee(Account account, Employee employee) {
-        return new AccountPrincipal(account, employee.getFullName(), null, employee.getId());
+        return new AccountPrincipal(account.getId(), account.getEmail(), account.getRole(), account.getPasswordHash(),
+                employee.getFullName(), null, null, employee.getId(), null, null, null);
+    }
+
+    // Khách đăng nhập bằng Google: giữ lại thông tin Google trả về (Spring Security cần cho OidcUser)
+    public static AccountPrincipal ofGoogleCustomer(Account account, Customer customer, Map<String, Object> attributes,
+                                                    OidcIdToken idToken, OidcUserInfo userInfo) {
+        return new AccountPrincipal(account.getId(), account.getEmail(), account.getRole(), null,
+                customer.getFullName(), customer.getAvatarUrl(), customer.getId(), null,
+                attributes, idToken, userInfo);
+    }
+
+    // Bản sao sau khi khách sửa hồ sơ: tên / ảnh trên thanh đầu trang đổi ngay, không cần đăng nhập lại
+    public AccountPrincipal withProfile(String newFullName, String newAvatarUrl) {
+        return new AccountPrincipal(accountId, email, role, null, newFullName, newAvatarUrl,
+                customerId, employeeId, attributes, idToken, userInfo);
+    }
+
+    public boolean isGoogleLogin() {
+        return !attributes.isEmpty();
     }
 
     //Implementing interfaces UserDetails & CredentialsContainer
@@ -64,4 +104,14 @@ public class AccountPrincipal implements UserDetails, CredentialsContainer { //N
         this.passwordHash = null;
     }
 
+    // ===== OidcUser / OAuth2User =====
+    @Override
+    public Map<String, Object> getClaims() {
+        return attributes;
+    }
+
+    @Override
+    public String getName() {
+        return email;
+    }
 }

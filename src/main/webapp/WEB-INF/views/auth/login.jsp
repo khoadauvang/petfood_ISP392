@@ -15,6 +15,14 @@
 <c:if test="${param.logout != null}">
     <p style="color:#0a7a2f">Bạn đã đăng xuất.</p>
 </c:if>
+<c:if test="${param.registered != null}">
+    <p style="color:#0a7a2f">Đăng ký thành công, mời bạn đăng nhập.</p>
+</c:if>
+<%-- Lỗi đăng nhập Google: lý do do GoogleAccountService ném ra, Spring lưu trong session --%>
+<c:if test="${param.googleError != null}">
+    <p style="color:#b00020">Đăng nhập Google không thành công.
+        <c:out value="${sessionScope.SPRING_SECURITY_LAST_EXCEPTION.message}"/></p>
+</c:if>
 
 <form method="post" action="${pageContext.request.contextPath}/login">
     <label>Email <input type="email" name="email" required autofocus></label>
@@ -22,6 +30,11 @@
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
     <button type="submit">Đăng nhập</button>
 </form>
+
+<c:if test="${googleLoginEnabled}">
+    <%-- Chỉ dành cho khách hàng; nhân viên đăng nhập bằng email + mật khẩu (BR-05) --%>
+    <p><a href="${pageContext.request.contextPath}/oauth2/authorization/google">Đăng nhập bằng Google</a></p>
+</c:if>
 
 <p>Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register">Đăng ký</a></p>
 </body>
