@@ -1,0 +1,22 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Thanh điều hướng + thông báo dùng chung cho các trang /staff (include tĩnh).
+     Trang include file này phải khai báo taglib "c" và biến ctx (= contextPath) trước khi include.
+     Thông báo: successMessage / warningMessage / errorMessage (controller gửi qua flash attribute hoặc model). --%>
+<nav class="staff">
+    <strong>Food Pet Shop · Quản lý</strong>
+    <a href="${ctx}/staff">Tổng quan</a>
+    <a href="${ctx}/staff/categories">Danh mục</a>
+    <a href="${ctx}/staff/products">Sản phẩm</a>
+    <a href="${ctx}/staff/lots">Tồn theo lô</a>
+    <a href="${ctx}/staff/alerts">Cảnh báo</a>
+    <span class="who">
+        <c:out value="${currentUser.fullName}"/> (<c:out value="${currentUser.role}"/>)
+        <form method="post" action="${ctx}/logout" class="inline">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </span>
+</nav>
+<c:if test="${not empty successMessage}"><p class="msg ok"><c:out value="${successMessage}"/></p></c:if>
+<c:if test="${not empty warningMessage}"><p class="msg warn"><c:out value="${warningMessage}"/></p></c:if>
+<c:if test="${not empty errorMessage}"><p class="msg err"><c:out value="${errorMessage}"/></p></c:if>
