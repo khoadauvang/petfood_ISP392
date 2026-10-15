@@ -1,7 +1,6 @@
 package com.isp392.petfood.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,20 +17,23 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-// Đổi địa chỉ khách gõ thành toạ độ bằng Google Geocoding API (chốt 15/10: Nominatim/OSM bị nhà mạng chặn).
-// Key đặt trong .env: petfood.geocoding.google-api-key. Không có key / lỗi mạng / không tìm thấy -> Optional.empty().
-// Kết quả được nhớ lại (tối đa 500 địa chỉ) để bước "Tính phí ship" và "Đặt hàng" không gọi Google 2 lần.
+// Đổi địa chỉ khách gõ thành toạ độ bằng Geoapify Geocoding API (chốt 16/10: gói miễn phí 3.000 request/ngày,
+// không cần thẻ; Nominatim/OSM bị nhà mạng chặn, Google cần gắn thanh toán).
+// Key đặt trong .env: petfood.geocoding.geoapify-api-key. Không có key / lỗi mạng / không tìm thấy -> Optional.empty().
+// Ưu tiên kết quả gần cửa hàng (bias theo gốc toạ độ phí ship) để địa chỉ trùng tên ở tỉnh khác không bị chọn nhầm.
+// Kết quả được nhớ lại (tối đa 500 địa chỉ) để bước "Tính phí ship" và "Đặt hàng" không tốn 2 request.
 @Component
-public class GoogleGeocoder {
+public class GeoapifyGeocoder {
 
-    private static final Logger log = LoggerFactory.getLogger(GoogleGeocoder.class);
-    private static final String URL = "https://maps.googleapis.com/maps/api/geocode/json";
+    private static final Logger log = LoggerFactory.getLogger(GeoapifyGeocoder.class);
+    private static final String URL = "https://api.geoapify.com/v1/geocode/search";
     private static final int CACHE_SIZE = 500;
 
-    public record Location(double lat, double lng, String formattedAddress) {
+    public record Location(double lat, double lng) {
     }
 
     private final String apiKey;
+    private final String bias;
     private final RestClient restClient;
     private final Map<String, Optional<Location>> cache = new LinkedHashMap<>(16, 0.75f, true) {
         @Override
@@ -40,8 +42,11 @@ public class GoogleGeocoder {
         }
     };
 
-    public GoogleGeocoder(@Value("${petfood.geocoding.google-api-key:}") String apiKey) {
+    public GeoapifyGeocoder(@Value("${petfood.geocoding.geoapify-api-key:}") String apiKey,
+                            @Value("${petfood.shipping.origin-lat:10.8411}") double originLat,
+                            @Value("${petfood.shipping.origin-lng:106.8099}") double originLng) {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
+        this.bias = "proximity:" + originLng + "," + originLat;       // Geoapify ghi kinh độ trước
         HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(http);
         factory.setReadTimeout(Duration.ofSeconds(5));
@@ -73,41 +78,28 @@ public class GoogleGeocoder {
     private Optional<Location> call(String address) {
         try {
             GeocodeResponse response = restClient.get()
-                    .uri(URL + "?address={a}&components=country:VN&region=vn&language=vi&key={k}", address, apiKey)
+                    .uri(URL + "?text={t}&filter=countrycode:vn&bias={b}&lang=vi&limit=1&format=json&apiKey={k}",
+                            address, bias, apiKey)
                     .retrieve()
                     .body(GeocodeResponse.class);
-            if (response == null || !"OK".equals(response.status()) || response.results() == null
-                    || response.results().isEmpty()) {
-                // ZERO_RESULTS: không tìm thấy; REQUEST_DENIED: key sai / chưa bật Geocoding API
-                log.info("Google Geocoding không ra kết quả cho \"{}\": {} {}", address,
-                        response == null ? null : response.status(),
-                        response == null ? "" : response.errorMessage());
+            if (response == null || response.results() == null || response.results().isEmpty()) {
+                log.info("Geoapify không tìm thấy địa chỉ \"{}\"", address);
                 return Optional.empty();
             }
             GeocodeResponse.Result first = response.results().getFirst();
-            return Optional.of(new Location(first.geometry().location().lat(), first.geometry().location().lng(),
-                    first.formattedAddress()));
+            return Optional.of(new Location(first.lat(), first.lon()));
         } catch (RestClientException e) {
-            log.warn("Không gọi được Google Geocoding: {}", e.getMessage());
+            // 401: key sai; 429: hết 3.000 request/ngày; lỗi mạng
+            log.warn("Không gọi được Geoapify: {}", e.getMessage());
             return Optional.empty();
         }
     }
 
-    // Chỉ lấy các trường cần dùng trong JSON Google trả về
+    // Chỉ lấy các trường cần dùng trong JSON Geoapify trả về (format=json)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record GeocodeResponse(String status, @JsonProperty("error_message") String errorMessage,
-                           List<Result> results) {
+    record GeocodeResponse(List<Result> results) {
         @JsonIgnoreProperties(ignoreUnknown = true)
-        record Result(@JsonProperty("formatted_address") String formattedAddress,
-                      Geometry geometry) {
-        }
-
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        record Geometry(LatLng location) {
-        }
-
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        record LatLng(double lat, double lng) {
+        record Result(double lat, double lon) {
         }
     }
 }

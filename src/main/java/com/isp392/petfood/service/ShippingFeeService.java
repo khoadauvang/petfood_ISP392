@@ -1,7 +1,7 @@
 package com.isp392.petfood.service;
 
 import com.isp392.petfood.dto.ShippingQuote;
-import com.isp392.petfood.service.GoogleGeocoder.Location;
+import com.isp392.petfood.service.GeoapifyGeocoder.Location;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +11,7 @@ import java.util.Optional;
 // Phí giao hàng (chốt 15/10, thay bảng ShippingFeeRule đã bỏ):
 //   địa chỉ giao cách gốc (Đại học FPT TP.HCM) <= 5km  VÀ  tiền hàng sau giảm giá hạng >= 150.000đ  -> miễn phí
 //   còn lại -> 30.000đ (gồm cả trường hợp không xác định được vị trí)
+// Toạ độ địa chỉ khách lấy từ Geoapify (GeoapifyGeocoder).
 // Khoảng cách là đường chim bay (công thức Haversine), đúng nghĩa "bán kính".
 // Server luôn tự tính, không nhận phí ship do trình duyệt gửi lên.
 @Service
@@ -18,14 +19,14 @@ public class ShippingFeeService {
 
     private static final double EARTH_RADIUS_KM = 6371.0;
 
-    private final GoogleGeocoder geocoder;
+    private final GeoapifyGeocoder geocoder;
     private final BigDecimal flatFee;
     private final BigDecimal freeMinSubtotal;
     private final double freeRadiusKm;
     private final double originLat;
     private final double originLng;
 
-    public ShippingFeeService(GoogleGeocoder geocoder,
+    public ShippingFeeService(GeoapifyGeocoder geocoder,
                               @Value("${petfood.shipping.flat-fee:30000}") BigDecimal flatFee,
                               @Value("${petfood.shipping.free-min-subtotal:150000}") BigDecimal freeMinSubtotal,
                               @Value("${petfood.shipping.free-radius-km:5}") double freeRadiusKm,
@@ -46,20 +47,20 @@ public class ShippingFeeService {
             String reason = geocoder.isConfigured()
                     ? "Không tìm thấy địa chỉ trên bản đồ nên không xét miễn phí giao hàng. Hãy ghi rõ số nhà, đường, phường, thành phố."
                     : "Chưa cấu hình dịch vụ bản đồ nên không xét miễn phí giao hàng.";
-            return new ShippingQuote(flatFee, null, null, reason);
+            return new ShippingQuote(flatFee, null, reason);
         }
         Location loc = location.get();
         double km = distanceKm(originLat, originLng, loc.lat(), loc.lng());
         boolean nearby = km <= freeRadiusKm;
         boolean bigEnough = goodsTotal.compareTo(freeMinSubtotal) >= 0;
         if (nearby && bigEnough) {
-            return new ShippingQuote(BigDecimal.ZERO, km, loc.formattedAddress(), "Miễn phí giao hàng (trong "
+            return new ShippingQuote(BigDecimal.ZERO, km, "Miễn phí giao hàng (trong "
                     + format(freeRadiusKm) + "km, đơn từ " + money(freeMinSubtotal) + ")");
         }
         String reason = nearby
                 ? "Đơn chưa đủ " + money(freeMinSubtotal) + " tiền hàng để được miễn phí giao hàng"
                 : "Địa chỉ ngoài bán kính " + format(freeRadiusKm) + "km nên không được miễn phí giao hàng";
-        return new ShippingQuote(flatFee, km, loc.formattedAddress(), reason);
+        return new ShippingQuote(flatFee, km, reason);
     }
 
     // Khoảng cách đường chim bay giữa 2 toạ độ (Haversine)

@@ -24,7 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 // Đặt hàng. /checkout/** chỉ cho CUSTOMER (SecurityConfig).
 //   GET  /checkout          form địa chỉ + phương thức thanh toán, tóm tắt giỏ và giảm giá hạng
-//   POST /checkout/quote    tính phí giao hàng theo địa chỉ (Google Geocoding), hiện tổng tiền
+//   POST /checkout/quote    tính phí giao hàng theo địa chỉ (Geoapify), hiện tổng tiền
 //   POST /checkout          tạo đơn (server tính lại mọi khoản, không dùng số tiền trình duyệt gửi lên)
 @Controller
 @RequestMapping("/checkout")

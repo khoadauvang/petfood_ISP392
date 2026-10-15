@@ -101,7 +101,9 @@
                 <c:out value="${summary.shipping.note}"/>
                 <c:if test="${summary.shipping.distanceKm != null}">
                     <br>Khoảng cách tới cửa hàng: ${summary.shipping.distanceText} km
-                    · Bản đồ hiểu địa chỉ là: <c:out value="${summary.shipping.matchedAddress}"/>
+                    <%-- Gói miễn phí của Geoapify yêu cầu ghi nguồn khi dùng kết quả của họ --%>
+                    <br><small>Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a>
+                        · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</small>
                 </c:if>
             </td></tr>
             <tr class="total"><td><strong>Tổng cộng</strong></td>
