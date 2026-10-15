@@ -5,7 +5,8 @@ target/
 !**/src/test/**/target/
 .env
 /src/test/
-
+CLAUDE.md
+/docs/
 
 ### STS ###
 .apt_generated
