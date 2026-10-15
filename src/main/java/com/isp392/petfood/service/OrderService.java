@@ -1,0 +1,343 @@
+package com.isp392.petfood.service;
+
+import com.isp392.petfood.dto.OrderDetailDto;
+import com.isp392.petfood.dto.OrderLineDto;
+import com.isp392.petfood.dto.OrderRow;
+import com.isp392.petfood.entity.Customer;
+import com.isp392.petfood.entity.Employee;
+import com.isp392.petfood.entity.Order;
+import com.isp392.petfood.entity.OrderItem;
+import com.isp392.petfood.entity.OrderItemLot;
+import com.isp392.petfood.enums.OrderStatus;
+import com.isp392.petfood.enums.PaymentMethod;
+import com.isp392.petfood.enums.PaymentStatus;
+import com.isp392.petfood.exception.BusinessRuleException;
+import com.isp392.petfood.exception.NotFoundException;
+import com.isp392.petfood.repository.EmployeeRepository;
+import com.isp392.petfood.repository.FlashSaleItemRepository;
+import com.isp392.petfood.repository.LotRepository;
+import com.isp392.petfood.repository.OrderItemLotRepository;
+import com.isp392.petfood.repository.OrderItemRepository;
+import com.isp392.petfood.repository.OrderItemRepository.OrderCountRow;
+import com.isp392.petfood.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+// Xem đơn và vòng đời đơn (module 4).
+//   PENDING --staff xác nhận (confirmed_by)--> CONFIRMED --đóng gói (packed_by)--> PROCESSING
+//   --giao--> SHIPPED --giao thành công--> COMPLETED   (chỉ đi tiến, không bỏ bước, BR-17)
+//   SHIPPED --khách không nhận--> RETURNED (hàng về được thẩm định ở module trả hàng, REFUSED_DELIVERY)
+// Huỷ (BR-19): khách tự huỷ khi PENDING / CONFIRMED; khi PROCESSING khách gửi yêu cầu (lưu cancel_reason) để staff
+// duyệt; từ SHIPPED không huỷ được. Huỷ thì cộng trả tồn đúng lô đã trừ (OrderItemLot) và trả suất Flash Sale.
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+    private static final int PAGE_SIZE = 10;
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final Set<OrderStatus> STAFF_CANCELLABLE =
+            Set.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PROCESSING);
+
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final OrderItemLotRepository orderItemLotRepository;
+    private final LotRepository lotRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
+    private final EmployeeRepository employeeRepository;
+
+    // ===== Phía khách =====
+
+    // Lịch sử đơn, mới nhất trước. pageNumber tính từ 0.
+    @Transactional(readOnly = true)
+    public Page<OrderRow> listForCustomer(Long customerId, int pageNumber) {
+        Page<Order> orders = orderRepository.findByCustomer_Id(customerId,
+                PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id")));
+        return toRows(orders);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailDto getForCustomer(Long customerId, Long orderId) {
+        return toDetail(orderRepository.findByIdAndCustomer_Id(orderId, customerId)
+                .orElseThrow(() -> notFound(orderId)));
+    }
+
+    @Transactional
+    public Order cancelByCustomer(Long customerId, Long orderId, String reason) {
+        requireReason(reason);
+        Order order = lockOrder(orderId);
+        if (!order.getCustomer().getId().equals(customerId)) {
+            throw notFound(orderId);                     // đơn của người khác: coi như không tồn tại
+        }
+        switch (order.getStatus()) {
+            case PENDING, CONFIRMED -> cancel(order, reason.trim());
+            case PROCESSING -> {
+                if (order.isCancelRequested()) {
+                    throw new BusinessRuleException("Bạn đã gửi yêu cầu huỷ đơn này, vui lòng chờ cửa hàng xử lý.");
+                }
+                order.setCancelReason(reason.trim());    // yêu cầu huỷ, chờ staff duyệt
+            }
+            default -> throw new BusinessRuleException("Đơn " + order.getStatus().getLabel().toLowerCase()
+                    + " không huỷ được. Nếu đã nhận hàng, bạn có thể gửi yêu cầu trả hàng.");
+        }
+        return order;
+    }
+
+    // ===== Phía Staff / Admin =====
+
+    @Transactional(readOnly = true)
+    public Page<OrderRow> search(OrderStatus status, boolean cancelRequested, String keyword, int pageNumber) {
+        Long orderId = null;
+        String text = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        if (text != null && text.replace("#", "").matches("\\d{1,18}")) {
+            orderId = Long.parseLong(text.replace("#", ""));    // gõ mã đơn, ví dụ "#12" hoặc "12"
+            text = null;
+        }
+        Page<Order> orders = orderRepository.search(status, cancelRequested, orderId, text,
+                PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id")));
+        return toRows(orders);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailDto getForStaff(Long orderId) {
+        return toDetail(orderRepository.findById(orderId).orElseThrow(() -> notFound(orderId)));
+    }
+
+    @Transactional(readOnly = true)
+    public long countCancelRequests() {
+        return orderRepository.search(OrderStatus.PROCESSING, true, null, null, PageRequest.of(0, 1)).getTotalElements();
+    }
+
+    // PENDING -> CONFIRMED
+    @Transactional
+    public Order confirm(Long orderId, Long employeeId) {
+        Order order = lockOrder(orderId);
+        requireStatus(order, OrderStatus.PENDING, "xác nhận");
+        // BR-25: đơn VNPay chưa trả tiền thì staff không xử lý
+        if (order.getPaymentMethod() == PaymentMethod.VNPAY && order.getPaymentStatus() != PaymentStatus.PAID) {
+            throw new BusinessRuleException("Đơn VNPay chưa thanh toán, chưa xác nhận được.");
+        }
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setConfirmedBy(employee(employeeId));
+        order.setConfirmedAt(LocalDateTime.now());
+        return order;
+    }
+
+    // CONFIRMED -> PROCESSING (đóng gói)
+    @Transactional
+    public Order pack(Long orderId, Long employeeId) {
+        Order order = lockOrder(orderId);
+        requireStatus(order, OrderStatus.CONFIRMED, "đóng gói");
+        order.setStatus(OrderStatus.PROCESSING);
+        order.setPackedBy(employee(employeeId));
+        return order;
+    }
+
+    // PROCESSING -> SHIPPED
+    @Transactional
+    public Order ship(Long orderId) {
+        Order order = lockOrder(orderId);
+        requireStatus(order, OrderStatus.PROCESSING, "giao");
+        if (order.isCancelRequested()) {
+            throw new BusinessRuleException("Khách đang yêu cầu huỷ đơn này: hãy duyệt hoặc từ chối yêu cầu trước khi giao.");
+        }
+        order.setStatus(OrderStatus.SHIPPED);
+        order.setShippedAt(LocalDateTime.now());
+        return order;
+    }
+
+    // SHIPPED -> COMPLETED. Từ lúc này tính hạn trả hàng (BR-29); đơn COD chuyển PAID (BR-26).
+    @Transactional
+    public Order complete(Long orderId) {
+        Order order = lockOrder(orderId);
+        requireStatus(order, OrderStatus.SHIPPED, "hoàn tất");
+        order.setStatus(OrderStatus.COMPLETED);
+        order.setCompletedAt(LocalDateTime.now());
+        if (order.getPaymentMethod() == PaymentMethod.COD) {
+            order.setPaymentStatus(PaymentStatus.PAID);
+        }
+        return order;
+    }
+
+    // SHIPPED -> RETURNED: khách không nhận hàng. Không tự cộng tồn: hàng về được thẩm định ở module trả hàng.
+    @Transactional
+    public Order markReturned(Long orderId) {
+        Order order = lockOrder(orderId);
+        requireStatus(order, OrderStatus.SHIPPED, "chuyển sang 'khách không nhận hàng'");
+        order.setStatus(OrderStatus.RETURNED);
+        order.setReturnedAt(LocalDateTime.now());
+        return order;
+    }
+
+    // Staff huỷ đơn chưa giao (hết hàng, không liên lạc được khách...), bắt buộc ghi lý do
+    @Transactional
+    public Order cancelByStaff(Long orderId, String reason) {
+        requireReason(reason);
+        Order order = lockOrder(orderId);
+        if (!STAFF_CANCELLABLE.contains(order.getStatus())) {
+            throw new BusinessRuleException("Đơn " + order.getStatus().getLabel().toLowerCase() + " không huỷ được.");
+        }
+        cancel(order, reason.trim());
+        return order;
+    }
+
+    // Duyệt yêu cầu huỷ của khách khi đơn đang đóng gói
+    @Transactional
+    public Order approveCancelRequest(Long orderId) {
+        Order order = lockOrder(orderId);
+        if (!order.isCancelRequested()) {
+            throw new BusinessRuleException("Đơn #" + orderId + " không có yêu cầu huỷ đang chờ.");
+        }
+        cancel(order, order.getCancelReason());
+        return order;
+    }
+
+    @Transactional
+    public Order rejectCancelRequest(Long orderId) {
+        Order order = lockOrder(orderId);
+        if (!order.isCancelRequested()) {
+            throw new BusinessRuleException("Đơn #" + orderId + " không có yêu cầu huỷ đang chờ.");
+        }
+        order.setCancelReason(null);
+        return order;
+    }
+
+    // ===== Huỷ + cộng trả tồn =====
+
+    private void cancel(Order order, String reason) {
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelReason(reason);
+        order.setCancelledAt(LocalDateTime.now());
+
+        for (OrderItemLot taken : orderItemLotRepository.findByOrderId(order.getId())) {
+            // Cộng trả đúng lô gốc. Lô giờ đã dưới 90 ngày thì tự thành hàng RED (chỉ bán qua Flash Sale).
+            if (lotRepository.putBack(taken.getLot().getId(), taken.getQuantity()) == 0) {
+                log.warn("Huỷ đơn #{}: không cộng trả được {} sp vào lô #{} (vượt số lượng nhập)",
+                        order.getId(), taken.getQuantity(), taken.getLot().getId());
+            }
+        }
+        for (OrderItem item : orderItemRepository.findDetailedByOrderId(order.getId())) {
+            if (item.getFlashSaleItem() != null) {
+                flashSaleItemRepository.unsell(item.getFlashSaleItem().getId(), item.getQuantity());
+            }
+        }
+    }
+
+    // ===== Phụ trợ =====
+
+    private Order lockOrder(Long orderId) {
+        return orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> notFound(orderId));
+    }
+
+    // Chỉ cho chuyển từ đúng trạng thái trước đó (BR-17)
+    private static void requireStatus(Order order, OrderStatus expected, String action) {
+        if (order.getStatus() != expected) {
+            throw new BusinessRuleException("Đơn #" + order.getId() + " đang \"" + order.getStatus().getLabel()
+                    + "\", không " + action + " được (chỉ " + action + " đơn \"" + expected.getLabel() + "\").");
+        }
+    }
+
+    private static void requireReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessRuleException("cancelReason", "Vui lòng nhập lý do huỷ");
+        }
+        if (reason.trim().length() > 255) {
+            throw new BusinessRuleException("cancelReason", "Lý do huỷ tối đa 255 ký tự");
+        }
+    }
+
+    private Employee employee(Long employeeId) {
+        return employeeRepository.getReferenceById(employeeId);
+    }
+
+    private static NotFoundException notFound(Long orderId) {
+        return new NotFoundException("Không tìm thấy đơn #" + orderId);
+    }
+
+    private Page<OrderRow> toRows(Page<Order> orders) {
+        List<Long> ids = orders.getContent().stream().map(Order::getId).toList();
+        Map<Long, OrderCountRow> counts = ids.isEmpty() ? Map.of()
+                : orderItemRepository.countByOrderIds(ids).stream()
+                .collect(Collectors.toMap(OrderCountRow::getOrderId, Function.identity()));
+        return orders.map(o -> {
+            OrderCountRow count = counts.get(o.getId());
+            Customer c = o.getCustomer();
+            return new OrderRow(o.getId(), o.getCreatedAt().format(DATE_TIME), o.getStatus(),
+                    o.getPaymentMethod().getLabel(), o.getPaymentStatus().getLabel(), o.getTotalAmount(),
+                    count == null ? 0 : count.getLineCount(), count == null ? 0 : count.getTotalQuantity(),
+                    c.getFullName(), c.getAccount().getEmail(), o.isCancelRequested());
+        });
+    }
+
+    // Gọi trong transaction: các quan hệ LAZY (khách, nhân viên) được nạp ở đây
+    private OrderDetailDto toDetail(Order order) {
+        Map<Long, List<String>> lotsByItem = orderItemLotRepository.findByOrderId(order.getId()).stream()
+                .collect(Collectors.groupingBy(x -> x.getOrderItem().getId(),
+                        Collectors.mapping(x -> "Lô #" + x.getLot().getId() + " · HSD "
+                                + x.getLot().getExpiryDate().format(DATE) + " · " + x.getQuantity() + " sp",
+                                Collectors.toList())));
+
+        List<OrderLineDto> lines = new ArrayList<>();
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal discountTotal = BigDecimal.ZERO;
+        for (OrderItem item : orderItemRepository.findDetailedByOrderId(order.getId())) {
+            BigDecimal gross = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            subtotal = subtotal.add(gross);
+            discountTotal = discountTotal.add(item.getDiscountAmount());
+            lines.add(new OrderLineDto(item.getProduct().getId(), item.getProduct().getSku(), item.getProduct().getName(),
+                    item.getProduct().getImageUrl(), item.getFlashSaleItem() != null,
+                    item.getFlashSaleItem() == null ? null : item.getFlashSaleItem().getFlashSale().getName(),
+                    item.getQuantity(), item.getUnitPrice(), item.getDiscountAmount(), item.getLineTotal(),
+                    lotsByItem.getOrDefault(item.getId(), List.of())));
+        }
+
+        Customer customer = order.getCustomer();
+        return OrderDetailDto.builder()
+                .id(order.getId())
+                .status(order.getStatus())
+                .paymentMethod(order.getPaymentMethod())
+                .paymentStatus(order.getPaymentStatus())
+                .shippingAddress(order.getShippingAddress())
+                .customerName(customer.getFullName())
+                .customerEmail(customer.getAccount().getEmail())
+                .customerPhone(customer.getPhone())
+                .lines(lines)
+                .subtotal(subtotal)
+                .tierDiscountRate(order.getTierDiscountRate())
+                .discountTotal(discountTotal)
+                .shippingFee(order.getShippingFee())
+                .totalAmount(order.getTotalAmount())
+                .createdAtText(format(order.getCreatedAt()))
+                .confirmedAtText(format(order.getConfirmedAt()))
+                .confirmedByName(order.getConfirmedBy() == null ? null : order.getConfirmedBy().getFullName())
+                .packedByName(order.getPackedBy() == null ? null : order.getPackedBy().getFullName())
+                .shippedAtText(format(order.getShippedAt()))
+                .completedAtText(format(order.getCompletedAt()))
+                .cancelledAtText(format(order.getCancelledAt()))
+                .returnedAtText(format(order.getReturnedAt()))
+                .cancelReason(order.getCancelReason())
+                .cancelRequested(order.isCancelRequested())
+                .build();
+    }
+
+    private static String format(LocalDateTime time) {
+        return time == null ? null : time.format(DATE_TIME);
+    }
+}

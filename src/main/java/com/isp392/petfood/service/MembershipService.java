@@ -1,0 +1,66 @@
+package com.isp392.petfood.service;
+
+import com.isp392.petfood.entity.Customer;
+import com.isp392.petfood.enums.MembershipTier;
+import com.isp392.petfood.repository.CustomerRepository;
+import com.isp392.petfood.repository.OrderRepository;
+import com.isp392.petfood.repository.OrderRepository.CustomerAmountRow;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+// Cập nhật Customer.membership_tier theo chi tiêu tích luỹ (requirements 7.6, chốt 15/10 theo BR-40, BR-41):
+//   chi tiêu = tiền hàng (total_amount − shipping_fee) các đơn COMPLETED đã qua hạn trả hàng 3 ngày
+//            − tiền đã hoàn của yêu cầu trả hàng REFUNDED
+// Đơn huỷ / khách không nhận không được tính. Hạng mới áp cho đơn đặt sau đó (BR-44) vì mức giảm chốt lúc đặt.
+// Không lưu bảng điểm: mỗi lần chạy tính lại từ đơn hàng.
+@Service
+@RequiredArgsConstructor
+public class MembershipService {
+
+    private static final Logger log = LoggerFactory.getLogger(MembershipService.class);
+
+    private final OrderRepository orderRepository;
+    private final CustomerRepository customerRepository;
+    private final MembershipPolicy membershipPolicy;
+
+    // Hằng ngày lúc 00:05 (petfood.membership.recalc-cron); Admin chạy ngay được ở trang Đơn hàng
+    @Scheduled(cron = "${petfood.membership.recalc-cron:0 5 0 * * *}")
+    public void scheduledRecalculate() {
+        int changed = recalculateAll();
+        log.info("Tính lại hạng thành viên: {} khách đổi hạng", changed);
+    }
+
+    // Trả về số khách đổi hạng
+    @Transactional
+    public int recalculateAll() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(membershipPolicy.getReturnWindowDays());
+        Map<Long, BigDecimal> spend = toMap(orderRepository.sumSettledGoodsByCustomer(cutoff));
+        Map<Long, BigDecimal> refunds = toMap(orderRepository.sumRefundsByCustomer(cutoff));
+
+        int changed = 0;
+        for (Customer customer : customerRepository.findAll()) {
+            BigDecimal total = spend.getOrDefault(customer.getId(), BigDecimal.ZERO)
+                    .subtract(refunds.getOrDefault(customer.getId(), BigDecimal.ZERO));
+            MembershipTier tier = membershipPolicy.tierFor(total);
+            if (tier != customer.getMembershipTier()) {
+                customer.setMembershipTier(tier);
+                changed++;
+            }
+        }
+        return changed;
+    }
+
+    private static Map<Long, BigDecimal> toMap(List<CustomerAmountRow> rows) {
+        return rows.stream().collect(Collectors.toMap(CustomerAmountRow::getCustomerId, CustomerAmountRow::getAmount));
+    }
+}

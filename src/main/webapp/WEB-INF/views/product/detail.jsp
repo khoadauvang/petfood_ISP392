@@ -77,7 +77,25 @@
             <dt>SKU</dt><dd><c:out value="${product.sku}"/></dd>
         </dl>
 
-        <%-- Giỏ hàng (module 3) chưa làm: nút thêm vào giỏ sẽ gắn vào đây --%>
+        <%-- Thêm vào giỏ: chỉ khách đã đăng nhập (BR-07). Số lượng tối đa = tồn bán thường (BR-13),
+             server vẫn kiểm tra lại vì tồn có thể đổi giữa lúc xem và lúc bấm. --%>
+        <c:if test="${product.inStock}">
+            <c:choose>
+                <c:when test="${currentUser.role == 'CUSTOMER'}">
+                    <form method="post" action="${ctx}/cart/add">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                        <input type="hidden" name="productId" value="${product.id}">
+                        <label>Số lượng
+                            <input type="number" name="quantity" value="1" min="1" max="${product.sellableQty}" required>
+                        </label>
+                        <button type="submit">Thêm vào giỏ</button>
+                    </form>
+                </c:when>
+                <c:when test="${currentUser == null}">
+                    <p><a href="${ctx}/login">Đăng nhập</a> để thêm vào giỏ hàng.</p>
+                </c:when>
+            </c:choose>
+        </c:if>
     </section>
 </div>
 

@@ -4,6 +4,7 @@ import com.isp392.petfood.entity.Lot;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -97,4 +98,45 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             order by l.expiryDate asc, l.id asc
             """)
     List<Lot> findInStockExpiringBefore(@Param("before") LocalDate before);
+
+    // ===== Đặt hàng / huỷ đơn: trừ và cộng tồn an toàn khi nhiều đơn chạy cùng lúc (BR-20) =====
+
+    // Lô còn hàng bán thường của một sản phẩm theo FEFO: HSD gần trước, cùng HSD thì lô nhập trước (BR-53).
+    // Trả về số liệu đọc thẳng từ DB (không phải entity) nên không bị cache cũ của Hibernate.
+    interface LotStock {
+        Long getLotId();
+        Integer getOnHandQty();
+    }
+
+    @Query("""
+            select l.id as lotId, l.onHandQty as onHandQty
+            from Lot l
+            where l.product.id = :productId
+              and l.expiryDate >= :minExpiry
+              and l.onHandQty > 0
+            order by l.expiryDate asc, l.receivedAt asc, l.id asc
+            """)
+    List<LotStock> findSellableFefo(@Param("productId") Long productId, @Param("minExpiry") LocalDate minExpiry);
+
+    // Trừ tồn bằng MỘT câu UPDATE có điều kiện: chỉ trừ khi lô còn đủ và vẫn đủ hạn bán thường.
+    // Trả về 0 nghĩa là đơn khác vừa lấy mất hàng của lô này -> service đọc lại và thử lô khác.
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update Lot l set l.onHandQty = l.onHandQty - :qty
+            where l.id = :lotId and l.onHandQty >= :qty and l.expiryDate >= :minExpiry
+            """)
+    int takeSellable(@Param("lotId") Long lotId, @Param("qty") int qty, @Param("minExpiry") LocalDate minExpiry);
+
+    // Trừ tồn lô của suất Flash Sale (lô RED, không có điều kiện 90 ngày)
+    @Modifying(flushAutomatically = true)
+    @Query("update Lot l set l.onHandQty = l.onHandQty - :qty where l.id = :lotId and l.onHandQty >= :qty")
+    int take(@Param("lotId") Long lotId, @Param("qty") int qty);
+
+    // Cộng trả khi huỷ đơn; không bao giờ vượt số lượng đã nhập (CK_Lot_on_hand_qty)
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update Lot l set l.onHandQty = l.onHandQty + :qty
+            where l.id = :lotId and l.onHandQty + :qty <= l.receivedQty
+            """)
+    int putBack(@Param("lotId") Long lotId, @Param("qty") int qty);
 }

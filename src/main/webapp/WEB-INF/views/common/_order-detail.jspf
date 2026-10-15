@@ -1,0 +1,84 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Thân trang chi tiết đơn, dùng chung cho khách (customer/order-detail.jsp) và Staff (staff/orders/detail.jsp).
+     Trang include phải khai báo taglib c, fmt, biến ctx; model có "order" (OrderDetailDto). --%>
+<style>
+    .od-grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin-bottom: 12px; }
+    .od-grid dt { color: #666; }
+    .od-table-wrap { overflow-x: auto; }
+    .od-table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; }
+    .od-table th, .od-table td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; vertical-align: top; }
+    .od-table th { background: #f6f6f6; }
+    .od-table .num { text-align: right; white-space: nowrap; }
+    .od-lots { font-size: 12px; color: #555; }
+    .od-fs { display: inline-block; background: #c62828; color: #fff; font-size: 11px; padding: 0 5px; border-radius: 3px; }
+    .od-status { display: inline-block; padding: 2px 10px; border-radius: 10px; background: #eee; font-weight: bold; }
+    .od-status.COMPLETED { background: #e7f6ec; color: #0a5c26; }
+    .od-status.CANCELLED, .od-status.RETURNED { background: #fdecea; color: #8a1c13; }
+    .od-timeline { list-style: none; padding: 0; margin: 0; }
+    .od-timeline li { margin: 2px 0; }
+</style>
+
+<p>
+    <span class="od-status ${order.status}">${order.status.label}</span>
+    · ${order.paymentMethod.label} · ${order.paymentStatus.label}
+</p>
+<c:if test="${order.cancelRequested}">
+    <p class="msg warn">Khách đã yêu cầu huỷ đơn khi đang đóng gói. Lý do: <c:out value="${order.cancelReason}"/></p>
+</c:if>
+<c:if test="${order.status == 'CANCELLED'}">
+    <p class="msg err">Đã huỷ lúc ${order.cancelledAtText}. Lý do: <c:out value="${order.cancelReason}"/></p>
+</c:if>
+
+<dl class="od-grid">
+    <dt>Người nhận</dt><dd><c:out value="${order.customerName}"/></dd>
+    <dt>Số điện thoại</dt><dd><c:out value="${empty order.customerPhone ? '—' : order.customerPhone}"/></dd>
+    <dt>Email</dt><dd><c:out value="${order.customerEmail}"/></dd>
+    <dt>Giao đến</dt><dd><c:out value="${order.shippingAddress}"/></dd>
+</dl>
+
+<div class="od-table-wrap">
+<table class="od-table">
+    <thead>
+    <tr><th>Sản phẩm</th><th class="num">Đơn giá</th><th class="num">SL</th><th class="num">Giảm hạng</th><th class="num">Thành tiền</th></tr>
+    </thead>
+    <tbody>
+    <c:forEach var="line" items="${order.lines}">
+        <tr>
+            <td>
+                <a href="${ctx}/products/${line.productId}"><c:out value="${line.name}"/></a>
+                <c:if test="${line.flashSale}"><span class="od-fs">Flash Sale</span> <c:out value="${line.flashSaleName}"/></c:if>
+                <%-- Lô đã xuất cho dòng này và HSD (BR-12, BR-56) --%>
+                <c:forEach var="lot" items="${line.lots}"><div class="od-lots"><c:out value="${lot}"/></div></c:forEach>
+            </td>
+            <td class="num"><fmt:formatNumber value="${line.unitPrice}" type="number"/> ₫</td>
+            <td class="num">${line.quantity}</td>
+            <td class="num"><c:if test="${line.discountAmount > 0}">−<fmt:formatNumber value="${line.discountAmount}" type="number"/> ₫</c:if></td>
+            <td class="num"><fmt:formatNumber value="${line.lineTotal}" type="number"/> ₫</td>
+        </tr>
+    </c:forEach>
+    </tbody>
+    <tfoot>
+    <tr><td colspan="4" class="num">Tạm tính</td><td class="num"><fmt:formatNumber value="${order.subtotal}" type="number"/> ₫</td></tr>
+    <tr><td colspan="4" class="num">Giảm giá hạng thành viên (${order.tierDiscountRate}%, không áp cho Flash Sale)</td>
+        <td class="num">−<fmt:formatNumber value="${order.discountTotal}" type="number"/> ₫</td></tr>
+    <tr><td colspan="4" class="num">Phí giao hàng</td>
+        <td class="num"><c:choose><c:when test="${order.shippingFee == 0}">Miễn phí</c:when>
+            <c:otherwise><fmt:formatNumber value="${order.shippingFee}" type="number"/> ₫</c:otherwise></c:choose></td></tr>
+    <tr><td colspan="4" class="num"><strong>Tổng cộng</strong></td>
+        <td class="num"><strong><fmt:formatNumber value="${order.totalAmount}" type="number"/> ₫</strong></td></tr>
+    </tfoot>
+</table>
+</div>
+
+<h3>Các mốc của đơn</h3>
+<ul class="od-timeline">
+    <li>Đặt hàng: ${order.createdAtText}</li>
+    <c:if test="${not empty order.confirmedAtText}">
+        <li>Xác nhận: ${order.confirmedAtText}<c:if test="${not empty order.confirmedByName}"> (<c:out value="${order.confirmedByName}"/>)</c:if></li>
+    </c:if>
+    <c:if test="${not empty order.packedByName}"><li>Đóng gói: <c:out value="${order.packedByName}"/></li></c:if>
+    <c:if test="${not empty order.shippedAtText}"><li>Bắt đầu giao: ${order.shippedAtText}</li></c:if>
+    <c:if test="${not empty order.completedAtText}"><li>Giao thành công: ${order.completedAtText}</li></c:if>
+    <c:if test="${not empty order.returnedAtText}"><li>Khách không nhận hàng: ${order.returnedAtText}</li></c:if>
+    <c:if test="${not empty order.cancelledAtText}"><li>Huỷ: ${order.cancelledAtText}</li></c:if>
+</ul>

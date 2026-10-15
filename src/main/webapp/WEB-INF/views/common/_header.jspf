@@ -27,6 +27,9 @@
                         <img class="avatar" src="${ctx}<c:out value='${currentUser.avatarUrl}'/>" alt="">
                     </c:if>
                     <a href="${ctx}/profile"><c:out value="${currentUser.fullName}"/></a>
+                    <%-- cartItemCount do CartCountAdvice đưa vào --%>
+                    <a href="${ctx}/cart">Giỏ hàng (${cartItemCount})</a>
+                    <a href="${ctx}/orders">Đơn hàng</a>
                 </c:if>
                 <c:if test="${currentUser.role != 'CUSTOMER'}">
                     <c:out value="${currentUser.fullName}"/>
