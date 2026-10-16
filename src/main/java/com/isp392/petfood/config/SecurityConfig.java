@@ -10,12 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 //Bộ Luật
 @Configuration
@@ -33,6 +37,18 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // Ghi lại phiên đăng nhập của từng tài khoản để Admin khoá nhân viên thì đăng xuất được ngay (AccountSessionService)
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    // Báo cho SessionRegistry khi phiên hết hạn / đăng xuất, tránh giữ phiên cũ trong bộ nhớ
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -46,6 +62,10 @@ public class SecurityConfig {
                 // (3) Guest: xem san pham, dang ky, dang nhap (ca Google) (BR-07)
                 .requestMatchers("/", "/login", "/register", "/products/**", "/flash-sale",
                         "/oauth2/**", "/login/oauth2/**").permitAll()
+                // Quên mật khẩu bằng OTP qua email (mục 9.11)
+                .requestMatchers("/forgot-password", "/forgot-password/**").permitAll()
+                // Chatbox hỗ trợ + nút "Khác" gửi yêu cầu: không cần đăng nhập (requirements 7.10)
+                .requestMatchers("/support", "/support/**").permitAll()
                 // VNPay gọi về: không có phiên đăng nhập, chỉ tin dữ liệu có chữ ký đúng (BR-24)
                 .requestMatchers("/payment/vnpay-return", "/payment/vnpay-ipn").permitAll()
                 // (4) Theo vai tro
@@ -60,12 +80,20 @@ public class SecurityConfig {
                 .loginPage("/login")            //GET la trang cua minh, POST do Spring xu ly
                 .usernameParameter("email")       //mac dinh Spring doc field "username"
                 .successHandler(loginSuccessHandler)
-                .failureUrl("/login?error")
+                // Tài khoản bị khoá (mục 9.5) báo riêng, còn lại báo chung "sai email hoặc mật khẩu"
+                .failureHandler((request, response, ex) -> response.sendRedirect(request.getContextPath()
+                        + (ex instanceof LockedException ? "/login?locked" : "/login?error")))
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
+            )
+            // Không giới hạn số phiên (-1), chỉ để SessionRegistry theo dõi; phiên bị Admin kết thúc thì về trang đăng nhập
+            .sessionManagement(session -> session
+                .maximumSessions(-1)
+                .sessionRegistry(sessionRegistry())
+                .expiredUrl("/login?expired")
             )
             .exceptionHandling(ex -> ex.accessDeniedPage("/403"));
 

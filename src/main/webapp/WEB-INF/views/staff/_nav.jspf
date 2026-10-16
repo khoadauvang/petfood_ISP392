@@ -13,6 +13,12 @@
     <a href="${ctx}/staff/returns">Trả hàng</a>
     <a href="${ctx}/staff/flash-sales">Flash Sale</a>
     <a href="${ctx}/staff/reviews">Đánh giá</a>
+    <a href="${ctx}/staff/support">Hỗ trợ</a>
+    <a href="${ctx}/staff/chat-nodes">Kịch bản chat</a>
+    <c:if test="${currentUser.role == 'ADMIN'}">
+        <a href="${ctx}/admin">Thống kê</a>
+        <a href="${ctx}/admin/employees">Nhân viên</a>
+    </c:if>
     <span class="who">
         <c:out value="${currentUser.fullName}"/> (<c:out value="${currentUser.role}"/>)
         <form method="post" action="${ctx}/logout" class="inline">

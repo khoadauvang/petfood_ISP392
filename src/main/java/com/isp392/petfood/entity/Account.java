@@ -1,6 +1,7 @@
 package com.isp392.petfood.entity;
 
 
+import com.isp392.petfood.enums.AccountStatus;
 import com.isp392.petfood.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -33,6 +34,11 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private Role role;
+
+    // Admin khoá tài khoản nhân viên (mục 9.5); tài khoản mới mặc định ACTIVE
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private AccountStatus status = AccountStatus.ACTIVE;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

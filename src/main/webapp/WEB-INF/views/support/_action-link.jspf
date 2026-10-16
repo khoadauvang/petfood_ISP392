@@ -1,0 +1,9 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Link gợi ý của một nút chatbox (biến "step"). Đường dẫn trong shop (/orders...) thì thêm contextPath. --%>
+<c:if test="${not empty step.actionUrl}">
+    <c:choose>
+        <c:when test="${step.actionUrl.startsWith('/')}"><c:url var="actionHref" value="${step.actionUrl}"/></c:when>
+        <c:otherwise><c:set var="actionHref" value="${step.actionUrl}"/></c:otherwise>
+    </c:choose>
+    <div class="action"><a href="<c:out value='${actionHref}'/>">Đi tới trang liên quan ›</a></div>
+</c:if>

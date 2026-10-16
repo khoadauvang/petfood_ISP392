@@ -3,6 +3,7 @@ package com.isp392.petfood.security;
 import com.isp392.petfood.entity.Account;
 import com.isp392.petfood.entity.Customer;
 import com.isp392.petfood.entity.Employee;
+import com.isp392.petfood.enums.AccountStatus;
 import com.isp392.petfood.enums.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class AccountPrincipal implements UserDetails, OidcUser, CredentialsConta
     private final String avatarUrl;   // chỉ khách hàng có; null nếu chưa tải ảnh
     private final Long customerId; //khi role = CUSTOMER
     private final Long employeeId; //khi role = STAFF | ADMIN
+    private final boolean locked;  // Admin đã khoá tài khoản (mục 9.5) -> Spring Security từ chối đăng nhập
 
     @Getter(AccessLevel.NONE)
     private String  passwordHash; //Bi xoa ngay sau khi dang nhap xong
@@ -42,7 +44,7 @@ public class AccountPrincipal implements UserDetails, OidcUser, CredentialsConta
     private final OidcUserInfo userInfo;
 
     private AccountPrincipal(Long accountId, String email, Role role, String passwordHash,
-                             String fullName, String avatarUrl, Long customerId, Long employeeId,
+                             String fullName, String avatarUrl, Long customerId, Long employeeId, boolean locked,
                              Map<String, Object> attributes, OidcIdToken idToken, OidcUserInfo userInfo) {
         this.accountId = accountId;
         this.email = email;
@@ -52,6 +54,7 @@ public class AccountPrincipal implements UserDetails, OidcUser, CredentialsConta
         this.avatarUrl = avatarUrl;
         this.customerId = customerId;
         this.employeeId = employeeId;
+        this.locked = locked;
         this.attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
         this.idToken = idToken;
         this.userInfo = userInfo;
@@ -59,26 +62,30 @@ public class AccountPrincipal implements UserDetails, OidcUser, CredentialsConta
 
     public static AccountPrincipal ofCustomer(Account account, Customer customer) {
         return new AccountPrincipal(account.getId(), account.getEmail(), account.getRole(), account.getPasswordHash(),
-                customer.getFullName(), customer.getAvatarUrl(), customer.getId(), null, null, null, null);
+                customer.getFullName(), customer.getAvatarUrl(), customer.getId(), null, isLocked(account), null, null, null);
     }
 
     public static AccountPrincipal ofEmployee(Account account, Employee employee) {
         return new AccountPrincipal(account.getId(), account.getEmail(), account.getRole(), account.getPasswordHash(),
-                employee.getFullName(), null, null, employee.getId(), null, null, null);
+                employee.getFullName(), null, null, employee.getId(), isLocked(account), null, null, null);
     }
 
     // Khách đăng nhập bằng Google: giữ lại thông tin Google trả về (Spring Security cần cho OidcUser)
     public static AccountPrincipal ofGoogleCustomer(Account account, Customer customer, Map<String, Object> attributes,
                                                     OidcIdToken idToken, OidcUserInfo userInfo) {
         return new AccountPrincipal(account.getId(), account.getEmail(), account.getRole(), null,
-                customer.getFullName(), customer.getAvatarUrl(), customer.getId(), null,
+                customer.getFullName(), customer.getAvatarUrl(), customer.getId(), null, isLocked(account),
                 attributes, idToken, userInfo);
     }
 
     // Bản sao sau khi khách sửa hồ sơ: tên / ảnh trên thanh đầu trang đổi ngay, không cần đăng nhập lại
     public AccountPrincipal withProfile(String newFullName, String newAvatarUrl) {
         return new AccountPrincipal(accountId, email, role, null, newFullName, newAvatarUrl,
-                customerId, employeeId, attributes, idToken, userInfo);
+                customerId, employeeId, locked, attributes, idToken, userInfo);
+    }
+
+    private static boolean isLocked(Account account) {
+        return account.getStatus() == AccountStatus.LOCKED;
     }
 
     public boolean isGoogleLogin() {
@@ -95,7 +102,7 @@ public class AccountPrincipal implements UserDetails, OidcUser, CredentialsConta
     @Override public String getUsername() { return email;}
 
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isAccountNonLocked() { return !locked; }
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override public boolean isEnabled() { return true; }
 

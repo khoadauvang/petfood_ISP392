@@ -12,8 +12,17 @@
 <c:if test="${param.error != null}">
     <p style="color:#b00020">Email hoặc mật khẩu không đúng.</p>
 </c:if>
+<c:if test="${param.locked != null}">
+    <p style="color:#b00020">Tài khoản đã bị khoá. Vui lòng liên hệ quản trị viên.</p>
+</c:if>
+<c:if test="${param.expired != null}">
+    <p style="color:#b00020">Phiên đăng nhập đã kết thúc do tài khoản vừa bị khoá hoặc thay đổi quyền / mật khẩu. Vui lòng đăng nhập lại.</p>
+</c:if>
 <c:if test="${param.logout != null}">
     <p style="color:#0a7a2f">Bạn đã đăng xuất.</p>
+</c:if>
+<c:if test="${param.reset != null}">
+    <p style="color:#0a7a2f">Đã đặt lại mật khẩu, mời bạn đăng nhập bằng mật khẩu mới.</p>
 </c:if>
 <c:if test="${param.registered != null}">
     <p style="color:#0a7a2f">Đăng ký thành công, mời bạn đăng nhập.</p>
@@ -30,6 +39,7 @@
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
     <button type="submit">Đăng nhập</button>
 </form>
+<p><a href="${pageContext.request.contextPath}/forgot-password">Quên mật khẩu?</a></p>
 
 <c:if test="${googleLoginEnabled}">
     <%-- Chỉ dành cho khách hàng; nhân viên đăng nhập bằng email + mật khẩu (BR-05) --%>
