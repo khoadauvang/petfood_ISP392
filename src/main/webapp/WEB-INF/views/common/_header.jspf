@@ -16,6 +16,7 @@
 </style>
 <header class="shop">
     <a href="${ctx}/"><strong>Food Pet Shop</strong></a>
+    <a href="${ctx}/flash-sale">Flash Sale</a>
     <span class="who">
         <c:choose>
             <c:when test="${currentUser == null}">

@@ -28,6 +28,9 @@
 <c:if test="${order.status == 'CANCELLED'}">
     <p class="msg err">Đã huỷ lúc ${order.cancelledAtText}. Lý do: <c:out value="${order.cancelReason}"/></p>
 </c:if>
+<c:if test="${order.needsRefund}">
+    <p class="msg warn">Đơn đã thanh toán VNPay nhưng bị huỷ: cửa hàng sẽ hoàn tiền cho khách.</p>
+</c:if>
 
 <dl class="od-grid">
     <dt>Người nhận</dt><dd><c:out value="${order.customerName}"/></dd>
@@ -49,6 +52,10 @@
                 <c:if test="${line.flashSale}"><span class="od-fs">Flash Sale</span> <c:out value="${line.flashSaleName}"/></c:if>
                 <%-- Lô đã xuất cho dòng này và HSD (BR-12, BR-56) --%>
                 <c:forEach var="lot" items="${line.lots}"><div class="od-lots"><c:out value="${lot}"/></div></c:forEach>
+                <%-- Đánh giá (module 8): chỉ trang của khách, đơn đã hoàn tất --%>
+                <c:if test="${customerView and order.status == 'COMPLETED'}">
+                    <div><a href="${ctx}/orders/${order.id}/items/${line.orderItemId}/review">${line.reviewed ? 'Sửa đánh giá' : 'Đánh giá sản phẩm'}</a></div>
+                </c:if>
             </td>
             <td class="num"><fmt:formatNumber value="${line.unitPrice}" type="number"/> ₫</td>
             <td class="num">${line.quantity}</td>
@@ -82,3 +89,10 @@
     <c:if test="${not empty order.returnedAtText}"><li>Khách không nhận hàng: ${order.returnedAtText}</li></c:if>
     <c:if test="${not empty order.cancelledAtText}"><li>Huỷ: ${order.cancelledAtText}</li></c:if>
 </ul>
+
+<c:if test="${not empty order.payments}">
+    <h3>Thanh toán</h3>
+    <ul class="od-timeline">
+        <c:forEach var="p" items="${order.payments}"><li><c:out value="${p}"/></li></c:forEach>
+    </ul>
+</c:if>

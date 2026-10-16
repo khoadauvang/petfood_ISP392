@@ -57,6 +57,7 @@ public class CheckoutService {
     private final InventoryPolicy inventoryPolicy;
     private final MembershipPolicy membershipPolicy;
     private final ShippingFeeService shippingFeeService;
+    private final PaymentService paymentService;
 
     // Trang đặt hàng. address == null: chưa tính phí ship (khách chưa nhập địa chỉ).
     @Transactional(readOnly = true)
@@ -78,8 +79,8 @@ public class CheckoutService {
             // Không lưu SĐT người nhận riêng: shipper gọi theo SĐT trong hồ sơ khách (chốt 15/10)
             throw new BusinessRuleException("Vui lòng cập nhật số điện thoại trong hồ sơ để shipper liên hệ khi giao hàng.");
         }
-        if (form.getPaymentMethod() != PaymentMethod.COD) {
-            throw new BusinessRuleException("paymentMethod", "Thanh toán VNPay chưa mở, vui lòng chọn COD.");
+        if (form.getPaymentMethod() == PaymentMethod.VNPAY && !paymentService.isVnpayEnabled()) {
+            throw new BusinessRuleException("paymentMethod", "Thanh toán VNPay chưa được cấu hình, vui lòng chọn COD.");
         }
 
         CartView cart = cartService.getCart(customerId);
@@ -121,6 +122,11 @@ public class CheckoutService {
         // Đặt xong thì làm trống giỏ
         cartItemRepository.deleteAll(items);
         items.getFirst().getCart().touch();
+
+        // VNPay: tạo lần thanh toán đang chờ; hàng vừa trừ được giữ 15 phút chờ khách trả tiền (BR-23)
+        if (order.getPaymentMethod() == PaymentMethod.VNPAY) {
+            paymentService.createVnpayAttempt(order);
+        }
         return order;
     }
 

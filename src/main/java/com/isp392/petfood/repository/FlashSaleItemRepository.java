@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Long> {
@@ -34,4 +37,55 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
     @Modifying(flushAutomatically = true)
     @Query("update FlashSaleItem f set f.soldQty = f.soldQty - :qty where f.id = :id and f.soldQty >= :qty")
     int unsell(@Param("id") Long id, @Param("qty") int qty);
+
+    // ===== Quản lý chiến dịch (module 6) =====
+
+    // Các suất của một chiến dịch, kèm lô và sản phẩm
+    @Query("""
+            select fsi from FlashSaleItem fsi
+            join fetch fsi.lot l
+            join fetch l.product
+            where fsi.flashSale.id = :saleId
+            order by l.expiryDate, fsi.id
+            """)
+    List<FlashSaleItem> findBySaleId(@Param("saleId") Long saleId);
+
+    // Một lô chỉ xuất hiện một lần trong một chiến dịch (UQ_FlashSaleItem_sale_lot)
+    boolean existsByFlashSale_IdAndLot_Id(Long saleId, Long lotId);
+
+    // Số lượng của lô đang được dành cho các chiến dịch KHÁC chưa kết thúc (phần chưa bán), để không dành trùng (BR-66, BR-68)
+    @Query("""
+            select coalesce(sum(fsi.allocatedQty - fsi.soldQty), 0) from FlashSaleItem fsi
+            where fsi.lot.id = :lotId
+              and fsi.flashSale.id <> :excludeSaleId
+              and fsi.flashSale.status <> com.isp392.petfood.enums.FlashSaleStatus.ENDED
+            """)
+    long reservedByOtherSales(@Param("lotId") Long lotId, @Param("excludeSaleId") Long excludeSaleId);
+
+    // Số suất còn lại của chiến dịch (= 0 thì bán hết, scheduler kết thúc chiến dịch)
+    @Query("select coalesce(sum(fsi.allocatedQty - fsi.soldQty), 0) from FlashSaleItem fsi where fsi.flashSale.id = :saleId")
+    long remainingOfSale(@Param("saleId") Long saleId);
+
+    long countByFlashSale_Id(Long saleId);
+
+    // ===== Trang Flash Sale cho khách =====
+    // Suất đang mở bán: chiến dịch ACTIVE trong khung giờ, còn suất, lô vẫn ở mức RED (21 đến dưới 90 ngày, BR-63).
+    // productId null = mọi sản phẩm.
+    @Query("""
+            select fsi from FlashSaleItem fsi
+            join fetch fsi.flashSale fs
+            join fetch fsi.lot l
+            join fetch l.product p
+            where fs.status = com.isp392.petfood.enums.FlashSaleStatus.ACTIVE
+              and fs.startTime <= :now and fs.endTime > :now
+              and fsi.soldQty < fsi.allocatedQty
+              and l.onHandQty > 0
+              and l.expiryDate >= :minExpiry and l.expiryDate < :maxExpiry
+              and (:productId is null or p.id = :productId)
+            order by fs.endTime, l.expiryDate, fsi.id
+            """)
+    List<FlashSaleItem> findRunningOffers(@Param("now") LocalDateTime now,
+                                          @Param("minExpiry") LocalDate minExpiry,
+                                          @Param("maxExpiry") LocalDate maxExpiry,
+                                          @Param("productId") Long productId);
 }

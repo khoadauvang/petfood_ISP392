@@ -50,6 +50,13 @@
     </c:choose>
 </p>
 
+<c:if test="${order.needsRefund}">
+    <form method="post" action="${ctx}/staff/orders/${order.id}/refunded">${csrf}
+        <button type="submit">Đã chuyển khoản hoàn tiền cho khách</button>
+        <span class="hint">Hoàn tiền VNPay làm thủ công, bấm sau khi đã chuyển khoản.</span>
+    </form>
+</c:if>
+
 <%-- Staff huỷ đơn chưa giao (hết hàng, không liên lạc được khách...). Hàng trả về đúng lô đã trừ. --%>
 <c:if test="${order.status == 'PENDING' or order.status == 'CONFIRMED' or (order.status == 'PROCESSING' and not order.cancelRequested)}">
     <form method="post" action="${ctx}/staff/orders/${order.id}/cancel">${csrf}

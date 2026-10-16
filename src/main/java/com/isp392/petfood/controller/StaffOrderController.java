@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 //   POST /staff/orders/{id}/returned         SHIPPED -> RETURNED (khách không nhận hàng)
 //   POST /staff/orders/{id}/cancel           huỷ đơn chưa giao, bắt buộc lý do
 //   POST /staff/orders/{id}/cancel-request/approve | reject   duyệt yêu cầu huỷ của khách
+//   POST /staff/orders/{id}/refunded         đơn VNPay đã trả tiền bị huỷ: ghi nhận đã hoàn tiền
 //   POST /admin/membership/recalculate       (ADMIN) tính lại hạng thành viên ngay
 @Controller
 @RequiredArgsConstructor
@@ -94,6 +95,12 @@ public class StaffOrderController {
                          @RequestParam(name = "cancelReason", required = false) String reason,
                          RedirectAttributes redirect) {
         return act(id, redirect, "Đã huỷ đơn #" + id + " và trả hàng về kho", () -> orderService.cancelByStaff(id, reason));
+    }
+
+    // Đơn VNPay đã trả tiền nhưng bị huỷ: staff đã chuyển khoản hoàn cho khách (thủ công, mục 9.12)
+    @PostMapping("/staff/orders/{id}/refunded")
+    public String refunded(@PathVariable("id") Long id, RedirectAttributes redirect) {
+        return act(id, redirect, "Đã ghi nhận hoàn tiền đơn #" + id, () -> orderService.markRefunded(id));
     }
 
     @PostMapping("/staff/orders/{id}/cancel-request/approve")

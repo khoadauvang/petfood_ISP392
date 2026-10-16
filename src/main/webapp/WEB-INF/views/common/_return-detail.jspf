@@ -1,0 +1,67 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Thân trang chi tiết yêu cầu trả hàng, dùng chung cho khách và Staff.
+     Trang include phải khai báo taglib c, fmt, biến ctx; model có "ret" (ReturnDetailDto). --%>
+<style>
+    .rd-grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin-bottom: 12px; }
+    .rd-grid dt { color: #666; }
+    .rd-table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; }
+    .rd-table th, .rd-table td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; vertical-align: top; }
+    .rd-table .num { text-align: right; white-space: nowrap; }
+    .rd-media { display: flex; flex-wrap: wrap; gap: 8px; }
+    .rd-media img, .rd-media video { width: 180px; height: 180px; object-fit: cover; background: #000; border-radius: 4px; }
+    .rd-status { display: inline-block; padding: 2px 10px; border-radius: 10px; background: #eee; font-weight: bold; }
+</style>
+
+<p><span class="rd-status">${ret.status.label}</span> · Đơn <c:out value="#${ret.orderId}"/> · ${ret.paymentMethod.label} · ${ret.paymentStatus.label}</p>
+<c:if test="${ret.status == 'REJECTED'}"><p class="msg err">Từ chối: <c:out value="${ret.rejectReason}"/></p></c:if>
+
+<dl class="rd-grid">
+    <dt>Lý do</dt><dd>${ret.reason.label}</dd>
+    <dt>Mô tả</dt><dd><c:out value="${empty ret.description ? '—' : ret.description}"/></dd>
+    <dt>Khách</dt><dd><c:out value="${ret.customerName}"/> · <c:out value="${ret.customerEmail}"/>
+        <c:if test="${not empty ret.customerPhone}"> · <c:out value="${ret.customerPhone}"/></c:if></dd>
+    <c:if test="${not empty ret.refundBankName}">
+        <dt>Tài khoản nhận hoàn</dt><dd><c:out value="${ret.refundBankName}"/> · <c:out value="${ret.refundAccountNo}"/>
+            · <c:out value="${ret.refundAccountHolder}"/></dd>
+    </c:if>
+    <dt>Gửi lúc</dt><dd>${ret.createdAtText}</dd>
+    <c:if test="${not empty ret.reviewedText}"><dt>Duyệt</dt><dd><c:out value="${ret.reviewedText}"/></dd></c:if>
+    <c:if test="${not empty ret.receivedAtText}"><dt>Nhận hàng</dt><dd>${ret.receivedAtText}</dd></c:if>
+    <c:if test="${not empty ret.inspectedByName}"><dt>Thẩm định</dt><dd><c:out value="${ret.inspectedByName}"/></dd></c:if>
+    <c:if test="${not empty ret.refundedAtText}"><dt>Hoàn tiền</dt><dd>${ret.refundedAtText}</dd></c:if>
+</dl>
+
+<table class="rd-table">
+    <thead>
+    <tr><th>Sản phẩm</th><th class="num">SL trả / mua</th><th>Đã mở</th><th class="num">Tối đa hoàn</th><th>Thẩm định</th><th class="num">Hoàn</th></tr>
+    </thead>
+    <tbody>
+    <c:forEach var="l" items="${ret.lines}">
+        <tr>
+            <td><c:out value="${l.productName}"/><c:if test="${l.flashSale}"> (Flash Sale)</c:if></td>
+            <td class="num">${l.quantity} / ${l.orderedQty}</td>
+            <td>${l.opened ? 'Có' : 'Không'}</td>
+            <td class="num"><fmt:formatNumber value="${l.maxRefund}" type="number"/> ₫</td>
+            <td>${empty l.inspectionResult ? '—' : l.inspectionResult.label}
+                <c:if test="${not empty l.inspectionNote}"><br><small><c:out value="${l.inspectionNote}"/></small></c:if></td>
+            <td class="num"><c:if test="${l.refundAmount != null}"><fmt:formatNumber value="${l.refundAmount}" type="number"/> ₫</c:if></td>
+        </tr>
+    </c:forEach>
+    </tbody>
+    <c:if test="${ret.status == 'INSPECTED' or ret.status == 'REFUNDED' or ret.status == 'CLOSED'}">
+        <tfoot><tr><td colspan="5" class="num"><strong>Tổng hoàn</strong></td>
+            <td class="num"><strong><fmt:formatNumber value="${ret.refundTotal}" type="number"/> ₫</strong></td></tr></tfoot>
+    </c:if>
+</table>
+
+<c:if test="${not empty ret.media}">
+    <h3>Ảnh / video</h3>
+    <div class="rd-media">
+        <c:forEach var="m" items="${ret.media}">
+            <c:choose>
+                <c:when test="${m.video}"><video src="${ctx}<c:out value='${m.url}'/>" controls preload="metadata"></video></c:when>
+                <c:otherwise><a href="${ctx}<c:out value='${m.url}'/>" target="_blank"><img src="${ctx}<c:out value='${m.url}'/>" alt=""></a></c:otherwise>
+            </c:choose>
+        </c:forEach>
+    </div>
+</c:if>

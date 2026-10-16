@@ -4,7 +4,9 @@ import com.isp392.petfood.dto.ProductCardDto;
 import com.isp392.petfood.dto.ProductFilter;
 import com.isp392.petfood.enums.AgeGroup;
 import com.isp392.petfood.enums.Species;
+import com.isp392.petfood.service.FlashSaleService;
 import com.isp392.petfood.service.ProductService;
+import com.isp392.petfood.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ProductController {
 
     private final ProductService productService;
+    private final ReviewService reviewService;
+    private final FlashSaleService flashSaleService;
 
     @InitBinder("filter")
     public void trimStrings(WebDataBinder binder) {
@@ -67,6 +71,8 @@ public class ProductController {
     @GetMapping("/products/{id}")
     public String detail(@PathVariable("id") Long id, Model model) {
         model.addAttribute("product", productService.getDetail(id));   // không bán / không có -> 404
+        model.addAttribute("reviewSummary", reviewService.productReviews(id));
+        model.addAttribute("flashSaleOffers", flashSaleService.runningOffers(id));
         model.addAttribute("shelfLifeDays", productService.getShelfLifeCommitmentDays());
         return "product/detail";
     }

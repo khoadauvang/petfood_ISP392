@@ -6,6 +6,7 @@ import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.security.AccountPrincipal;
 import com.isp392.petfood.service.OrderService;
+import com.isp392.petfood.service.ReturnService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +29,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class OrderController {
 
     private final OrderService orderService;
+    private final ReturnService returnService;
 
     @GetMapping
     public String list(@AuthenticationPrincipal AccountPrincipal user,
@@ -44,6 +46,8 @@ public class OrderController {
     @GetMapping("/{id}")
     public String detail(@AuthenticationPrincipal AccountPrincipal user, @PathVariable("id") Long id, Model model) {
         model.addAttribute("order", orderService.getForCustomer(user.getCustomerId(), id));
+        model.addAttribute("returns", returnService.listForOrder(user.getCustomerId(), id));
+        model.addAttribute("canRequestReturn", returnService.canRequest(user.getCustomerId(), id));
         return "customer/order-detail";
     }
 

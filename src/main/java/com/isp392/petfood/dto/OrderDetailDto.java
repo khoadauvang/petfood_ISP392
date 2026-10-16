@@ -37,10 +37,18 @@ public class OrderDetailDto {
     private final String returnedAtText;
     private final String cancelReason;
     private final boolean cancelRequested;    // đang PROCESSING và khách đã gửi yêu cầu huỷ
+    private final boolean needsRefund;        // đơn VNPay đã trả tiền nhưng bị huỷ: staff phải hoàn tiền
+    private final List<String> payments;      // các lần thanh toán (bảng Payment)
+    private final String vnpayHoldUntil;      // đơn VNPay chờ thanh toán: hạn giữ hàng; null nếu không áp dụng
 
     // BR-19: khách tự huỷ khi PENDING / CONFIRMED; khi PROCESSING chỉ gửi yêu cầu cho staff duyệt
     public boolean isCustomerCanCancel() {
         return status == OrderStatus.PENDING || status == OrderStatus.CONFIRMED;
+    }
+
+    public boolean isAwaitingVnpay() {
+        return paymentMethod == PaymentMethod.VNPAY && status == OrderStatus.PENDING
+                && paymentStatus == PaymentStatus.UNPAID && vnpayHoldUntil != null;
     }
 
     public boolean isCustomerCanRequestCancel() {

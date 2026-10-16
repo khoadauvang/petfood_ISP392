@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class OrderLineDto {
+    private final Long orderItemId;
     private final Long productId;
     private final String sku;
     private final String name;
@@ -21,4 +22,5 @@ public class OrderLineDto {
     private final BigDecimal discountAmount;
     private final BigDecimal lineTotal;
     private final List<String> lots;          // ví dụ "Lô #12 · HSD 15/10/2027 · 2 sp"
+    private final boolean reviewed;           // khách đã đánh giá dòng này (module 8)
 }

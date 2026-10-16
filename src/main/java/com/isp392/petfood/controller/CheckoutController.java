@@ -7,6 +7,8 @@ import com.isp392.petfood.enums.PaymentMethod;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.security.AccountPrincipal;
 import com.isp392.petfood.service.CheckoutService;
+import com.isp392.petfood.service.PaymentService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -32,6 +34,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class CheckoutController {
 
     private final CheckoutService checkoutService;
+    private final PaymentService paymentService;
 
     @InitBinder("checkoutForm")
     public void trimStrings(WebDataBinder binder) {
@@ -64,13 +67,18 @@ public class CheckoutController {
                         @Valid @ModelAttribute("checkoutForm") CheckoutForm form,
                         BindingResult result,
                         Model model,
-                        RedirectAttributes redirect) {
+                        RedirectAttributes redirect,
+                        HttpServletRequest request) {
         if (result.hasErrors()) {
             FormErrors.summary(model);
             return show(model, checkoutService.preview(user.getCustomerId(), null));
         }
         try {
             Order order = checkoutService.place(user.getCustomerId(), form);
+            if (order.getPaymentMethod() == PaymentMethod.VNPAY) {
+                // Sang trang VNPay; xong VNPay đưa khách về /payment/vnpay-return
+                return "redirect:" + paymentService.paymentUrl(user.getCustomerId(), order.getId(), clientIp(request));
+            }
             redirect.addFlashAttribute("successMessage", "Đặt hàng thành công! Mã đơn của bạn là #" + order.getId() + ".");
             return "redirect:/orders/" + order.getId();
         } catch (BusinessRuleException e) {
@@ -82,7 +90,14 @@ public class CheckoutController {
     private String show(Model model, CheckoutSummary summary) {
         model.addAttribute("summary", summary);
         model.addAttribute("paymentMethods", PaymentMethod.values());
+        model.addAttribute("vnpayEnabled", paymentService.isVnpayEnabled());
         return "customer/checkout";
+    }
+
+    // IP khách gửi kèm cho VNPay (vnp_IpAddr); localhost IPv6 đổi về dạng IPv4
+    static String clientIp(HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        return ip == null || ip.contains(":") ? "127.0.0.1" : ip;
     }
 
     private static String blockedReason(CheckoutSummary summary) {

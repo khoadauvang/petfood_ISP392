@@ -59,8 +59,9 @@
         <p>Thanh toán<br>
             <c:forEach var="m" items="${paymentMethods}">
                 <label>
-                    <form:radiobutton path="paymentMethod" value="${m}" disabled="${m == 'VNPAY'}"/>
-                    ${m.label}<c:if test="${m == 'VNPAY'}"> (sắp có)</c:if>
+                    <form:radiobutton path="paymentMethod" value="${m}" disabled="${m == 'VNPAY' and not vnpayEnabled}"/>
+                    ${m.label}<c:if test="${m == 'VNPAY' and not vnpayEnabled}"> (chưa cấu hình)</c:if>
+                    <c:if test="${m == 'VNPAY' and vnpayEnabled}"> (thanh toán trong 15 phút, quá hạn đơn tự huỷ)</c:if>
                 </label><br>
             </c:forEach>
             <form:errors path="paymentMethod" cssClass="error"/>

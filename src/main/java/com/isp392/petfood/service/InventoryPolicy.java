@@ -34,6 +34,12 @@ public class InventoryPolicy {
         return today().plusDays(shelfLifeCommitmentDays);
     }
 
+    // Lô có HSD từ ngày này trở đi mới được bán qua Flash Sale (dưới 21 ngày thì không bán, BR-63).
+    // Lô RED = HSD trong [minFlashSaleExpiry, minSellableExpiry).
+    public LocalDate minFlashSaleExpiry() {
+        return today().plusDays(quarantineDays);
+    }
+
     // Số ngày còn lại tới HSD (âm = đã quá hạn)
     public long daysLeft(LocalDate expiryDate) {
         return ChronoUnit.DAYS.between(today(), expiryDate);

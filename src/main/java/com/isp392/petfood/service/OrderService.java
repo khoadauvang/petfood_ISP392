@@ -8,8 +8,10 @@ import com.isp392.petfood.entity.Employee;
 import com.isp392.petfood.entity.Order;
 import com.isp392.petfood.entity.OrderItem;
 import com.isp392.petfood.entity.OrderItemLot;
+import com.isp392.petfood.entity.Payment;
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.enums.PaymentMethod;
+import com.isp392.petfood.enums.PaymentRecordStatus;
 import com.isp392.petfood.enums.PaymentStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
@@ -20,6 +22,8 @@ import com.isp392.petfood.repository.OrderItemLotRepository;
 import com.isp392.petfood.repository.OrderItemRepository;
 import com.isp392.petfood.repository.OrderItemRepository.OrderCountRow;
 import com.isp392.petfood.repository.OrderRepository;
+import com.isp392.petfood.repository.PaymentRepository;
+import com.isp392.petfood.repository.ProductReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +37,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +67,10 @@ public class OrderService {
     private final LotRepository lotRepository;
     private final FlashSaleItemRepository flashSaleItemRepository;
     private final EmployeeRepository employeeRepository;
+    private final PaymentRepository paymentRepository;
+    private final VnpayClient vnpayClient;
+    private final ReturnService returnService;
+    private final ProductReviewRepository productReviewRepository;
 
     // ===== Phía khách =====
 
@@ -172,17 +181,23 @@ public class OrderService {
         order.setCompletedAt(LocalDateTime.now());
         if (order.getPaymentMethod() == PaymentMethod.COD) {
             order.setPaymentStatus(PaymentStatus.PAID);
+            Payment payment = new Payment(order, PaymentMethod.COD, order.getTotalAmount());
+            payment.setStatus(PaymentRecordStatus.SUCCESS);
+            payment.setPaidAt(order.getCompletedAt());
+            paymentRepository.save(payment);
         }
         return order;
     }
 
-    // SHIPPED -> RETURNED: khách không nhận hàng. Không tự cộng tồn: hàng về được thẩm định ở module trả hàng.
+    // SHIPPED -> RETURNED: khách không nhận hàng. Không tự cộng tồn: tạo sẵn yêu cầu trả hàng REFUSED_DELIVERY
+    // để staff thẩm định từng dòng (tái nhập / tiêu huỷ) ở module trả hàng.
     @Transactional
     public Order markReturned(Long orderId) {
         Order order = lockOrder(orderId);
         requireStatus(order, OrderStatus.SHIPPED, "chuyển sang 'khách không nhận hàng'");
         order.setStatus(OrderStatus.RETURNED);
         order.setReturnedAt(LocalDateTime.now());
+        returnService.createForRefusedDelivery(order);
         return order;
     }
 
@@ -219,9 +234,25 @@ public class OrderService {
         return order;
     }
 
+    // Đơn VNPay đã trả tiền nhưng bị huỷ: staff chuyển khoản hoàn cho khách rồi bấm "Đã hoàn tiền" (thủ công, mục 9.12)
+    @Transactional
+    public Order markRefunded(Long orderId) {
+        Order order = lockOrder(orderId);
+        if (!needsRefund(order)) {
+            throw new BusinessRuleException("Đơn #" + orderId + " không có khoản cần hoàn tiền.");
+        }
+        order.setPaymentStatus(PaymentStatus.REFUNDED);
+        return order;
+    }
+
+    static boolean needsRefund(Order order) {
+        return order.getStatus() == OrderStatus.CANCELLED && order.getPaymentStatus() == PaymentStatus.PAID;
+    }
+
     // ===== Huỷ + cộng trả tồn =====
 
-    private void cancel(Order order, String reason) {
+    // Gọi khi đã khoá đơn (lockOrder). PaymentService dùng để tự huỷ đơn VNPay thất bại / COD quá hạn.
+    void cancel(Order order, String reason) {
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelReason(reason);
         order.setCancelledAt(LocalDateTime.now());
@@ -294,18 +325,21 @@ public class OrderService {
                                 + x.getLot().getExpiryDate().format(DATE) + " · " + x.getQuantity() + " sp",
                                 Collectors.toList())));
 
+        List<OrderItem> items = orderItemRepository.findDetailedByOrderId(order.getId());
+        Set<Long> reviewed = items.isEmpty() ? Set.of() : new HashSet<>(
+                productReviewRepository.findReviewedOrderItemIds(items.stream().map(OrderItem::getId).toList()));
         List<OrderLineDto> lines = new ArrayList<>();
         BigDecimal subtotal = BigDecimal.ZERO;
         BigDecimal discountTotal = BigDecimal.ZERO;
-        for (OrderItem item : orderItemRepository.findDetailedByOrderId(order.getId())) {
+        for (OrderItem item : items) {
             BigDecimal gross = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
             subtotal = subtotal.add(gross);
             discountTotal = discountTotal.add(item.getDiscountAmount());
-            lines.add(new OrderLineDto(item.getProduct().getId(), item.getProduct().getSku(), item.getProduct().getName(),
+            lines.add(new OrderLineDto(item.getId(), item.getProduct().getId(), item.getProduct().getSku(), item.getProduct().getName(),
                     item.getProduct().getImageUrl(), item.getFlashSaleItem() != null,
                     item.getFlashSaleItem() == null ? null : item.getFlashSaleItem().getFlashSale().getName(),
                     item.getQuantity(), item.getUnitPrice(), item.getDiscountAmount(), item.getLineTotal(),
-                    lotsByItem.getOrDefault(item.getId(), List.of())));
+                    lotsByItem.getOrDefault(item.getId(), List.of()), reviewed.contains(item.getId())));
         }
 
         Customer customer = order.getCustomer();
@@ -334,6 +368,16 @@ public class OrderService {
                 .returnedAtText(format(order.getReturnedAt()))
                 .cancelReason(order.getCancelReason())
                 .cancelRequested(order.isCancelRequested())
+                .needsRefund(needsRefund(order))
+                .vnpayHoldUntil(paymentRepository.findFirstByOrder_IdAndMethodAndStatus(order.getId(),
+                                PaymentMethod.VNPAY, PaymentRecordStatus.PENDING)
+                        .map(p -> p.getCreatedAt().plusMinutes(vnpayClient.getHoldMinutes()).format(DATE_TIME))
+                        .orElse(null))
+                .payments(paymentRepository.findByOrder_IdOrderByCreatedAtAscIdAsc(order.getId()).stream()
+                        .map(p -> p.getMethod().name() + " · " + p.getStatus().getLabel()
+                                + (p.getVnpTransactionNo() == null ? "" : " · mã VNPay " + p.getVnpTransactionNo())
+                                + (p.getPaidAt() == null ? "" : " · " + format(p.getPaidAt())))
+                        .toList())
                 .build();
     }
 

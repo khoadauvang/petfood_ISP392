@@ -10,6 +10,9 @@
     <a href="${ctx}/staff/lots">Tồn theo lô</a>
     <a href="${ctx}/staff/alerts">Cảnh báo</a>
     <a href="${ctx}/staff/orders">Đơn hàng</a>
+    <a href="${ctx}/staff/returns">Trả hàng</a>
+    <a href="${ctx}/staff/flash-sales">Flash Sale</a>
+    <a href="${ctx}/staff/reviews">Đánh giá</a>
     <span class="who">
         <c:out value="${currentUser.fullName}"/> (<c:out value="${currentUser.role}"/>)
         <form method="post" action="${ctx}/logout" class="inline">

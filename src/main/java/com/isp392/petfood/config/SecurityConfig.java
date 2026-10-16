@@ -44,8 +44,10 @@ public class SecurityConfig {
                 // (2) Tai nguyen tinh
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
                 // (3) Guest: xem san pham, dang ky, dang nhap (ca Google) (BR-07)
-                .requestMatchers("/", "/login", "/register", "/products/**",
+                .requestMatchers("/", "/login", "/register", "/products/**", "/flash-sale",
                         "/oauth2/**", "/login/oauth2/**").permitAll()
+                // VNPay gọi về: không có phiên đăng nhập, chỉ tin dữ liệu có chữ ký đúng (BR-24)
+                .requestMatchers("/payment/vnpay-return", "/payment/vnpay-ipn").permitAll()
                 // (4) Theo vai tro
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN")

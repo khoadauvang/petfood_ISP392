@@ -2,6 +2,7 @@ package com.isp392.petfood.config;
 
 import com.isp392.petfood.service.AvatarStorage;
 import com.isp392.petfood.service.ProductImageStorage;
+import com.isp392.petfood.service.ReturnMediaStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -15,6 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final ProductImageStorage productImageStorage;
     private final AvatarStorage avatarStorage;
+    private final ReturnMediaStorage returnMediaStorage;
 
     // URL /images/products/** tìm file ở hai nơi, theo thứ tự:
     //   1. thư mục upload (ảnh nhân viên tải lên lúc chạy), ví dụ ./uploads/products/RC-KITTEN36-400G/1-3f9a2c1b.jpg
@@ -28,6 +30,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations(directoryUri(productImageStorage.getRoot()), "classpath:/static/images/products/");
         registry.addResourceHandler(AvatarStorage.URL_PREFIX + "**")
                 .addResourceLocations(directoryUri(avatarStorage.getRoot()));
+        // Ảnh / video khách gửi kèm yêu cầu trả hàng (tên file ngẫu nhiên, không đoán được)
+        registry.addResourceHandler(ReturnMediaStorage.URL_PREFIX + "**")
+                .addResourceLocations(directoryUri(returnMediaStorage.getRoot()));
     }
 
     private static String directoryUri(Path dir) {

@@ -2,6 +2,7 @@ package com.isp392.petfood.repository;
 
 import com.isp392.petfood.entity.Order;
 import com.isp392.petfood.enums.OrderStatus;
+import com.isp392.petfood.enums.PaymentMethod;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -84,4 +85,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             GROUP BY o.customer_id
             """, nativeQuery = true)
     List<CustomerAmountRow> sumRefundsByCustomer(@Param("cutoff") LocalDateTime cutoff);
+
+    // ===== Job thanh toán (module 5) =====
+    // Đơn chưa thanh toán đặt trước mốc "before" theo phương thức, còn ở trạng thái status:
+    //   VNPay quá thời gian giữ hàng 15 phút (BR-23) / COD chưa xác nhận sau 24 giờ (BR-27)
+    @Query("""
+            select o.id from Order o
+            where o.paymentMethod = :method and o.status = :status
+              and o.paymentStatus = com.isp392.petfood.enums.PaymentStatus.UNPAID
+              and o.createdAt < :before
+            order by o.createdAt
+            """)
+    List<Long> findUnpaidIdsCreatedBefore(@Param("method") PaymentMethod method,
+                                          @Param("status") OrderStatus status,
+                                          @Param("before") LocalDateTime before);
 }

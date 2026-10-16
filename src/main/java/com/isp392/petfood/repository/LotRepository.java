@@ -139,4 +139,12 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             where l.id = :lotId and l.onHandQty + :qty <= l.receivedQty
             """)
     int putBack(@Param("lotId") Long lotId, @Param("qty") int qty);
+
+    // ===== Flash Sale: lô cận hạn mức RED còn hàng (21 đến dưới 90 ngày, BR-63), để chọn khi tạo suất =====
+    @Query("""
+            select l from Lot l join fetch l.product p
+            where l.onHandQty > 0 and l.expiryDate >= :minExpiry and l.expiryDate < :maxExpiry
+            order by l.expiryDate, l.id
+            """)
+    List<Lot> findRedInStock(@Param("minExpiry") LocalDate minExpiry, @Param("maxExpiry") LocalDate maxExpiry);
 }
