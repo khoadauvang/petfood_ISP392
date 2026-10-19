@@ -1,0 +1,5 @@
+<%@ page pageEncoding="UTF-8" %>
+<!-- Nút Chat nổi cố định ở góc phải dưới màn hình: mở chatbox hỗ trợ theo kịch bản (SupportController, không cần đăng nhập) -->
+<a href="${ctx}/support" class="chat-button" aria-label="Hỗ trợ trực tuyến" title="Hỗ trợ trực tuyến">
+    <i class="fi fi-rr-comment-alt"></i>
+</a>

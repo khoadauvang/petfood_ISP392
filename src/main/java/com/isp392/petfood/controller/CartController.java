@@ -40,9 +40,12 @@ public class CartController {
                       @RequestParam(name = "productId", required = false) Long productId,
                       @RequestParam(name = "flashSaleItemId", required = false) Long flashSaleItemId,
                       @RequestParam(name = "quantity", defaultValue = "1") int quantity,
+                      @RequestParam(name = "returnUrl", required = false) String returnUrl,
                       RedirectAttributes redirect) {
-        // Thêm từ trang chi tiết thì quay lại trang đó; thêm suất Flash Sale thì về giỏ
-        String back = flashSaleItemId == null && productId != null ? "redirect:/products/" + productId : "redirect:/cart";
+        // Trang gửi kèm returnUrl (trang chủ, danh sách sản phẩm) thì quay lại đúng trang đó;
+        // không có thì: thêm từ trang chi tiết quay lại trang đó, thêm suất Flash Sale thì về giỏ
+        String back = isLocalPath(returnUrl) ? "redirect:" + returnUrl
+                : flashSaleItemId == null && productId != null ? "redirect:/products/" + productId : "redirect:/cart";
         try {
             CartItem item;
             if (flashSaleItemId != null) {
@@ -58,6 +61,12 @@ public class CartController {
             redirect.addFlashAttribute("errorMessage", "Chưa thêm được vào giỏ: " + e.getMessage());
         }
         return back;
+    }
+
+    // Chỉ nhận đường dẫn trong app ("/products?..."), chặn chuyển hướng ra trang ngoài ("//evil.com", "http://...")
+    private static boolean isLocalPath(String url) {
+        return url != null && url.startsWith("/") && !url.startsWith("//") && !url.contains("\\")
+                && url.chars().noneMatch(Character::isISOControl);
     }
 
     @PostMapping("/items/{id}/quantity")

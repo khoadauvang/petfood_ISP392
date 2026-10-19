@@ -13,6 +13,7 @@ import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.repository.CategoryRepository;
 import com.isp392.petfood.repository.LotRepository;
 import com.isp392.petfood.repository.LotRepository.StockRow;
+import com.isp392.petfood.repository.OrderItemRepository;
 import com.isp392.petfood.repository.ProductImageRepository;
 import com.isp392.petfood.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +26,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // Phần sản phẩm phía khách (Guest/Customer): danh sách có tìm kiếm, lọc, phân trang và trang chi tiết.
 @Service
@@ -42,6 +47,7 @@ public class ProductService {
     private final LotRepository lotRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderItemRepository orderItemRepository;
     private final InventoryPolicy inventoryPolicy;   // mốc 90 ngày dùng chung với phía Staff
 
     // BR-12: cam kết hạn dùng tối thiểu (mặc định 90 ngày)
@@ -68,19 +74,30 @@ public class ProductService {
                 products.getContent().stream().map(Product::getId).toList());
 
         // Page.map giữ nguyên thông tin phân trang, chỉ đổi kiểu phần tử Product -> ProductCardDto
-        return products.map(p -> {
-            StockRow stock = stockByProductId.get(p.getId());
-            boolean inStock = stock != null && stock.getQuantity() > 0;
-            return new ProductCardDto(
-                    p.getId(),
-                    p.getSku(),
-                    p.getName(),
-                    p.getBrand(),
-                    p.getSellingPrice(),
-                    p.getImageUrl(),
-                    inStock,
-                    inStock ? stock.getNearestExpiry().format(DATE) : null);
-        });
+        return products.map(p -> toCard(p, stockByProductId.get(p.getId())));
+    }
+
+    // Trang chủ "Sản phẩm bán chạy & Mới về": sản phẩm bán nhiều nhất (theo số lượng trên đơn đã giao thành công)
+    // đứng trước, chưa đủ thì thêm sản phẩm mới nhất. Ưu tiên sản phẩm còn hàng, hết hàng chỉ để lấp chỗ trống.
+    @Transactional(readOnly = true)
+    public List<ProductCardDto> featuredProducts(int limit) {
+        Set<Long> ids = new LinkedHashSet<>(orderItemRepository.findBestSellerIds(PageRequest.of(0, limit * 3)));
+        productRepository.findByStatusAndCategory_Status(ProductStatus.ACTIVE, CategoryStatus.ACTIVE,
+                        PageRequest.of(0, limit * 3, Sort.by(Sort.Direction.DESC, "createdAt", "id")))
+                .forEach(p -> ids.add(p.getId()));
+
+        Map<Long, Product> byId = productRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        Map<Long, StockRow> stockByProductId = loadSellableStock(List.copyOf(ids));
+        List<ProductCardDto> cards = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(p -> toCard(p, stockByProductId.get(p.getId())))
+                .toList();
+        return Stream.concat(cards.stream().filter(ProductCardDto::isInStock),
+                        cards.stream().filter(c -> !c.isInStock()))
+                .limit(limit)
+                .toList();
     }
 
     // Chi tiết sản phẩm cho khách. Sản phẩm ngừng kinh doanh hoặc thuộc danh mục ẩn thì khách không xem được (404).
@@ -140,6 +157,19 @@ public class ProductService {
         }
         return lotRepository.sumSellableQuantity(productIds, inventoryPolicy.minSellableExpiry()).stream()
                 .collect(Collectors.toMap(StockRow::getProductId, Function.identity()));
+    }
+
+    private static ProductCardDto toCard(Product p, StockRow stock) {
+        boolean inStock = stock != null && stock.getQuantity() > 0;
+        return new ProductCardDto(
+                p.getId(),
+                p.getSku(),
+                p.getName(),
+                p.getBrand(),
+                p.getSellingPrice(),
+                p.getImageUrl(),
+                inStock,
+                inStock ? stock.getNearestExpiry().format(DATE) : null);
     }
 
     private static String blankToNull(String value) {

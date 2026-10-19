@@ -21,11 +21,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 // Trang sản phẩm phía khách. Guest xem được (SecurityConfig permitAll "/" và "/products/**", BR-07).
-//   GET /  hoặc /products     danh sách: tìm theo từ khoá, lọc danh mục / loài / độ tuổi / thương hiệu / khoảng giá
+//   GET /                     trang chủ (product/list.jsp của nhóm FE): banner + sản phẩm bán chạy & mới về
+//   GET /products             danh sách (product/products.jsp): tìm theo từ khoá, lọc danh mục / loài / độ tuổi /
+//                             thương hiệu / khoảng giá
 //   GET /products/{id}        chi tiết: 5 ảnh, mô tả, tồn bán thường, HSD lô gần nhất
 @Controller
 @RequiredArgsConstructor
 public class ProductController {
+
+    private static final int FEATURED_COUNT = 8;
 
     private final ProductService productService;
     private final ReviewService reviewService;
@@ -38,7 +42,14 @@ public class ProductController {
 
     // Trên URL, page tính từ 1 cho người dùng; Spring Data tính từ 0 nên trừ 1 ở đây.
     // BindingResult đứng ngay sau filter: ô gõ sai kiểu (giá "abc", species lạ) chỉ bị bỏ qua thay vì lỗi 400.
-    @GetMapping({"/", "/products"})
+    // Trang chủ: "featuredProducts" là tên FE dùng trong product/list.jsp
+    @GetMapping("/")
+    public String home(Model model) {
+        model.addAttribute("featuredProducts", productService.featuredProducts(FEATURED_COUNT));
+        return "product/list";   // -> /WEB-INF/views/product/list.jsp
+    }
+
+    @GetMapping("/products")
     public String list(@ModelAttribute("filter") ProductFilter filter,
                        BindingResult ignoredErrors,
                        @RequestParam(name = "page", defaultValue = "1") int page,
@@ -65,7 +76,7 @@ public class ProductController {
         model.addAttribute("speciesList", Species.values());
         model.addAttribute("ageGroups", AgeGroup.values());
         model.addAttribute("shelfLifeDays", productService.getShelfLifeCommitmentDays());
-        return "product/list";   // -> /WEB-INF/views/product/list.jsp
+        return "product/products";   // -> /WEB-INF/views/product/products.jsp
     }
 
     @GetMapping("/products/{id}")

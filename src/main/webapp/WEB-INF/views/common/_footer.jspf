@@ -1,0 +1,72 @@
+<%@ page pageEncoding="UTF-8" %>
+
+<footer class="footer">
+    <div class="footer-container">
+        <!-- Cột 1: Thương hiệu & Liên hệ -->
+        <div class="footer-brand">
+            <a href="${ctx}/" class="footer-logo">
+                <span class="footer-logo-badge">
+                    <i class="fi fi-rr-pets"></i>
+                </span>
+                <span>PetFood</span>
+            </a>
+            <p>Hệ thống dinh dưỡng và chăm sóc thú cưng cao cấp hàng đầu Việt Nam.</p>
+
+            <ul class="footer-contact">
+                <li>
+                    <i class="fi fi-rr-phone-call"></i>
+                    <span>Hotline: <strong class="text-orange">1900 6868</strong></span>
+                </li>
+                <li>
+                    <i class="fi fi-rr-envelope"></i>
+                    <span>Email: <a href="mailto:hotro@petfood.vn">hotro@petfood.vn</a></span>
+                </li>
+                <li class="contact-muted">
+                    <i class="fi fi-rr-clock-three"></i>
+                    <span>Thời gian hỗ trợ: 8:00 - 21:00 hàng ngày</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Cột 2: Mua hàng -->
+        <div class="footer-column">
+            <h3>Mua hàng</h3>
+            <a href="${ctx}/products?species=DOG" class="${activePage == 'dog' ? 'active' : ''}">Thức ăn cho chó</a>
+            <a href="${ctx}/products?species=CAT" class="${activePage == 'cat' ? 'active' : ''}">Thức ăn cho mèo</a>
+            <%-- Trang sản phẩm lọc theo categoryId / keyword (ProductFilter), không có tham số "category" --%>
+            <a href="${ctx}/products?keyword=Pate" class="${activePage == 'pate' ? 'active' : ''}">Pate cho chó mèo</a>
+            <a href="${ctx}/products?keyword=th%C6%B0%E1%BB%9Fng" class="${activePage == 'treats' ? 'active' : ''}">Bánh &amp; súp thưởng</a>
+            <a href="${ctx}/flash-sale" class="${activePage == 'flash-sale' ? 'active' : ''}">Flash Sale xả kho</a>
+        </div>
+
+        <!-- Cột 3: Hỗ trợ -->
+        <div class="footer-column">
+            <h3>Hỗ trợ</h3>
+            <a href="${ctx}/policies/return" class="${activePage == 'policy-return' ? 'active' : ''}">Chính sách đổi trả trong 3 ngày</a>
+            <a href="${ctx}/policies/expiry" class="${activePage == 'policy-expiry' ? 'active' : ''}">Cam kết hạn dùng tối thiểu 90 ngày</a>
+            <a href="${ctx}/policies/shipping" class="${activePage == 'policy-shipping' ? 'active' : ''}">Chính sách giao hàng hỏa tốc 2H</a>
+            <a href="${ctx}/policies/guide" class="${activePage == 'guide' ? 'active' : ''}">Hướng dẫn mua hàng &amp; thanh toán</a>
+            <%-- Câu hỏi thường gặp nằm trong chatbox kịch bản --%>
+            <a href="${ctx}/support" class="${activePage == 'faq' ? 'active' : ''}">Câu hỏi thường gặp (FAQ)</a>
+        </div>
+
+        <!-- Cột 4: Tài khoản -->
+        <div class="footer-column">
+            <h3>Tài khoản</h3>
+            <a href="${ctx}/profile" class="${activePage == 'profile' ? 'active' : ''}">Thông tin tài khoản</a>
+            <a href="${ctx}/orders" class="${activePage == 'orders' ? 'active' : ''}">Lịch sử đơn hàng</a>
+            <%-- Hạng thành viên của khách hiện ở trang hồ sơ --%>
+            <a href="${ctx}/profile" class="${activePage == 'vip' ? 'active' : ''}">Hạng thành viên</a>
+        </div>
+    </div>
+
+    <!-- Dòng bản quyền dưới cùng -->
+    <div class="footer-bottom">
+        <span>&copy; 2026 PetFood. All rights reserved.</span>
+        <div class="footer-bottom-links">
+            <a href="${ctx}/terms" class="${activePage == 'terms' ? 'active' : ''}">Điều khoản dịch vụ</a>
+            <a href="${ctx}/privacy" class="${activePage == 'privacy' ? 'active' : ''}">Chính sách bảo mật</a>
+            <a href="${ctx}/partnership" class="${activePage == 'partnership' ? 'active' : ''}">Hợp tác cùng PetFood</a>
+        </div>
+    </div>
+</footer>

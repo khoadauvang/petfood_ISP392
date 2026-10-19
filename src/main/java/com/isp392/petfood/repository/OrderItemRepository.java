@@ -1,6 +1,7 @@
 package com.isp392.petfood.repository;
 
 import com.isp392.petfood.entity.OrderItem;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,4 +36,15 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             group by i.order.id
             """)
     List<OrderCountRow> countByOrderIds(@Param("orderIds") Collection<Long> orderIds);
+
+    // Sản phẩm bán chạy cho trang chủ: tổng số lượng trên đơn đã giao thành công, chỉ sản phẩm khách đang xem được
+    @Query("""
+            select i.product.id from OrderItem i
+            where i.order.status = com.isp392.petfood.enums.OrderStatus.COMPLETED
+              and i.product.status = com.isp392.petfood.enums.ProductStatus.ACTIVE
+              and i.product.category.status = com.isp392.petfood.enums.CategoryStatus.ACTIVE
+            group by i.product.id
+            order by sum(i.quantity) desc
+            """)
+    List<Long> findBestSellerIds(Pageable pageable);
 }

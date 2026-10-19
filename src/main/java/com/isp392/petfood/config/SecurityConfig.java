@@ -62,6 +62,8 @@ public class SecurityConfig {
                 // (3) Guest: xem san pham, dang ky, dang nhap (ca Google) (BR-07)
                 .requestMatchers("/", "/login", "/register", "/products/**", "/flash-sale",
                         "/oauth2/**", "/login/oauth2/**").permitAll()
+                // Trang thông tin ở header / footer của FE (chính sách, điều khoản...)
+                .requestMatchers("/policies", "/policies/**", "/terms", "/privacy", "/partnership").permitAll()
                 // Quên mật khẩu bằng OTP qua email (mục 9.11)
                 .requestMatchers("/forgot-password", "/forgot-password/**").permitAll()
                 // Chatbox hỗ trợ + nút "Khác" gửi yêu cầu: không cần đăng nhập (requirements 7.10)
