@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Đánh giá sản phẩm · Food Pet Shop</title>
+    <title>Đánh giá sản phẩm · PetFood</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }
         .field { margin: 12px 0; }

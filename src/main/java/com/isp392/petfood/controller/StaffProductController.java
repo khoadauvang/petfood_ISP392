@@ -2,6 +2,7 @@ package com.isp392.petfood.controller;
 
 import com.isp392.petfood.dto.ProductAdminRow;
 import com.isp392.petfood.dto.ProductForm;
+import com.isp392.petfood.dto.ProductGroupDto;
 import com.isp392.petfood.entity.Product;
 import com.isp392.petfood.enums.AgeGroup;
 import com.isp392.petfood.enums.ProductStatus;
@@ -26,6 +27,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // Quản lý sản phẩm. /staff/** cho phép STAFF và ADMIN (SecurityConfig).
 //   GET  /staff/products                     danh sách + tìm kiếm, lọc, phân trang
@@ -60,6 +65,22 @@ public class StaffProductController {
         Page<ProductAdminRow> result = productAdminService.search(keyword, categoryId, species, status,
                 Math.max(page, 1) - 1);
 
+        List<ProductGroupDto> productGroups = productAdminService.getProductGroups(keyword, categoryId, species, status);
+
+        // Đếm chính xác số lượng cho 3 KPI Cards
+        long totalActive = 0;
+        long totalDiscontinued = 0;
+        for (ProductGroupDto g : productGroups) {
+            totalActive += g.getActiveCount();
+            totalDiscontinued += g.getDiscontinuedCount();
+        }
+        Map<String, Long> productCounts = new HashMap<>();
+        productCounts.put("total", result.getTotalElements());
+        productCounts.put("active", totalActive);
+        productCounts.put("discontinued", totalDiscontinued);
+        model.addAttribute("productCounts", productCounts);
+
+        model.addAttribute("productGroups", productGroups);
         model.addAttribute("products", result.getContent());
         model.addAttribute("currentPage", result.getNumber() + 1);
         model.addAttribute("totalPages", result.getTotalPages());

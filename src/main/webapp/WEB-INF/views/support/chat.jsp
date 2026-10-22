@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hỗ trợ · Food Pet Shop</title>
+    <title>Hỗ trợ · PetFood</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }
         .chat { max-width: 640px; display: flex; flex-direction: column; gap: 8px; }
@@ -28,7 +28,7 @@
 <h1>Hỗ trợ khách hàng</h1>
 
 <div class="chat">
-    <div class="bubble bot">Xin chào! Food Pet Shop có thể giúp gì cho bạn? Hãy chọn một chủ đề bên dưới.</div>
+    <div class="bubble bot">Xin chào! PetFood có thể giúp gì cho bạn? Hãy chọn một chủ đề bên dưới.</div>
     <c:forEach var="step" items="${chat.path}">
         <div class="bubble user"><c:out value="${step.label}"/></div>
         <div class="bubble bot"><c:out value="${step.botMessage}"/><%@ include file="/WEB-INF/views/support/_action-link.jspf" %></div>

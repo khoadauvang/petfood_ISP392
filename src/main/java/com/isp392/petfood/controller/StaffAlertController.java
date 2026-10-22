@@ -19,6 +19,7 @@ public class StaffAlertController {
     public String alerts(Model model) {
         model.addAttribute("lowStockProducts", inventoryAlertService.lowStockProducts());
         model.addAttribute("nearExpiryLots", inventoryAlertService.nearExpiryLots());
+        model.addAttribute("alertSummary", inventoryAlertService.getSummary());
         model.addAttribute("shelfLifeDays", inventoryPolicy.getShelfLifeCommitmentDays());
         model.addAttribute("quarantineDays", inventoryPolicy.getQuarantineDays());
         return "staff/alerts";

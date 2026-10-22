@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.authentication.LockedException;
@@ -72,6 +73,9 @@ public class SecurityConfig {
                 .requestMatchers("/payment/vnpay-return", "/payment/vnpay-ipn").permitAll()
                 // (4) Theo vai tro
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Flash Sale: Staff chỉ xem danh sách / chi tiết; tạo, sửa, xoá, thêm/xoá suất, chuyển trạng thái chỉ Admin (chốt 22/10)
+                .requestMatchers("/staff/flash-sales/new", "/staff/flash-sales/*/edit").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/staff/flash-sales/**").hasRole("ADMIN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN")
                 .requestMatchers("/cart/**", "/checkout/**", "/orders/**", "/profile/**").hasRole("CUSTOMER")
                 // (5) Còn lại: chỉ cần đã đăng nhập

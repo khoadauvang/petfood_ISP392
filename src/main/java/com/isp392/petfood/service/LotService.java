@@ -2,8 +2,11 @@ package com.isp392.petfood.service;
 
 import com.isp392.petfood.dto.LotForm;
 import com.isp392.petfood.dto.LotRow;
+import com.isp392.petfood.dto.LotStats;
+import com.isp392.petfood.dto.ProductLotGroupDto;
 import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Product;
+import com.isp392.petfood.enums.ExpiryLevel;
 import com.isp392.petfood.enums.LotView;
 import com.isp392.petfood.enums.ProductStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
@@ -160,6 +163,91 @@ public class LotService {
             throw new BusinessRuleException("Lô #" + id + " đang được dùng ở chương trình Flash Sale nên không xoá được.");
         }
         return deleted;
+    }
+
+    @Transactional(readOnly = true)
+    public LotStats getLotStats() {
+        List<Lot> allLots = lotRepository.findAll();
+        long totalLots = allLots.size();
+
+        long totalOnHand = 0;
+        long activeLots = 0;
+        long warningLots = 0;
+        long criticalLots = 0;
+
+        for (Lot l : allLots) {
+            if (l.getOnHandQty() > 0) {
+                totalOnHand += l.getOnHandQty();
+                activeLots++;
+                ExpiryLevel level = inventoryPolicy.levelOf(l.getExpiryDate());
+                if (level == ExpiryLevel.RED) {
+                    warningLots++;
+                } else if (level == ExpiryLevel.BLOCKED || level == ExpiryLevel.EXPIRED) {
+                    criticalLots++;
+                }
+            }
+        }
+
+        return new LotStats(totalOnHand, activeLots, totalLots, warningLots, criticalLots);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductLotGroupDto> getProductLotGroups(LotView view, Long filterProductId, String keyword) {
+        List<Product> products = productRepository.findAll(Sort.by("name"));
+        Map<Long, ProductLotGroupDto> groupMap = new LinkedHashMap<>();
+
+        for (Product p : products) {
+            String catName = p.getCategory() != null ? p.getCategory().getName() : "Chưa phân loại";
+            ProductLotGroupDto dto = new ProductLotGroupDto(
+                    p.getId(), p.getSku(), p.getName(), p.getImageUrl(), catName, p.getLowStockThreshold());
+            groupMap.put(p.getId(), dto);
+        }
+
+        List<Lot> lots = lotRepository.findAll(Sort.by(Sort.Order.asc("expiryDate"), Sort.Order.asc("id")));
+        for (Lot l : lots) {
+            ProductLotGroupDto dto = groupMap.get(l.getProduct().getId());
+            if (dto != null) {
+                dto.addLot(toRow(l));
+            }
+        }
+
+        groupMap.values().forEach(ProductLotGroupDto::finalizeStatus);
+
+        String kw = keyword != null ? keyword.trim().toLowerCase() : null;
+        return groupMap.values().stream()
+                .filter(g -> {
+                    if (filterProductId != null && !g.getProductId().equals(filterProductId)) {
+                        return false;
+                    }
+                    if (kw != null && !kw.isEmpty()) {
+                        boolean matchName = g.getProductName().toLowerCase().contains(kw);
+                        boolean matchSku = g.getSku().toLowerCase().contains(kw);
+                        boolean matchCat = g.getCategoryName() != null && g.getCategoryName().toLowerCase().contains(kw);
+                        boolean matchLot = g.getLots().stream()
+                                .anyMatch(l -> ("lot-" + l.getId()).toLowerCase().contains(kw)
+                                        || ("#lot-" + l.getId()).toLowerCase().contains(kw)
+                                        || String.valueOf(l.getId()).equals(kw));
+                        if (!matchName && !matchSku && !matchCat && !matchLot) {
+                            return false;
+                        }
+                    }
+                    if (view != null) {
+                        switch (view) {
+                            case IN_STOCK -> {
+                                if (g.getTotalOnHand() <= 0) return false;
+                            }
+                            case NEAR_EXPIRY -> {
+                                if (g.getFlashSaleQty() <= 0 && g.getCriticalQty() <= 0) return false;
+                            }
+                            case DEPLETED -> {
+                                if (g.getTotalOnHand() > 0) return false;
+                            }
+                            case ALL -> {}
+                        }
+                    }
+                    return true;
+                })
+                .toList();
     }
 
     private void requireUntouched(Lot lot, String action) {

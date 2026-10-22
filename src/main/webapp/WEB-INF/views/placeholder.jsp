@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title><c:out value="${pageTitle}"/></title>
+    <%@ include file="/WEB-INF/views/common/_mask-url.jspf" %>
 </head>
 <body>
 <h1><c:out value="${pageTitle}"/></h1>

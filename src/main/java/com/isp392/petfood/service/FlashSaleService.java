@@ -34,9 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-// Flash Sale xả hàng cận hạn (module 6). Staff và Admin tạo (Remaining_Features; mục 9.7).
+// Flash Sale xả hàng cận hạn (module 6). Chỉ Admin tạo / sửa / chuyển trạng thái; Staff chỉ xem (chốt 22/10, mục 9.7).
 //   - chỉ lấy lô mức RED, còn 21 đến dưới 90 ngày (BR-63)
-//   - sale_price < giá bán thường (BR-67); allocated_qty không vượt tồn của lô trừ phần đang dành cho chiến dịch
+//   - sale_price tự tính theo HSD lô (InventoryPolicy): còn 30-89 ngày giảm 40%, dưới 30 ngày giảm 70%; chốt lúc thêm suất.
+//     Vẫn phải < giá bán thường (BR-67); allocated_qty không vượt tồn của lô trừ phần đang dành cho chiến dịch
 //     khác (BR-66, BR-68); một lô một lần mỗi chiến dịch (UQ_FlashSaleItem_sale_lot)
 //   - DRAFT -> ACTIVE <-> PAUSED -> ENDED (BR-64). Chỉ sửa chiến dịch / suất khi còn DRAFT.
 //   - scheduler: DRAFT có ít nhất 1 suất tự ACTIVE khi tới start_time; quá end_time hoặc bán hết thì ENDED
@@ -96,7 +97,9 @@ public class FlashSaleService {
                 .stream()
                 .map(l -> new RedLotOption(l.getId(), l.getProduct().getSku(), l.getProduct().getName(),
                         l.getExpiryDate().format(DATE), inventoryPolicy.daysLeft(l.getExpiryDate()), l.getOnHandQty(),
-                        available(l, saleId), l.getProduct().getSellingPrice()))
+                        available(l, saleId), l.getProduct().getSellingPrice(),
+                        inventoryPolicy.flashSaleDiscountPercent(l.getExpiryDate()),
+                        inventoryPolicy.flashSalePrice(l.getProduct().getSellingPrice(), l.getExpiryDate())))
                 .filter(o -> o.getAvailableQty() > 0)
                 .toList();
     }
@@ -144,8 +147,9 @@ public class FlashSaleService {
         if (flashSaleItemRepository.existsByFlashSale_IdAndLot_Id(saleId, lot.getId())) {
             errors.put("lotId", "Lô này đã có trong chiến dịch");
         }
-        if (form.getSalePrice().compareTo(product.getSellingPrice()) >= 0) {
-            errors.put("salePrice", "Giá Flash Sale phải thấp hơn giá bán thường "
+        BigDecimal salePrice = inventoryPolicy.flashSalePrice(product.getSellingPrice(), lot.getExpiryDate());
+        if (salePrice.signum() <= 0 || salePrice.compareTo(product.getSellingPrice()) >= 0) {
+            errors.put("lotId", "Không tính được giá Flash Sale thấp hơn giá bán thường "
                     + product.getSellingPrice().toPlainString() + "đ (BR-67)");
         }
         long available = available(lot, saleId);
@@ -159,7 +163,7 @@ public class FlashSaleService {
         FlashSaleItem item = new FlashSaleItem();
         item.setFlashSale(sale);
         item.setLot(lot);
-        item.setSalePrice(form.getSalePrice());
+        item.setSalePrice(salePrice);
         item.setAllocatedQty(form.getAllocatedQty());
         try {
             return flashSaleItemRepository.saveAndFlush(item);

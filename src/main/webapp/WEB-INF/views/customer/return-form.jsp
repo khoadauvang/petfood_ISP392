@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Yêu cầu trả hàng · Đơn #${orderId} · Food Pet Shop</title>
+    <title>Yêu cầu trả hàng · Đơn #${orderId} · PetFood</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }
         table { border-collapse: collapse; width: 100%; max-width: 760px; }

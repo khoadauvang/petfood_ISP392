@@ -31,8 +31,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // Giỏ hàng (module 3). Quy tắc áp dụng:
@@ -62,7 +64,13 @@ public class CartService {
 
     @Transactional(readOnly = true)
     public CartView getCart(Long customerId) {
-        List<CartItem> items = cartItemRepository.findDetailedByCustomerId(customerId);
+        return getCart(customerId, null);
+    }
+
+    // Chỉ các dòng có id trong selectedIds (khách tick ở trang giỏ để đặt); null hoặc rỗng: cả giỏ
+    @Transactional(readOnly = true)
+    public CartView getCart(Long customerId, Collection<Long> selectedIds) {
+        List<CartItem> items = onlySelected(cartItemRepository.findDetailedByCustomerId(customerId), selectedIds);
         Map<Long, Long> regularStock = loadRegularStock(items.stream()
                 .filter(i -> !i.isFlashSale())
                 .map(i -> i.getProduct().getId())
@@ -91,6 +99,15 @@ public class CartService {
             }
         }
         return new CartView(lines, subtotal, totalQuantity, hasProblems);
+    }
+
+    // Lọc các dòng giỏ theo id khách đã chọn; null hoặc rỗng: giữ cả giỏ. Giữ thứ tự của giỏ.
+    static List<CartItem> onlySelected(List<CartItem> items, Collection<Long> selectedIds) {
+        if (selectedIds == null || selectedIds.isEmpty()) {
+            return items;
+        }
+        Set<Long> ids = new HashSet<>(selectedIds);
+        return items.stream().filter(i -> ids.contains(i.getId())).toList();
     }
 
     // Số dòng trong giỏ, hiện trên thanh đầu trang

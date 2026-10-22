@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+    <!-- Dog silhouette outer line -->
+    <path d="M 3 19 C 6.5 19 8.5 15.5 10.5 10 L 13.5 3.5 L 16.5 6.2 C 18.5 7.2 21.5 8.2 25.5 10.8 C 27.5 12 27.5 14.2 25.5 15.2 L 22 16.5" 
+          stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Cat sitting arch with base -->
+    <path d="M 6.5 26.5 C 6.5 18 9.5 14.5 14.5 14.5 C 19.5 14.5 22.5 18 22.5 26.5 Z" 
+          stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

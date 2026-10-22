@@ -1,5 +1,37 @@
 <%@ page pageEncoding="UTF-8" %>
-<!-- Nút Chat nổi cố định ở góc phải dưới màn hình: mở chatbox hỗ trợ theo kịch bản (SupportController, không cần đăng nhập) -->
+<%-- Nút Chat nổi cố định ở góc phải dưới màn hình: mở chatbox hỗ trợ theo kịch bản (SupportController, không cần đăng nhập).
+     Style nút theo giao diện của FE; không dùng khung chat giả trong bản FE vì tin nhắn không đi tới đâu. --%>
+<style>
+/* Nút chat nổi */
+.chat-button {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--orange, #F47721);
+    color: var(--white, #FFFFFF);
+    box-shadow: 0 6px 20px rgba(244, 119, 33, 0.35);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chat-button:hover {
+    background: var(--orange-dark, #E96816);
+    transform: translateY(-3px);
+}
+
+.chat-button i {
+    font-size: 20px;
+    display: flex;
+}
+</style>
 <a href="${ctx}/support" class="chat-button" aria-label="Hỗ trợ trực tuyến" title="Hỗ trợ trực tuyến">
     <i class="fi fi-rr-comment-alt"></i>
 </a>

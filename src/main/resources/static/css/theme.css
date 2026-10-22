@@ -1,0 +1,122 @@
+/* ==========================================================================
+   PetFood – Theme dùng chung (design tokens)
+   Nguồn: "Bảng màu sử dụng trong code" của nhóm.
+   Dùng trong JSP:
+     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/theme.css">
+   SecurityConfig đã permitAll "/css/**" nên trang login/khách vẫn tải được.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+    /* --- Màu chính (Primary) --- */
+    --color-primary:        #f47721;  /* Cam chính: nút, highlight, icon */
+    --color-primary-dark:   #e96816;  /* Cam đậm: hover, active */
+
+    /* --- Màu nền (Background) --- */
+    --bg-search:            #fffdfb;  /* Nền ô tìm kiếm */
+    --bg-product-card:      #fefbf4;  /* Nền card sản phẩm */
+    --bg-soft:              #f4e3c9;  /* Viền card / nền phụ */
+    --bg-pet-card:          #fff4df;  /* Nền pet card */
+    --bg-page:              #eee6df;  /* Background tổng thể */
+
+    /* --- Màu chữ (Text) --- */
+    --text-main:            #3d3028;  /* Chữ chính (nội dung) */
+    --text-muted:           #817872;  /* Chữ phụ (menu, mô tả) */
+    --text-placeholder:     #aaa29d;  /* Placeholder input */
+    --text-logo:            #2f211b;  /* Chữ logo / icon */
+
+    /* --- Màu viền (Border) --- */
+    --border-search:        #eadfd7;
+    --border-header:        #eee6df;
+    --border-card:          #f4e3c9;
+    --border-footer:        #eee3db;
+
+    /* --- Trạng thái (Status) --- */
+    --color-success:        #4caf50;
+    --color-error:          #ef4444;
+    --color-info:           #3b82f6;
+
+    /* --- Badge / khuyến mãi --- */
+    --badge-sale:           #ff4d4f;  /* Flash Sale (-30%, ...) */
+    --badge-soft:           #ffe4e6;  /* Badge phụ */
+
+    /* --- Nút (Button) --- */
+    --btn-primary-gradient: linear-gradient(90deg, #f47721 0%, #ef7626 100%);
+    --btn-secondary-bg:     #fff0e6;
+    --shadow-btn:           0 6px 16px rgba(239, 118, 38, 0.28);
+
+    /* --- Icon --- */
+    --icon-header:          #302820;  /* Tài khoản, giỏ hàng, ... */
+    --icon-hover:           #f36f21;
+
+    /* --- Khác --- */
+    --font-main:            'Nunito', 'Segoe UI', Arial, sans-serif;
+    --radius-sm:            8px;
+    --radius-md:            14px;
+    --radius-pill:          999px;
+    --transition:           0.2s ease;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: var(--font-main);
+    color: var(--text-main);
+    background: var(--bg-page);
+    line-height: 1.5;
+}
+
+a { color: var(--color-primary); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--color-primary-dark); }
+
+input, select, textarea {
+    font: inherit;
+    color: var(--text-main);
+    background: var(--bg-search);
+    border: 1px solid var(--border-search);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+input::placeholder, textarea::placeholder { color: var(--text-placeholder); }
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(244, 119, 33, 0.15);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: var(--radius-pill);
+    font: inherit; font-weight: 700;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+.btn-primary { background: var(--btn-primary-gradient); color: #fff; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-btn); color: #fff; }
+.btn-secondary { background: var(--btn-secondary-bg); color: var(--color-primary); }
+.btn-secondary:hover { background: var(--bg-soft); }
+
+/* ---------- Card ---------- */
+.card {
+    background: var(--bg-product-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+/* ---------- Badge ---------- */
+.badge-sale { background: var(--badge-sale); color: #fff; padding: 2px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; }
+.badge-soft { background: var(--badge-soft); color: var(--badge-sale); padding: 2px 10px; border-radius: var(--radius-pill); font-size: 12px; }
+
+/* ---------- Thông báo ---------- */
+.alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; }
+.alert-success { background: #e8f5e9; color: #2e7d32; }
+.alert-error   { background: #fdecec; color: #b91c1c; }
+.alert-info    { background: #e8f0fe; color: #1d4ed8; }

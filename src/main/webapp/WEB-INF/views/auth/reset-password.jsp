@@ -8,7 +8,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đặt lại mật khẩu · Food Pet Shop</title>
+    <title>Đặt lại mật khẩu · PetFood</title>
+    <%@ include file="/WEB-INF/views/common/_mask-url.jspf" %>
 </head>
 <body>
 <h1>Đặt lại mật khẩu</h1>

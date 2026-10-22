@@ -22,10 +22,14 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 // Đặt hàng. /checkout/** chỉ cho CUSTOMER (SecurityConfig).
-//   GET  /checkout          form địa chỉ + phương thức thanh toán, tóm tắt giỏ và giảm giá hạng
+//   GET  /checkout?itemIds=1,2   form địa chỉ + phương thức thanh toán, tóm tắt các dòng đã chọn và giảm giá hạng
+//                                (không có itemIds: cả giỏ). itemIds đi tiếp qua input ẩn của form.
 //   POST /checkout/quote    tính phí giao hàng theo địa chỉ (Geoapify), hiện tổng tiền
 //   POST /checkout          tạo đơn (server tính lại mọi khoản, không dùng số tiền trình duyệt gửi lên)
 @Controller
@@ -42,14 +46,20 @@ public class CheckoutController {
     }
 
     @GetMapping
-    public String form(@AuthenticationPrincipal AccountPrincipal user, Model model, RedirectAttributes redirect) {
-        CheckoutSummary summary = checkoutService.preview(user.getCustomerId(), null);
+    public String form(@AuthenticationPrincipal AccountPrincipal user,
+                       @RequestParam(name = "itemIds", required = false) List<Long> itemIds,
+                       Model model, RedirectAttributes redirect) {
+        CheckoutSummary summary = checkoutService.preview(user.getCustomerId(), null, itemIds);
         String blocked = blockedReason(summary);
         if (blocked != null) {
             redirect.addFlashAttribute("errorMessage", blocked);
             return "redirect:/cart";
         }
-        model.addAttribute("checkoutForm", new CheckoutForm());
+        CheckoutForm form = new CheckoutForm();
+        if (itemIds != null) {
+            form.setItemIds(itemIds);
+        }
+        model.addAttribute("checkoutForm", form);
         return show(model, summary);
     }
 
@@ -59,7 +69,7 @@ public class CheckoutController {
                         BindingResult result,
                         Model model) {
         String address = result.hasFieldErrors("shippingAddress") ? null : form.getShippingAddress();
-        return show(model, checkoutService.preview(user.getCustomerId(), address));
+        return show(model, checkoutService.preview(user.getCustomerId(), address, form.getItemIds()));
     }
 
     @PostMapping
@@ -71,7 +81,7 @@ public class CheckoutController {
                         HttpServletRequest request) {
         if (result.hasErrors()) {
             FormErrors.summary(model);
-            return show(model, checkoutService.preview(user.getCustomerId(), null));
+            return show(model, checkoutService.preview(user.getCustomerId(), null, form.getItemIds()));
         }
         try {
             Order order = checkoutService.place(user.getCustomerId(), form);
@@ -83,7 +93,7 @@ public class CheckoutController {
             return "redirect:/orders/" + order.getId();
         } catch (BusinessRuleException e) {
             FormErrors.apply(e, result, model);
-            return show(model, checkoutService.preview(user.getCustomerId(), form.getShippingAddress()));
+            return show(model, checkoutService.preview(user.getCustomerId(), form.getShippingAddress(), form.getItemIds()));
         }
     }
 
@@ -102,10 +112,10 @@ public class CheckoutController {
 
     private static String blockedReason(CheckoutSummary summary) {
         if (summary.getLines().isEmpty()) {
-            return "Giỏ hàng đang trống, chưa đặt hàng được.";
+            return "Chưa có sản phẩm nào được chọn để đặt hàng.";
         }
         if (summary.getLines().stream().anyMatch(l -> l.getProblem() != null)) {
-            return "Giỏ hàng có sản phẩm hết hàng hoặc vượt số lượng còn lại, vui lòng sửa trước khi đặt hàng.";
+            return "Sản phẩm đã chọn có dòng hết hàng hoặc vượt số lượng còn lại, vui lòng sửa trước khi đặt hàng.";
         }
         return null;
     }

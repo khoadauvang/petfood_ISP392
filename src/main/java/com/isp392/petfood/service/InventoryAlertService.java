@@ -58,6 +58,8 @@ public class InventoryAlertService {
                 }
             }
         }
-        return new AlertSummary(lowStockProducts().size(), red, blocked, expired);
+        int totalInStock = (int) lotRepository.countInStock();
+        int safe = Math.max(0, totalInStock - (red + blocked + expired));
+        return new AlertSummary(lowStockProducts().size(), red, blocked, expired, totalInStock, safe);
     }
 }

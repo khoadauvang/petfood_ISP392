@@ -3,7 +3,9 @@ package com.isp392.petfood.service;
 import com.isp392.petfood.dto.ProductAdminRow;
 import com.isp392.petfood.dto.ProductDetailDto;
 import com.isp392.petfood.dto.ProductForm;
+import com.isp392.petfood.dto.ProductGroupDto;
 import com.isp392.petfood.dto.ProductOption;
+import com.isp392.petfood.dto.ProductVariantDto;
 import com.isp392.petfood.dto.StockSummary;
 import com.isp392.petfood.entity.Category;
 import com.isp392.petfood.entity.Product;
@@ -36,6 +38,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.isp392.petfood.dto.ProductForm.IMAGE_COUNT;
@@ -48,6 +52,13 @@ public class ProductAdminService {
 
     private static final int PAGE_SIZE = 20;
     private static final long MAX_IMAGE_BYTES = 5L * 1024 * 1024;   // khớp spring.servlet.multipart.max-file-size
+
+    private static final Pattern SPEC_PATTERN = Pattern.compile(
+            "(?i)(?:[\\s–-]+(?:vị\\s+[^\\d]+)?[\\s(]*(\\d+(?:[.,]\\d+)?\\s*(?:kg|g|gr|ml|l|hộp|gói|lon|bao|túi|can|viên|miếng|thùng|pcs))[)]?\\s*)$"
+    );
+    private static final Pattern SKU_VARIANT_PATTERN = Pattern.compile(
+            "(?i)-(?:\\d+(?:[.,]\\d+)?[A-Z]*)$"
+    );
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -73,6 +84,108 @@ public class ProductAdminService {
         Map<Long, StockSummary> stock = loadStock(ids);
         return products.map(p -> new ProductAdminRow(p, stock.getOrDefault(p.getId(), StockSummary.EMPTY)));
     }
+
+    // Gom nhóm các sản phẩm thành dòng sản phẩm cha và các biến thể (Master-Detail Accordion)
+    @Transactional(readOnly = true)
+    public List<ProductGroupDto> getProductGroups(String keyword, Long categoryId, Species species, ProductStatus status) {
+        Pageable pageable = PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Product> page = productRepository.search(keyword, categoryId, species, status, pageable);
+        List<Product> products = page.getContent();
+
+        List<Long> ids = products.stream().map(Product::getId).toList();
+        Map<Long, StockSummary> stock = loadStock(ids);
+
+        Map<String, ProductGroupDto> groupMap = new LinkedHashMap<>();
+
+        for (Product p : products) {
+            StockSummary ss = stock.getOrDefault(p.getId(), StockSummary.EMPTY);
+            ProductAdminRow row = new ProductAdminRow(p, ss);
+
+            // Tách tên gốc và quy cách
+            String fullName = p.getName() != null ? p.getName().trim() : "";
+            String baseName = fullName;
+            String spec = "Tiêu chuẩn";
+
+            Matcher matcher = SPEC_PATTERN.matcher(fullName);
+            if (matcher.find()) {
+                spec = matcher.group(1).trim();
+                baseName = fullName.substring(0, matcher.start()).trim();
+            }
+
+            // Tách SKU gốc
+            String sku = p.getSku() != null ? p.getSku().trim() : "";
+            String baseSku = SKU_VARIANT_PATTERN.matcher(sku).replaceAll("").trim();
+            if (baseSku.isEmpty()) {
+                baseSku = sku;
+            }
+
+            String groupKey = !baseSku.isEmpty() ? baseSku.toLowerCase() : baseName.toLowerCase();
+
+            ProductGroupDto group = groupMap.get(groupKey);
+            if (group == null) {
+                group = new ProductGroupDto();
+                group.setGroupId(groupKey.replaceAll("[^a-z0-9_-]", "-"));
+                group.setBaseName(baseName);
+                group.setBaseSku(baseSku);
+                group.setBrand(p.getBrand());
+                group.setCategoryName(p.getCategory() != null ? p.getCategory().getName() : "");
+                group.setSpecies(p.getSpecies());
+                group.setAgeGroup(p.getAgeGroup());
+                group.setImageUrl(p.getImageUrl());
+                groupMap.put(groupKey, group);
+            }
+
+            ProductVariantDto variant = ProductVariantDto.builder()
+                    .id(p.getId())
+                    .sku(p.getSku())
+                    .barcode(p.getBarcode())
+                    .name(p.getName())
+                    .spec(spec)
+                    .sellingPrice(p.getSellingPrice())
+                    .status(p.getStatus())
+                    .imageUrl(p.getImageUrl())
+                    .lowStockThreshold(p.getLowStockThreshold())
+                    .onHandQty(ss.getOnHandQty())
+                    .sellableQty(ss.getSellableQty())
+                    .lowStock(row.isLowStock())
+                    .build();
+
+            group.getVariants().add(variant);
+
+            // Cập nhật thống kê nhóm
+            if (group.getMinPrice() == null || (variant.getSellingPrice() != null && variant.getSellingPrice().compareTo(group.getMinPrice()) < 0)) {
+                group.setMinPrice(variant.getSellingPrice());
+            }
+            if (group.getMaxPrice() == null || (variant.getSellingPrice() != null && variant.getSellingPrice().compareTo(group.getMaxPrice()) > 0)) {
+                group.setMaxPrice(variant.getSellingPrice());
+            }
+            group.setTotalOnHand(group.getTotalOnHand() + variant.getOnHandQty());
+            group.setTotalSellable(group.getTotalSellable() + variant.getSellableQty());
+            if (variant.getStatus() == ProductStatus.ACTIVE) {
+                group.setActiveCount(group.getActiveCount() + 1);
+            } else {
+                group.setDiscontinuedCount(group.getDiscontinuedCount() + 1);
+            }
+            if (variant.isLowStock()) {
+                group.setAnyLowStock(true);
+            }
+            if ((group.getImageUrl() == null || group.getImageUrl().isBlank()) && variant.getImageUrl() != null) {
+                group.setImageUrl(variant.getImageUrl());
+            }
+        }
+
+        // Sắp xếp các biến thể trong từng nhóm theo giá tăng dần (vd: 400g trước, 2kg sau)
+        for (ProductGroupDto g : groupMap.values()) {
+            g.getVariants().sort((v1, v2) -> {
+                if (v1.getSellingPrice() == null) return -1;
+                if (v2.getSellingPrice() == null) return 1;
+                return v1.getSellingPrice().compareTo(v2.getSellingPrice());
+            });
+        }
+
+        return new ArrayList<>(groupMap.values());
+    }
+
 
     @Transactional(readOnly = true)
     public ProductDetailDto getDetail(Long id) {

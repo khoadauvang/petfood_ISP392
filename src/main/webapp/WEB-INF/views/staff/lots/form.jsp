@@ -18,7 +18,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title>${pageHeading} · Food Pet Shop</title>
+    <title>${pageHeading} · PetFood</title>
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
 </head>
 <body>

@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gửi yêu cầu hỗ trợ · Food Pet Shop</title>
+    <title>Gửi yêu cầu hỗ trợ · PetFood</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }
         .field { margin: 12px 0; }

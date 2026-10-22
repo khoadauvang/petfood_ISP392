@@ -10,7 +10,7 @@
      request, token trong ô ẩn bị mất và bị chặn 403; token trên URL thì vẫn đọc được nên hiện đúng thông báo "ảnh quá lớn". --%>
 <c:choose>
     <c:when test="${empty productId}">
-        <c:set var="pageHeading" value="Thêm sản phẩm"/>
+        <c:set var="pageHeading" value="Thêm sản phẩm mới"/>
         <c:url var="formAction" value="/staff/products/new">
             <c:param name="${_csrf.parameterName}" value="${_csrf.token}"/>
         </c:url>
@@ -25,158 +25,533 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title><c:out value="${pageHeading}"/> · Food Pet Shop</title>
+    <title><c:out value="${pageHeading}"/> · PetFood</title>
+    <meta name="description" content="Quản lý và cập nhật thông tin sản phẩm, hình ảnh và thiết lập giá bán.">
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
+    <style>
+        .form-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr);
+            gap: 24px;
+            align-items: start;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 1080px) {
+            .form-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 24px;
+        }
+        .form-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+        .form-card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-logo);
+        }
+        .form-card-title .ti {
+            font-size: 20px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-logo);
+            margin-bottom: 6px;
+        }
+        .form-label .req {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff;
+            color: var(--text-main);
+            box-sizing: border-box;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(244, 119, 33, 0.15);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 640px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-input-prefix {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .form-input-prefix input {
+            padding-left: 36px;
+        }
+        .form-input-prefix .prefix-icon {
+            position: absolute;
+            left: 12px;
+            font-size: 16px;
+            color: var(--text-placeholder);
+            pointer-events: none;
+        }
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .pill-badge.green { background: #e6f9ed; color: #166534; }
+        .pill-badge.orange { background: #ffedd5; color: #c2410c; }
+        .pill-badge.gray { background: #f1f5f9; color: #475569; }
+
+        /* Bộ 5 ảnh */
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+        @media (max-width: 860px) {
+            .slots-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 560px) {
+            .slots-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .slot-box {
+            border: 1px dashed #fed7aa;
+            background: #fffcf9;
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+            transition: all var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .slot-box:hover {
+            border-color: var(--color-primary);
+            background: var(--orange-50);
+            box-shadow: 0 4px 12px rgba(244, 119, 33, 0.08);
+        }
+        .slot-preview-wrap {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid var(--line);
+            margin: 8px 0;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        .slot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #fff;
+        }
+        .slot-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            color: var(--text-muted);
+        }
+        .slot-upload-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            background: #fff;
+            color: var(--text-main);
+            border: 1px solid var(--line);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .slot-upload-trigger:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background: #fff;
+        }
+
+        /* Bottom Action Bar */
+        .sticky-action-bar {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-card);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body>
 <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
 
-<h1><c:out value="${pageHeading}"/></h1>
-
-<form:form method="post" action="${formAction}" modelAttribute="productForm" enctype="multipart/form-data">
-
-    <h2>Thông tin sản phẩm</h2>
-    <div class="grid-form">
-        <label for="sku">SKU</label>
+<main>
+    <div class="page-head">
         <div>
-            <form:input path="sku" maxlength="50" size="30" placeholder="RC-KITTEN36-400G" required="required"/>
-            <span class="hint">Chữ in hoa, số, dấu gạch ngang. Dùng làm tên thư mục ảnh.</span>
-            <form:errors path="sku" cssClass="err"/>
-        </div>
-
-        <label for="barcode">Mã vạch</label>
-        <div>
-            <form:input path="barcode" maxlength="50" size="30"/>
-            <span class="hint">Không bắt buộc.</span>
-            <form:errors path="barcode" cssClass="err"/>
-        </div>
-
-        <label for="name">Tên sản phẩm</label>
-        <div>
-            <form:input path="name" maxlength="200" size="70" required="required"/>
-            <form:errors path="name" cssClass="err"/>
-        </div>
-
-        <label for="brand">Nhãn hàng</label>
-        <div>
-            <form:input path="brand" maxlength="100" size="30"/>
-            <form:errors path="brand" cssClass="err"/>
-        </div>
-
-        <label for="categoryId">Danh mục</label>
-        <div>
-            <form:select path="categoryId">
-                <form:option value="" label="-- Chọn danh mục --"/>
-                <c:forEach var="cat" items="${categories}">
-                    <form:option value="${cat.id}"><c:out value="${cat.name}"/> (${cat.petType.label})<c:if test="${cat.status == 'HIDDEN'}"> - đang ẩn</c:if></form:option>
-                </c:forEach>
-            </form:select>
-            <form:errors path="categoryId" cssClass="err"/>
-        </div>
-
-        <label for="species">Loài</label>
-        <div>
-            <form:select path="species">
-                <form:option value="" label="-- Chọn --"/>
-                <form:options items="${speciesList}" itemLabel="label"/>
-            </form:select>
-            <form:errors path="species" cssClass="err"/>
-        </div>
-
-        <label for="ageGroup">Nhóm tuổi</label>
-        <div>
-            <form:select path="ageGroup">
-                <form:option value="" label="-- Chọn --"/>
-                <form:options items="${ageGroups}" itemLabel="label"/>
-            </form:select>
-            <form:errors path="ageGroup" cssClass="err"/>
-        </div>
-
-        <label for="sellingPrice">Giá bán (đồng)</label>
-        <div>
-            <form:input path="sellingPrice" type="number" min="1" step="1" required="required"/>
-            <span class="hint">Gõ số liền, ví dụ 142000.</span>
-            <form:errors path="sellingPrice" cssClass="err"/>
-        </div>
-
-        <label for="lowStockThreshold">Ngưỡng tồn thấp</label>
-        <div>
-            <form:input path="lowStockThreshold" type="number" min="0" step="1" required="required"/>
-            <span class="hint">Tồn bán thường (lô còn từ 90 ngày) bằng hoặc dưới số này thì báo tồn thấp.</span>
-            <form:errors path="lowStockThreshold" cssClass="err"/>
-        </div>
-
-        <label for="status">Trạng thái</label>
-        <div>
-            <form:select path="status">
-                <form:options items="${productStatuses}" itemLabel="label"/>
-            </form:select>
-            <form:errors path="status" cssClass="err"/>
-        </div>
-
-        <label for="description">Mô tả</label>
-        <div>
-            <form:textarea path="description" rows="5" cols="70"/>
-            <form:errors path="description" cssClass="err"/>
-        </div>
-    </div>
-
-    <h2>Ảnh sản phẩm: đủ 5 ảnh, ảnh 1 là ảnh đại diện</h2>
-    <p class="hint">
-        Chọn ảnh JPG, PNG hoặc WEBP từ máy, tối đa 5MB mỗi ảnh, tối thiểu 300×300 px.
-        Hệ thống tự chuyển sang JPG nền trắng, cạnh dài tối đa 900 px.
-        <c:if test="${not empty productId}"><br>Chỉ chọn ảnh ở vị trí muốn thay; ô bỏ trống thì giữ ảnh cũ.</c:if>
-        <br>Nếu form báo lỗi, trình duyệt sẽ xoá các ảnh đã chọn: hãy chọn lại ảnh trước khi lưu.
-    </p>
-    <div class="slots">
-        <c:forEach begin="1" end="5" var="slot">
-            <div class="slot">
-                <strong>Ảnh ${slot}<c:if test="${slot == 1}"> (đại diện)</c:if></strong>
-                <c:remove var="currentUrl"/>
-                <c:if test="${not empty product}">
-                    <c:set var="currentUrl" value="${product.imageSlots[slot - 1]}"/>
+            <div class="screen-bc">
+                <a href="${ctx}/staff/products" style="text-decoration:none; color:inherit;">
+                    ‹ QUẢN LÝ SẢN PHẨM
+                </a>
+                <span class="sep" style="margin: 0 6px;">&gt;</span>
+                <span class="current" style="color:var(--color-primary)">${empty productId ? 'THÊM MỚI' : 'CHỈNH SỬA'}</span>
+            </div>
+            <h1 style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                <c:out value="${pageHeading}"/>
+                <c:if test="${not empty productId}">
+                    <span class="pill-badge orange" style="font-size:12px;">ID #${productId}</span>
                 </c:if>
+            </h1>
+            <p class="page-sub">
                 <c:choose>
-                    <c:when test="${not empty currentUrl}">
-                        <img src="${ctx}<c:out value='${currentUrl}'/>" alt="Ảnh ${slot}">
+                    <c:when test="${empty productId}">
+                        Khai báo thông tin sản phẩm mới, thiết lập định giá bán, phân loại và tải lên bộ 5 ảnh sản phẩm.
                     </c:when>
                     <c:otherwise>
-                        <div class="noimg">Chưa có ảnh</div>
+                        Cập nhật thông tin chi tiết, trạng thái kinh doanh và điều chỉnh hình ảnh đại diện sản phẩm.
                     </c:otherwise>
                 </c:choose>
-                <%-- name="image1".."image5" khớp ProductForm.image1..image5 --%>
-                <input type="file" name="image${slot}" accept="image/jpeg,image/png,image/webp"
-                       <c:if test="${empty productId}">required</c:if>>
-                <form:errors path="image${slot}" cssClass="err"/>
-            </div>
-        </c:forEach>
+            </p>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+            <a href="${empty productId ? ctx.concat('/staff/products') : ctx.concat('/staff/products/').concat(productId)}" class="export-btn" style="text-decoration:none">
+                <i class="ti ti-x"></i> Hủy bỏ
+            </a>
+            <button type="submit" form="productMainForm" class="export-btn" style="background:var(--btn-primary-gradient); color:#fff; border-color:transparent; font-weight:800; box-shadow:var(--shadow-btn); cursor:pointer;">
+                <i class="ti ti-check"></i> Lưu sản phẩm
+            </button>
+        </div>
     </div>
 
-    <c:if test="${empty productId}">
-        <h2>Lô đầu tiên (không bắt buộc)</h2>
-        <p class="hint">Hàng về cùng lúc thêm sản phẩm thì nhập luôn ở đây. Chưa có hàng thì để trống, sau này vào "Nhập lô".</p>
-        <div class="grid-form">
-            <label for="firstLotExpiryDate">Hạn sử dụng</label>
+    <form:form id="productMainForm" method="post" action="${formAction}" modelAttribute="productForm" enctype="multipart/form-data">
+        <div class="form-layout">
+            <%-- ========================================================
+                 CỘT TRÁI (LEFT COLUMN): Thông tin chính & Hình ảnh & Lô
+                 ======================================================== --%>
             <div>
-                <form:input path="firstLotExpiryDate" type="date"/>
-                <form:errors path="firstLotExpiryDate" cssClass="err"/>
+                <%-- CARD 1: Thông tin cơ bản --%>
+                <div class="form-card">
+                    <div class="form-card-head">
+                        <div class="form-card-title">
+                            <i class="ti ti-file-description" style="color:var(--color-primary)"></i>
+                            <span>1. Thông tin mô tả sản phẩm</span>
+                        </div>
+                        <span class="pill-badge orange">Bắt buộc</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="name">Tên sản phẩm <span class="req">*</span></label>
+                        <form:input path="name" id="name" maxlength="200" cssClass="form-control" style="font-size:15px; font-weight:700;" placeholder="Ví dụ: Hạt cho mèo con Royal Canin Kitten 36 2kg" required="required"/>
+                        <form:errors path="name" cssClass="err"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="description">Mô tả chi tiết sản phẩm</label>
+                        <form:textarea path="description" id="description" rows="6" cssClass="form-control" placeholder="Mô tả công dụng dinh dưỡng, thành phần, nguồn gốc xuất xứ và hướng dẫn bảo quản..."/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Hỗ trợ tối đa 4.000 ký tự.</span>
+                        <form:errors path="description" cssClass="err"/>
+                    </div>
+                </div>
+
+                <%-- CARD 2: Bộ 5 ảnh sản phẩm --%>
+                <div class="form-card">
+                    <div class="form-card-head">
+                        <div class="form-card-title">
+                            <i class="ti ti-photo" style="color:var(--color-primary)"></i>
+                            <span>2. Bộ sưu tập hình ảnh (Đủ 5 ảnh)</span>
+                        </div>
+                        <span class="pill-badge green">Tối đa 5MB/ảnh</span>
+                    </div>
+
+                    <div class="note" style="background:#fffaf5; border:1px solid #ffd8b8; color:#9a3412; margin-bottom:14px; padding:10px 14px; border-radius:12px; display:flex; align-items:flex-start; gap:10px; font-size:13px;">
+                        <i class="ti ti-info-circle" style="color:#ea580c; font-size:18px; margin-top:2px;"></i>
+                        <div style="line-height:1.5;">
+                            <b>Yêu cầu hình ảnh:</b> Định dạng JPG, PNG hoặc WEBP, tối thiểu 300×300 px. Hệ thống tự động chuyển sang JPG nền trắng chuẩn hóa cạnh dài tối đa 900 px.
+                            <c:if test="${not empty productId}"><br><span style="color:#c2410c;">(Chế độ sửa: Chỉ cần chọn ở vị trí muốn thay, để trống sẽ giữ nguyên ảnh cũ).</span></c:if>
+                        </div>
+                    </div>
+
+                    <div class="slots-grid">
+                        <c:forEach begin="1" end="5" var="slot">
+                            <div class="slot-box">
+                                <div style="display:flex; justify-content:center; margin-bottom:4px;">
+                                    <c:choose>
+                                        <c:when test="${slot == 1}">
+                                            <span class="pill-badge orange" style="font-size:10px;"><i class="ti ti-star"></i> Ảnh đại diện</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="pill-badge gray" style="font-size:10px;">Vị trí ${slot}</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+
+                                <c:remove var="currentUrl"/>
+                                <c:if test="${not empty product}">
+                                    <c:set var="currentUrl" value="${product.imageSlots[slot - 1]}"/>
+                                </c:if>
+
+                                <div class="slot-preview-wrap" onclick="document.getElementById('fileSlot${slot}').click()" title="Bấm để chọn ảnh cho vị trí ${slot}">
+                                    <img id="previewSlot${slot}" class="slot-img"
+                                         src="${not empty currentUrl ? ctx.concat(currentUrl) : ''}"
+                                         alt="Ảnh ${slot}"
+                                         style="display:${not empty currentUrl ? 'block' : 'none'};">
+
+                                    <div id="placeholderSlot${slot}" class="slot-placeholder" style="display:${not empty currentUrl ? 'none' : 'flex'};">
+                                        <i class="ti ti-cloud-upload" style="font-size:26px; color:#ea580c; opacity:0.7;"></i>
+                                        <span style="font-size:11px; margin-top:4px; font-weight:700;">Tải ảnh</span>
+                                        <span style="font-size:10px; color:var(--text-placeholder);">JPG, PNG</span>
+                                    </div>
+                                </div>
+
+                                <input type="file" name="image${slot}" id="fileSlot${slot}" accept="image/jpeg,image/png,image/webp"
+                                       style="display:none;" onchange="handleImagePreview(this, ${slot})"
+                                       <c:if test="${empty productId}">required</c:if>>
+
+                                <button type="button" class="slot-upload-trigger" onclick="document.getElementById('fileSlot${slot}').click()">
+                                    <i class="ti ti-upload"></i>
+                                    <span id="btnTextSlot${slot}">${not empty currentUrl ? 'Thay đổi' : 'Chọn tệp'}</span>
+                                </button>
+                                <form:errors path="image${slot}" cssClass="err"/>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <%-- CARD 3: Lô đầu tiên (chỉ khi thêm mới) --%>
+                <c:if test="${empty productId}">
+                    <div class="form-card" style="background:#fffcf9; border-color:#fed7aa;">
+                        <div class="form-card-head" style="border-bottom-color:#fed7aa;">
+                            <div class="form-card-title">
+                                <i class="ti ti-building-warehouse" style="color:var(--color-primary)"></i>
+                                <span>3. Nhập lô hàng đầu tiên (Không bắt buộc)</span>
+                            </div>
+                            <span class="pill-badge gray">Tùy chọn</span>
+                        </div>
+
+                        <p class="hint" style="margin-top:0; margin-bottom:16px; font-size:13px; color:var(--text-muted);">
+                            Nếu hàng đã về kho cùng thời điểm tạo sản phẩm, bạn có thể nhập luôn thông tin lô đầu tiên tại đây. Nếu chưa có hàng, có thể để trống và thực hiện tại mục <b>Quản lý Lô</b> sau.
+                        </p>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="firstLotExpiryDate">Hạn sử dụng lô</label>
+                                <form:input path="firstLotExpiryDate" id="firstLotExpiryDate" type="date" cssClass="form-control"/>
+                                <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Cam kết HSD xuất bán thường ≥ 90 ngày.</span>
+                                <form:errors path="firstLotExpiryDate" cssClass="err"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="firstLotQty">Số lượng nhập kho</label>
+                                <form:input path="firstLotQty" id="firstLotQty" type="number" min="1" step="1" cssClass="form-control" placeholder="Ví dụ: 100"/>
+                                <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Đơn vị tính: sản phẩm.</span>
+                                <form:errors path="firstLotQty" cssClass="err"/>
+                            </div>
+                        </div>
+                    </div>
+                </c:if>
             </div>
 
-            <label for="firstLotQty">Số lượng nhập</label>
+            <%-- ========================================================
+                 CỘT PHẢI (RIGHT COLUMN): Phân loại & Định giá & Kho
+                 ======================================================== --%>
             <div>
-                <form:input path="firstLotQty" type="number" min="1" step="1"/>
-                <form:errors path="firstLotQty" cssClass="err"/>
+                <%-- CARD 4: Phân loại & Định danh --%>
+                <div class="form-card">
+                    <div class="form-card-head">
+                        <div class="form-card-title">
+                            <i class="ti ti-category" style="color:var(--color-primary)"></i>
+                            <span>Định danh &amp; Phân loại</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sku">Mã SKU <span class="req">*</span></label>
+                        <form:input path="sku" id="sku" maxlength="50" cssClass="form-control" style="font-family:monospace; font-weight:700; text-transform:uppercase;" placeholder="RC-KITTEN36-400G" required="required"/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Chữ in hoa, số và dấu gạch ngang (Dùng làm thư mục lưu ảnh).</span>
+                        <form:errors path="sku" cssClass="err"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="barcode">Mã vạch Barcode</label>
+                        <form:input path="barcode" id="barcode" maxlength="50" cssClass="form-control" style="font-family:monospace;" placeholder="8938500000000"/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Không bắt buộc, quét mã máy đọc vạch.</span>
+                        <form:errors path="barcode" cssClass="err"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="categoryId">Danh mục sản phẩm <span class="req">*</span></label>
+                        <form:select path="categoryId" id="categoryId" cssClass="form-control">
+                            <form:option value="" label="-- Chọn danh mục --"/>
+                            <c:forEach var="cat" items="${categories}">
+                                <form:option value="${cat.id}"><c:out value="${cat.name}"/> (${cat.petType.label})<c:if test="${cat.status == 'HIDDEN'}"> [Đang ẩn]</c:if></form:option>
+                            </c:forEach>
+                        </form:select>
+                        <form:errors path="categoryId" cssClass="err"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="brand">Nhãn hàng / Thương hiệu</label>
+                        <form:input path="brand" id="brand" maxlength="100" cssClass="form-control" placeholder="Ví dụ: Royal Canin, Whiskas..."/>
+                        <form:errors path="brand" cssClass="err"/>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="species">Loài thú cưng <span class="req">*</span></label>
+                            <form:select path="species" id="species" cssClass="form-control">
+                                <form:option value="" label="-- Chọn loài --"/>
+                                <form:options items="${speciesList}" itemLabel="label"/>
+                            </form:select>
+                            <form:errors path="species" cssClass="err"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="ageGroup">Nhóm tuổi <span class="req">*</span></label>
+                            <form:select path="ageGroup" id="ageGroup" cssClass="form-control">
+                                <form:option value="" label="-- Chọn độ tuổi --"/>
+                                <form:options items="${ageGroups}" itemLabel="label"/>
+                            </form:select>
+                            <form:errors path="ageGroup" cssClass="err"/>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- CARD 5: Giá bán & Cảnh báo tồn kho --%>
+                <div class="form-card">
+                    <div class="form-card-head">
+                        <div class="form-card-title">
+                            <i class="ti ti-coin" style="color:var(--color-primary)"></i>
+                            <span>Giá bán &amp; Tồn kho</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sellingPrice">Giá bán lẻ (VNĐ) <span class="req">*</span></label>
+                        <div class="form-input-prefix">
+                            <span class="prefix-icon" style="font-weight:800; color:#ea580c">₫</span>
+                            <form:input path="sellingPrice" id="sellingPrice" type="number" min="1" step="1" cssClass="form-control" style="font-weight:800; font-size:15px; color:#ea580c;" placeholder="142000" required="required"/>
+                        </div>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Nhập số nguyên, không dấu phẩy hay chấm.</span>
+                        <form:errors path="sellingPrice" cssClass="err"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="lowStockThreshold">Ngưỡng cảnh báo tồn thấp <span class="req">*</span></label>
+                        <form:input path="lowStockThreshold" id="lowStockThreshold" type="number" min="0" step="1" cssClass="form-control" placeholder="10" required="required"/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Khi số lượng tồn có HSD ≥ 90 ngày ≤ mức này, hệ thống sẽ kích hoạt cảnh báo kho.</span>
+                        <form:errors path="lowStockThreshold" cssClass="err"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="status">Trạng thái kinh doanh <span class="req">*</span></label>
+                        <form:select path="status" id="status" cssClass="form-control">
+                            <form:options items="${productStatuses}" itemLabel="label"/>
+                        </form:select>
+                        <form:errors path="status" cssClass="err"/>
+                    </div>
+                </div>
             </div>
         </div>
-    </c:if>
 
-    <p>
-        <button type="submit">Lưu sản phẩm</button>
-        <c:choose>
-            <c:when test="${empty productId}"><a href="${ctx}/staff/products">Huỷ</a></c:when>
-            <c:otherwise><a href="${ctx}/staff/products/${productId}">Huỷ</a></c:otherwise>
-        </c:choose>
-    </p>
-</form:form>
+        <%-- BOTTOM ACTION BAR --%>
+        <div class="sticky-action-bar">
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted);">
+                <i class="ti ti-shield-check" style="font-size:18px; color:#16a34a;"></i>
+                <span>Vui lòng kiểm tra kỹ tất cả các trường thông tin và 5 ảnh sản phẩm trước khi lưu.</span>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:12px;">
+                <a href="${empty productId ? ctx.concat('/staff/products') : ctx.concat('/staff/products/').concat(productId)}" class="export-btn" style="text-decoration:none">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="export-btn" style="background:var(--btn-primary-gradient); color:#fff; border-color:transparent; font-weight:800; box-shadow:var(--shadow-btn); cursor:pointer;">
+                    <i class="ti ti-check"></i> Lưu sản phẩm
+                </button>
+            </div>
+        </div>
+    </form:form>
+</main>
+
+<script>
+    // Xem trước hình ảnh tức thời khi nhân viên chọn tệp từ máy
+    function handleImagePreview(input, slot) {
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var previewEl = document.getElementById('previewSlot' + slot);
+                var placeholderEl = document.getElementById('placeholderSlot' + slot);
+                var btnTextEl = document.getElementById('btnTextSlot' + slot);
+
+                if (previewEl) {
+                    previewEl.src = e.target.result;
+                    previewEl.style.display = 'block';
+                }
+                if (placeholderEl) {
+                    placeholderEl.style.display = 'none';
+                }
+                if (btnTextEl) {
+                    btnTextEl.innerText = 'Thay đổi';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
 </body>
 </html>

@@ -33,7 +33,7 @@ public class MembershipService {
     private final CustomerRepository customerRepository;
     private final MembershipPolicy membershipPolicy;
 
-    // Hằng ngày lúc 00:05 (petfood.membership.recalc-cron); Admin chạy ngay được ở trang Đơn hàng
+    // Hằng ngày lúc 00:05 (petfood.membership.recalc-cron)
     @Scheduled(cron = "${petfood.membership.recalc-cron:0 5 0 * * *}")
     public void scheduledRecalculate() {
         int changed = recalculateAll();

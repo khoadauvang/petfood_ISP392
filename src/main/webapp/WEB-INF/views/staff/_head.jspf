@@ -1,41 +1,154 @@
 <%@ page pageEncoding="UTF-8" %>
-<%-- Phần <head> dùng chung cho các trang /staff (include tĩnh).
-     Style tạm để xem được dữ liệu khi test BE. FE team thay bằng css/ riêng. --%>
+<%-- Phần <head> dùng chung cho các trang /staff và /admin (include tĩnh).
+     Giao diện nằm ở static/css/theme.css (biến màu) + static/css/admin.css (sidebar, topbar, bảng, form, dashboard).
+     Icon: Tabler Icons webfont (<i class="ti ti-...">). --%>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/theme.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 <style>
-    body { font-family: Arial, sans-serif; margin: 16px; color: #222; }
-    nav.staff { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-bottom: 8px;
-                border-bottom: 1px solid #ddd; margin-bottom: 12px; }
-    nav.staff .who { margin-left: auto; }
-    table { border-collapse: collapse; width: 100%; margin: 8px 0 16px; }
-    th, td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; vertical-align: top; }
-    th { background: #f6f6f6; }
-    .num { text-align: right; white-space: nowrap; }
-    .thumb { width: 56px; height: 56px; object-fit: contain; background: #f5f5f5; }
-    .msg { padding: 8px 12px; border-radius: 4px; }
-    .msg.ok { background: #e7f6ec; color: #0a5c26; }
-    .msg.warn { background: #fff4e5; color: #7a4a00; }
-    .msg.err { background: #fdecea; color: #8a1c13; }
-    .err { color: #b00020; display: block; font-size: 13px; margin-top: 2px; }
-    .hint { color: #666; font-size: 13px; }
-    .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #eee; }
-    .badge.ACTIVE, .badge.lv-OK { background: #e7f6ec; color: #0a5c26; }
-    .badge.HIDDEN, .badge.DISCONTINUED { background: #eee; color: #555; }
-    .badge.lv-RED, .badge.low { background: #fdecea; color: #8a1c13; }
-    .badge.lv-BLOCKED { background: #b00020; color: #fff; }
-    .badge.lv-EXPIRED { background: #333; color: #fff; }
-    form.inline { display: inline; }
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .grid-form { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 10px 12px; max-width: 900px; }
-    .grid-form > label { font-weight: bold; padding-top: 4px; }
-    .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; max-width: 980px; }
-    .slot { border: 1px dashed #bbb; padding: 8px; border-radius: 6px; }
-    .slot img, .slot .noimg { width: 100%; height: 130px; object-fit: contain; background: #f5f5f5; margin: 6px 0;
-                              display: flex; align-items: center; justify-content: center; color: #999; }
-    .gallery { display: flex; flex-wrap: wrap; gap: 8px; }
-    .gallery img, .gallery .noimg { width: 150px; height: 150px; object-fit: contain; background: #f5f5f5;
-                                    border: 1px solid #eee; display: flex; align-items: center; justify-content: center; color: #999; }
-    .pre { white-space: pre-line; }
-    .pager a, .pager strong { margin-right: 8px; }
+/* Đảm bảo nút Flash Sale bo tròn đồng bộ trên tất cả màn hình */
+.btn-flashsale, .btn-pill-primary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 8px 20px !important;
+    border-radius: 9999px !important;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    font-family: var(--font-main) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(234, 88, 12, 0.28) !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
+}
+.btn-flashsale:hover, .btn-pill-primary:hover {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.38) !important;
+    color: #ffffff !important;
+}
+.btn-flashsale:active, .btn-pill-primary:active {
+    transform: translateY(0) !important;
+}
+.btn-flashsale .ti, .btn-pill-primary .ti {
+    font-size: 16px !important;
+}
+
+.btn-pill-danger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 8px 20px !important;
+    border-radius: 9999px !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    font-family: var(--font-main) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25) !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
+}
+.btn-pill-danger:hover {
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+    color: #ffffff !important;
+}
+
+.btn-pill-outline {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 8px 18px !important;
+    border-radius: 9999px !important;
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--line) !important;
+    font-family: var(--font-main) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
+}
+.btn-pill-outline:hover {
+    background: var(--orange-50) !important;
+    border-color: var(--color-primary) !important;
+    color: var(--color-primary-dark) !important;
+}
+
+/* Nút 3 gạch ẩn hiện sidebar */
+.tb-menu {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    border: 1px solid #ffd8b8 !important;
+    background: #fffaf5 !important;
+    color: #ea580c !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+}
+.tb-menu:hover {
+    background: #ffedd5 !important;
+    border-color: #ea580c !important;
+    color: #c2410c !important;
+    transform: scale(1.04) !important;
+}
+
+body {
+    transition: padding-left 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.sb {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.topbar {
+    transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Ẩn hiện sidebar trên Desktop */
+@media (min-width: 901px) {
+    html.sb-collapsed body, body.sb-collapsed {
+        padding-left: 32px !important;
+    }
+    html.sb-collapsed .sb, body.sb-collapsed .sb {
+        transform: translateX(-100%) !important;
+        box-shadow: none !important;
+    }
+    html.sb-collapsed .topbar, body.sb-collapsed .topbar {
+        left: 0 !important;
+    }
+}
 </style>
+<script>
+    /* Khôi phục trạng thái thu gọn sidebar ngay khi load để tránh nháy giật */
+    try {
+        if (window.innerWidth > 900 && (localStorage.getItem('petfood_sb_collapsed') === '1' || localStorage.getItem('petcare_sb_collapsed') === '1')) {
+            document.documentElement.classList.add('sb-collapsed');
+        }
+    } catch (e) {}
+</script>

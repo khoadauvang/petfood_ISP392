@@ -1,6 +1,8 @@
 package com.isp392.petfood.controller;
 
+import com.isp392.petfood.dto.StaffDashboardCounts;
 import com.isp392.petfood.service.InventoryAlertService;
+import com.isp392.petfood.service.StaffDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -8,15 +10,22 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 public class PageController {
 
+    private static final DateTimeFormatter UPDATED_AT = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+
     private final InventoryAlertService inventoryAlertService;
+    private final StaffDashboardService staffDashboardService;
 
     // Trang thông tin FE đã đặt link ở header / footer nhưng chưa làm giao diện: tạm hiện placeholder.jsp của FE.
     // Công khai cho Guest (SecurityConfig) để bấm link không bị đẩy về trang đăng nhập.
@@ -73,10 +82,35 @@ public class PageController {
         return "placeholder";
     }
 
-    // Tổng quan: số cảnh báo tồn thấp / lô sắp hết hạn + lối vào các trang quản lý (FR-38, FR-45)
+    // API cho dashboard Staff tự cập nhật số liệu (polling): cùng các khoá với model của trang /staff
+    @GetMapping("/staff/api/stats")
+    @ResponseBody
+    public Map<String, Object> staffRealtimeStats() {
+        Map<String, Object> stats = dashboardStats();
+        stats.put("updatedAt", LocalDateTime.now().format(UPDATED_AT));
+        return stats;
+    }
+
+    // Tổng quan: số cảnh báo tồn thấp / lô sắp hết hạn, số đơn theo trạng thái, hàng đợi cần xử lý
+    // + lối vào các trang quản lý (FR-38, FR-45)
     private String dashboard(Model model, String title) {
         model.addAttribute("pageTitle", title);
-        model.addAttribute("alertSummary", inventoryAlertService.getSummary());
+        model.addAllAttributes(dashboardStats());
+        model.addAttribute("attentionOrders", staffDashboardService.attentionOrders());
+        model.addAttribute("recentReturns", staffDashboardService.recentReturns());
         return "staff/dashboard";
+    }
+
+    // Tên khoá là hợp đồng với FE (staff/dashboard.jsp và JS gọi /staff/api/stats)
+    private Map<String, Object> dashboardStats() {
+        StaffDashboardCounts counts = staffDashboardService.counts();
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("pendingOrders", counts.getPendingOrders());
+        stats.put("processingOrders", counts.getProcessingOrders());
+        stats.put("returnRequests", counts.getReturnRequests());
+        stats.put("cancelledOrders", counts.getCancelledOrders());
+        stats.put("completedOrders", counts.getCompletedOrders());
+        stats.put("alertSummary", inventoryAlertService.getSummary());
+        return stats;
     }
 }

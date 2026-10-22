@@ -1,0 +1,22 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%-- Ẩn đường dẫn trên thanh địa chỉ với Guest / Customer: sau khi trang tải xong, URL hiển thị chỉ còn tên miền
+     (history.replaceState về trang chủ). Staff / Admin giữ URL thật.
+     URL thật được cất trong history.state; khi khách bấm F5 hoặc Back/Forward, trình duyệt sẽ gọi "/",
+     script thấy state có realUrl thì chuyển lại đúng trang đó. Mọi link/form trong trang đều dùng đường dẫn tuyệt đối
+     (${ctx}/...) nên không bị ảnh hưởng khi URL hiển thị đổi. --%>
+<c:if test="${not (pageContext.request.isUserInRole('STAFF') or pageContext.request.isUserInRole('ADMIN'))}">
+<script>
+    (function () {
+        if (!window.history || !history.replaceState) return;
+        var home = '${pageContext.request.contextPath}/';
+        var here = location.pathname + location.search + location.hash;
+        var saved = history.state && history.state.realUrl;
+        var nav = window.performance && performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+        if (saved && saved !== here && here === home && nav && (nav.type === 'reload' || nav.type === 'back_forward')) {
+            location.replace(saved);
+            return;
+        }
+        history.replaceState({ realUrl: here }, '', home);
+    })();
+</script>
+</c:if>

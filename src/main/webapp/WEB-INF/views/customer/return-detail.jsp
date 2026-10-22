@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Yêu cầu trả hàng #${ret.id} · Food Pet Shop</title>
+    <title>Yêu cầu trả hàng #${ret.id} · PetFood</title>
     <style>body { font-family: Arial, sans-serif; margin: 16px; color: #222; }</style>
 </head>
 <body>

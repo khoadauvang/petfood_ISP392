@@ -4,7 +4,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng nhập · Food Pet Shop</title>
+    <title>Đăng nhập · PetFood</title>
+    <%@ include file="/WEB-INF/views/common/_mask-url.jspf" %>
 </head>
 <body>
 <h1>Đăng nhập</h1>

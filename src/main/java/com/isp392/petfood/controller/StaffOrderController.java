@@ -4,7 +4,6 @@ import com.isp392.petfood.dto.OrderRow;
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.security.AccountPrincipal;
-import com.isp392.petfood.service.MembershipService;
 import com.isp392.petfood.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,13 +27,11 @@ import java.util.function.Supplier;
 //   POST /staff/orders/{id}/cancel           huỷ đơn chưa giao, bắt buộc lý do
 //   POST /staff/orders/{id}/cancel-request/approve | reject   duyệt yêu cầu huỷ của khách
 //   POST /staff/orders/{id}/refunded         đơn VNPay đã trả tiền bị huỷ: ghi nhận đã hoàn tiền
-//   POST /admin/membership/recalculate       (ADMIN) tính lại hạng thành viên ngay
 @Controller
 @RequiredArgsConstructor
 public class StaffOrderController {
 
     private final OrderService orderService;
-    private final MembershipService membershipService;
 
     @GetMapping("/staff/orders")
     public String list(@RequestParam(name = "status", required = false) OrderStatus status,
@@ -54,6 +51,12 @@ public class StaffOrderController {
         model.addAttribute("filterQuery", QueryStrings.of("status", status,
                 "cancelRequested", cancelRequested ? "true" : null, "keyword", keyword));
         model.addAttribute("cancelRequestCount", orderService.countCancelRequests());
+        // Số đếm cho các ô thống kê đầu trang (không phụ thuộc bộ lọc)
+        model.addAttribute("totalAllOrders", orderService.countAll());
+        model.addAttribute("pendingOrdersCount", orderService.countByStatus(OrderStatus.PENDING));
+        model.addAttribute("processingOrdersCount", orderService.countByStatus(OrderStatus.CONFIRMED)
+                + orderService.countByStatus(OrderStatus.PROCESSING));
+        model.addAttribute("completedOrdersCount", orderService.countByStatus(OrderStatus.COMPLETED));
         return "staff/orders/list";
     }
 
@@ -111,13 +114,6 @@ public class StaffOrderController {
     @PostMapping("/staff/orders/{id}/cancel-request/reject")
     public String rejectCancel(@PathVariable("id") Long id, RedirectAttributes redirect) {
         return act(id, redirect, "Đã từ chối yêu cầu huỷ đơn #" + id, () -> orderService.rejectCancelRequest(id));
-    }
-
-    @PostMapping("/admin/membership/recalculate")
-    public String recalculateTiers(RedirectAttributes redirect) {
-        int changed = membershipService.recalculateAll();
-        redirect.addFlashAttribute("successMessage", "Đã tính lại hạng thành viên: " + changed + " khách đổi hạng.");
-        return "redirect:/staff/orders";
     }
 
     private static String act(Long id, RedirectAttributes redirect, String success, Supplier<?> action) {

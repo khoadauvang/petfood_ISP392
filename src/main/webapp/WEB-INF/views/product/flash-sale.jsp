@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Flash Sale · Food Pet Shop</title>
+    <title>Flash Sale · PetFood</title>
     <%-- Style tạm để xem được dữ liệu. FE team thay bằng css/ riêng. --%>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }

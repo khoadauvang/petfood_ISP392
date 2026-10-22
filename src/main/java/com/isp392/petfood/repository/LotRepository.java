@@ -147,4 +147,8 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             order by l.expiryDate, l.id
             """)
     List<Lot> findRedInStock(@Param("minExpiry") LocalDate minExpiry, @Param("maxExpiry") LocalDate maxExpiry);
+
+    // Tổng số lô còn hàng trong kho
+    @Query("select count(l) from Lot l where l.onHandQty > 0")
+    long countInStock();
 }

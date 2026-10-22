@@ -37,7 +37,7 @@ public class SupportMailer {
         message.setFrom(from);
         message.setTo(ticket.getContactEmail());
         // Mã yêu cầu nằm trong tiêu đề để khách và nhân viên tra lại (requirements 7.10)
-        message.setSubject("[Food Pet Shop] Trả lời yêu cầu hỗ trợ " + ticket.getTicketCode());
+        message.setSubject("[PetFood] Trả lời yêu cầu hỗ trợ " + ticket.getTicketCode());
         message.setText(body(ticket, replyContent));
         sender.send(message);
     }
@@ -50,6 +50,6 @@ public class SupportMailer {
                 + "-----\n"
                 + "Yêu cầu " + ticket.getTicketCode() + " bạn gửi lúc " + ticket.getCreatedAt().format(DATE_TIME) + ":\n"
                 + ticket.getContent() + "\n\n"
-                + "Food Pet Shop";
+                + "PetFood";
     }
 }

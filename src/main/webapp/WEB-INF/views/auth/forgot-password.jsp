@@ -6,7 +6,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quên mật khẩu · Food Pet Shop</title>
+    <title>Quên mật khẩu · PetFood</title>
+    <%@ include file="/WEB-INF/views/common/_mask-url.jspf" %>
 </head>
 <body>
 <h1>Quên mật khẩu</h1>

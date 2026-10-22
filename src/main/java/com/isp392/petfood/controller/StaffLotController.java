@@ -2,6 +2,7 @@ package com.isp392.petfood.controller;
 
 import com.isp392.petfood.dto.LotForm;
 import com.isp392.petfood.dto.LotRow;
+import com.isp392.petfood.dto.ProductLotGroupDto;
 import com.isp392.petfood.enums.LotView;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.service.InventoryPolicy;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 // Quản lý lô. /staff/** cho phép STAFF và ADMIN (SecurityConfig).
 //   GET  /staff/lots                     xem tồn theo lô: lọc theo tình trạng, sản phẩm, từ khoá; sắp xếp FEFO
@@ -50,7 +53,9 @@ public class StaffLotController {
                        @RequestParam(name = "page", defaultValue = "1") int page,
                        Model model) {
         Page<LotRow> result = lotService.search(view, productId, keyword, Math.max(page, 1) - 1);
+        List<ProductLotGroupDto> productGroups = lotService.getProductLotGroups(view, productId, keyword);
 
+        model.addAttribute("productGroups", productGroups);
         model.addAttribute("lots", result.getContent());
         model.addAttribute("currentPage", result.getNumber() + 1);
         model.addAttribute("totalPages", result.getTotalPages());
@@ -66,6 +71,7 @@ public class StaffLotController {
         model.addAttribute("products", productAdminService.listOptions());
         model.addAttribute("shelfLifeDays", inventoryPolicy.getShelfLifeCommitmentDays());
         model.addAttribute("quarantineDays", inventoryPolicy.getQuarantineDays());
+        model.addAttribute("lotStats", lotService.getLotStats());
         return "staff/lots/list";
     }
 

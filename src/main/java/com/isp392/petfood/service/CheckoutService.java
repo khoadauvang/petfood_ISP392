@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import java.util.Map;
 //   - trừ tồn theo FEFO ngay lúc đặt (Remaining_Features), mỗi lần trừ là một câu UPDATE có điều kiện (BR-20);
 //     lô đã trừ ghi vào OrderItemLot để huỷ đơn cộng trả đúng lô
 //   - lỗi ở bất kỳ dòng nào (hết hàng do người khác vừa mua) -> rollback toàn bộ, giỏ giữ nguyên
+//   - khách tick chọn dòng ở trang giỏ (itemIds): chỉ đặt các dòng đó, dòng không chọn ở lại giỏ; không chọn gì = cả giỏ
 @Service
 @RequiredArgsConstructor
 public class CheckoutService {
@@ -60,11 +62,12 @@ public class CheckoutService {
     private final PaymentService paymentService;
 
     // Trang đặt hàng. address == null: chưa tính phí ship (khách chưa nhập địa chỉ).
+    // itemIds: các dòng khách chọn; id không còn trong giỏ thì bỏ qua (place() mới báo lỗi)
     @Transactional(readOnly = true)
-    public CheckoutSummary preview(Long customerId, String address) {
+    public CheckoutSummary preview(Long customerId, String address, List<Long> itemIds) {
         Customer customer = findCustomer(customerId);
-        CartView cart = cartService.getCart(customerId);
-        Pricing pricing = price(cartItemRepository.findDetailedByCustomerId(customerId), customer);
+        CartView cart = cartService.getCart(customerId, itemIds);
+        Pricing pricing = price(CartService.onlySelected(cartItemRepository.findDetailedByCustomerId(customerId), itemIds), customer);
         ShippingQuote quote = address == null || address.isBlank()
                 ? null
                 : shippingFeeService.quote(address, pricing.goodsTotal());
@@ -83,17 +86,22 @@ public class CheckoutService {
             throw new BusinessRuleException("paymentMethod", "Thanh toán VNPay chưa được cấu hình, vui lòng chọn COD.");
         }
 
-        CartView cart = cartService.getCart(customerId);
+        List<Long> itemIds = form.getItemIds();
+        List<CartItem> items = CartService.onlySelected(cartItemRepository.findDetailedByCustomerId(customerId), itemIds);
+        if (itemIds != null && !itemIds.isEmpty() && items.size() != new HashSet<>(itemIds).size()) {
+            // Dòng đã chọn bị xoá / đặt ở tab khác trong lúc đang ở trang đặt hàng
+            throw new BusinessRuleException("Một số sản phẩm đã chọn không còn trong giỏ. Vui lòng quay lại giỏ hàng để chọn lại.");
+        }
+        CartView cart = cartService.getCart(customerId, itemIds);
         if (cart.getLines().isEmpty()) {
             throw new BusinessRuleException("Giỏ hàng đang trống.");
         }
         if (cart.isHasProblems()) {
-            // BR-13: kiểm tra lại tồn lúc đặt
-            throw new BusinessRuleException("Giỏ hàng có sản phẩm hết hàng hoặc vượt số lượng còn lại. "
+            // BR-13: kiểm tra lại tồn lúc đặt (chỉ các dòng được chọn)
+            throw new BusinessRuleException("Sản phẩm đã chọn có dòng hết hàng hoặc vượt số lượng còn lại. "
                     + "Vui lòng quay lại giỏ hàng để sửa.");
         }
 
-        List<CartItem> items = cartItemRepository.findDetailedByCustomerId(customerId);
         Pricing pricing = price(items, customer);
         String address = form.getShippingAddress().trim();
         ShippingQuote quote = shippingFeeService.quote(address, pricing.goodsTotal());
@@ -119,7 +127,7 @@ public class CheckoutService {
             }
         }
 
-        // Đặt xong thì làm trống giỏ
+        // Đặt xong thì bỏ các dòng đã đặt khỏi giỏ; dòng khách không chọn vẫn ở lại
         cartItemRepository.deleteAll(items);
         items.getFirst().getCart().touch();
 

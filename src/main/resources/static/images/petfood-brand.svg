@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 36" fill="none">
+    <!-- Dog & Cat Orange Outline Icon -->
+    <g transform="translate(2, 2)">
+        <path d="M 3 19 C 6.5 19 8.5 15.5 10.5 10 L 13.5 3.5 L 16.5 6.2 C 18.5 7.2 21.5 8.2 25.5 10.8 C 27.5 12 27.5 14.2 25.5 15.2 L 22 16.5" 
+              stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 6.5 26.5 C 6.5 18 9.5 14.5 14.5 14.5 C 19.5 14.5 22.5 18 22.5 26.5 Z" 
+              stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <!-- Brand Name Text -->
+    <text x="38" y="26" font-family="'Nunito', 'Segoe UI', -apple-system, sans-serif" font-size="24" font-weight="900" fill="#1e293b" letter-spacing="-0.02em">
+        Pet<tspan fill="#ea580c">Food</tspan>
+    </text>
+</svg>

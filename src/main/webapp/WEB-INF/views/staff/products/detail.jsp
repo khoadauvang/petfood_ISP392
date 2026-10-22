@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title><c:out value="${product.sku}"/> · Food Pet Shop</title>
+    <title><c:out value="${product.sku}"/> · PetFood</title>
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
 </head>
 <body>

@@ -26,12 +26,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Supplier;
 
-// Quản lý Flash Sale cho STAFF và ADMIN (/staff/**, mục 9.7 chốt theo Remaining_Features).
+// Flash Sale: STAFF chỉ xem danh sách / chi tiết; mọi thao tác thay đổi chỉ ADMIN (chặn ở SecurityConfig, chốt 22/10).
 //   GET  /staff/flash-sales                      danh sách chiến dịch
 //   GET  /staff/flash-sales/new                  form tạo       POST cùng URL để lưu (trạng thái DRAFT)
 //   GET  /staff/flash-sales/{id}                 chi tiết: các suất, thêm suất từ lô cận hạn, nút chuyển trạng thái
 //   GET  /staff/flash-sales/{id}/edit            sửa tên / giờ (chỉ DRAFT)   POST cùng URL
-//   POST /staff/flash-sales/{id}/items           thêm suất        POST .../items/{itemId}/delete   xoá suất
+//   POST /staff/flash-sales/{id}/items           thêm suất (giá tự tính theo HSD lô)        POST .../items/{itemId}/delete   xoá suất
 //   POST /staff/flash-sales/{id}/activate | pause | resume | end | delete
 @Controller
 @RequestMapping("/staff/flash-sales")
@@ -175,6 +175,9 @@ public class StaffFlashSaleController {
         model.addAttribute("redLots", flashSaleService.redLots(id));
         model.addAttribute("shelfLifeDays", inventoryPolicy.getShelfLifeCommitmentDays());
         model.addAttribute("quarantineDays", inventoryPolicy.getQuarantineDays());
+        model.addAttribute("deepDiscountDays", inventoryPolicy.getDeepDiscountDays());
+        model.addAttribute("discountPercent", inventoryPolicy.getDiscountPercent());
+        model.addAttribute("deepDiscountPercent", inventoryPolicy.getDeepDiscountPercent());
         return "staff/flash-sales/detail";
     }
 

@@ -30,13 +30,13 @@ public class PasswordResetMailer {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
         message.setTo(to);
-        message.setSubject("[Food Pet Shop] Mã OTP đặt lại mật khẩu");
+        message.setSubject("[PetFood] Mã OTP đặt lại mật khẩu");
         message.setText("Chào bạn,\n\n"
                 + "Mã OTP đặt lại mật khẩu của bạn là: " + otp + "\n\n"
                 + "Mã có hiệu lực trong " + validMinutes + " phút và chỉ dùng được một lần. "
                 + "Không chia sẻ mã này cho bất kỳ ai, kể cả nhân viên cửa hàng.\n\n"
                 + "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này; mật khẩu hiện tại vẫn giữ nguyên.\n\n"
-                + "Food Pet Shop");
+                + "PetFood");
         sender.send(message);
     }
 }

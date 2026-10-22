@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hồ sơ của tôi · Food Pet Shop</title>
+    <title>Hồ sơ của tôi · PetFood</title>
     <%-- Style tạm để xem được dữ liệu. FE team thay bằng css/ riêng. --%>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }

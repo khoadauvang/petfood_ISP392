@@ -1,32 +1,181 @@
 <%@ page pageEncoding="UTF-8" %>
-<%-- Thanh điều hướng + thông báo dùng chung cho các trang /staff (include tĩnh).
+<%-- Sidebar + topbar + thông báo dùng chung cho các trang /staff và /admin (include tĩnh).
      Trang include file này phải khai báo taglib "c" và biến ctx (= contextPath) trước khi include.
-     Thông báo: successMessage / warningMessage / errorMessage (controller gửi qua flash attribute hoặc model). --%>
-<nav class="staff">
-    <strong>Food Pet Shop · Quản lý</strong>
-    <a href="${ctx}/staff">Tổng quan</a>
-    <a href="${ctx}/staff/categories">Danh mục</a>
-    <a href="${ctx}/staff/products">Sản phẩm</a>
-    <a href="${ctx}/staff/lots">Tồn theo lô</a>
-    <a href="${ctx}/staff/alerts">Cảnh báo</a>
-    <a href="${ctx}/staff/orders">Đơn hàng</a>
-    <a href="${ctx}/staff/returns">Trả hàng</a>
-    <a href="${ctx}/staff/flash-sales">Flash Sale</a>
-    <a href="${ctx}/staff/reviews">Đánh giá</a>
-    <a href="${ctx}/staff/support">Hỗ trợ</a>
-    <a href="${ctx}/staff/chat-nodes">Kịch bản chat</a>
-    <c:if test="${currentUser.role == 'ADMIN'}">
-        <a href="${ctx}/admin">Thống kê</a>
-        <a href="${ctx}/admin/employees">Nhân viên</a>
-    </c:if>
-    <span class="who">
-        <c:out value="${currentUser.fullName}"/> (<c:out value="${currentUser.role}"/>)
-        <form method="post" action="${ctx}/logout" class="inline">
-            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-            <button type="submit">Đăng xuất</button>
-        </form>
-    </span>
-</nav>
-<c:if test="${not empty successMessage}"><p class="msg ok"><c:out value="${successMessage}"/></p></c:if>
-<c:if test="${not empty warningMessage}"><p class="msg warn"><c:out value="${warningMessage}"/></p></c:if>
-<c:if test="${not empty errorMessage}"><p class="msg err"><c:out value="${errorMessage}"/></p></c:if>
+     Thông báo: successMessage / warningMessage / errorMessage (controller gửi qua flash attribute hoặc model).
+     Mục đang mở được tô dựa trên URL gốc của request (view JSP được forward nên lấy forward.request_uri). --%>
+<c:set var="navUri" value="${requestScope['jakarta.servlet.forward.request_uri']}"/>
+<c:if test="${empty navUri}"><c:set var="navUri" value="${pageContext.request.requestURI}"/></c:if>
+<c:set var="isAdmin" value="${currentUser.role == 'ADMIN'}"/>
+
+<aside class="sb" id="sidebar" aria-label="Menu quản lý">
+    <a class="sb-brand" href="${ctx}${isAdmin ? '/admin' : '/staff'}" style="display:flex; align-items:center; gap:12px; height:var(--topbar-h); padding:0 20px; border-bottom:1px solid var(--line); text-decoration:none;">
+        <span class="sb-logo-wrap" style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg viewBox="0 0 32 32" fill="none" style="width:36px; height:36px; display:block;">
+                <path d="M 3 19 C 6.5 19 8.5 15.5 10.5 10 L 13.5 3.5 L 16.5 6.2 C 18.5 7.2 21.5 8.2 25.5 10.8 C 27.5 12 27.5 14.2 25.5 15.2 L 22 16.5" 
+                      stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 6.5 26.5 C 6.5 18 9.5 14.5 14.5 14.5 C 19.5 14.5 22.5 18 22.5 26.5 Z" 
+                      stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </span>
+        <span>
+            <b style="font-size:20px; font-weight:900; letter-spacing:-0.03em; color:#1e293b; line-height:1; display:block">Pet<span style="color:#ea580c">Food</span></b>
+            <small style="color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-top:2px">Cổng Quản Trị</small>
+        </span>
+    </a>
+
+    <nav class="sb-scroll">
+        <details class="sb-group" open>
+            <summary>Tổng quan <i class="ti ti-chevron-down"></i></summary>
+            <c:if test="${isAdmin}">
+                <a id="sb-link-admin-overview" class="sb-link ${navUri == ctx.concat('/admin') ? 'active' : ''}" href="${ctx}/admin" onclick="if (typeof switchAdminTab === 'function') { switchAdminTab('tab-overview'); return false; }">
+                    <i class="ti ti-layout-dashboard"></i>Bảng điều khiển</a>
+            </c:if>
+            <a class="sb-link ${navUri == ctx.concat('/staff') ? 'active' : ''}" href="${ctx}/staff">
+                <i class="ti ti-activity"></i>Tổng quan vận hành</a>
+        </details>
+
+        <details class="sb-group" open>
+            <summary>Quản lý bán hàng <i class="ti ti-chevron-down"></i></summary>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/products')) ? 'active' : ''}" href="${ctx}/staff/products">
+                <i class="ti ti-package"></i>Quản lý sản phẩm</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/categories')) ? 'active' : ''}" href="${ctx}/staff/categories">
+                <i class="ti ti-category"></i>Quản lý danh mục</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/orders')) ? 'active' : ''}" href="${ctx}/staff/orders">
+                <i class="ti ti-receipt"></i>Quản lý đơn hàng</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/flash-sales')) ? 'active' : ''}" href="${ctx}/staff/flash-sales">
+                <i class="ti ti-bolt"></i>Flash Sale</a>
+        </details>
+
+        <details class="sb-group" open>
+            <summary>Quản lý kho &amp; đổi trả <i class="ti ti-chevron-down"></i></summary>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/lots')) ? 'active' : ''}" href="${ctx}/staff/lots">
+                <i class="ti ti-building-warehouse"></i>Tồn kho theo lô &amp; Quản lý FEFO</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/alerts')) ? 'active' : ''}" href="${ctx}/staff/alerts">
+                <i class="ti ti-alert-triangle"></i>Cảnh báo hạn sử dụng</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/returns')) ? 'active' : ''}" href="${ctx}/staff/returns">
+                <i class="ti ti-arrow-back-up"></i>Quản lý trả hàng</a>
+        </details>
+
+        <c:if test="${isAdmin}">
+            <details class="sb-group" open>
+                <summary>Hội viên &amp; báo cáo <i class="ti ti-chevron-down"></i></summary>
+                <a id="sb-link-admin-members" class="sb-link" href="${ctx}/admin#members" onclick="if (typeof switchAdminTab === 'function') { switchAdminTab('tab-members'); return false; }"><i class="ti ti-rosette-discount-check"></i>Báo cáo hội viên</a>
+                <a id="sb-link-admin-revenue" class="sb-link" href="${ctx}/admin#revenue" onclick="if (typeof switchAdminTab === 'function') { switchAdminTab('tab-revenue'); return false; }"><i class="ti ti-chart-bar"></i>Báo cáo doanh thu &amp; kinh doanh</a>
+            </details>
+        </c:if>
+
+        <details class="sb-group" open>
+            <summary>Chăm sóc khách hàng <i class="ti ti-chevron-down"></i></summary>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/support')) ? 'active' : ''}" href="${ctx}/staff/support">
+                <i class="ti ti-headset"></i>Yêu cầu hỗ trợ</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/chat-nodes')) ? 'active' : ''}" href="${ctx}/staff/chat-nodes">
+                <i class="ti ti-message-chatbot"></i>Kịch bản phản hồi chat</a>
+            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/reviews')) ? 'active' : ''}" href="${ctx}/staff/reviews">
+                <i class="ti ti-star"></i>Đánh giá sản phẩm</a>
+        </details>
+
+        <c:if test="${isAdmin}">
+            <details class="sb-group" open>
+                <summary>Quản trị hệ thống <i class="ti ti-chevron-down"></i></summary>
+                <a class="sb-link ${navUri.startsWith(ctx.concat('/admin/employees')) ? 'active' : ''}" href="${ctx}/admin/employees">
+                    <i class="ti ti-id"></i>Quản lý tài khoản nhân viên</a>
+            </details>
+        </c:if>
+    </nav>
+
+    <div class="sb-foot">
+        <div style="background:#fff7ee; border:1px solid #ffd8b8; border-radius:10px; padding:8px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; color:#9a3412;">
+            <span><i class="ti ti-building-store" style="color:#ea580c; margin-right:6px"></i>Cửa Hàng Chính #01<br><small style="color:#c2410c; font-weight:normal">Bán lẻ trực tuyến</small></span>
+            <i class="ti ti-selector" style="color:#ea580c"></i>
+        </div>
+        <a class="sb-link" href="${ctx}/" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Xem trang khách</a>
+    </div>
+</aside>
+<div class="sb-backdrop" onclick="document.body.classList.remove('sb-open')"></div>
+
+<header class="topbar">
+    <button type="button" class="icon-btn tb-menu" id="btn-toggle-sidebar" aria-label="Ẩn / Hiện thanh bên" title="Ẩn / Hiện thanh bên (Ctrl + B)"
+            onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
+
+    <form class="tb-search" method="get" action="${ctx}/staff/products" role="search">
+        <i class="ti ti-search"></i>
+        <input type="search" name="keyword" id="tb-search-input" placeholder="Tìm sản phẩm theo tên, SKU... (Ctrl + K)" autocomplete="off">
+    </form>
+
+    <div class="tb-right">
+        <a class="icon-btn" href="${ctx}/staff/alerts" title="Cảnh báo kho" aria-label="Cảnh báo kho">
+            <i class="ti ti-bell"></i><span class="dot"></span></a>
+
+        <details class="tb-user">
+            <summary>
+                <c:choose>
+                    <c:when test="${not empty currentUser.avatarUrl}">
+                        <img class="avatar" src="${ctx}${currentUser.avatarUrl}" alt="">
+                    </c:when>
+                    <c:otherwise>
+                        <span class="avatar"><c:out value="${empty currentUser.fullName ? '?' : currentUser.fullName.substring(0, 1)}"/></span>
+                    </c:otherwise>
+                </c:choose>
+                <span class="who-text">
+                    <b><c:out value="${currentUser.fullName}"/></b>
+                    <small>${isAdmin ? 'Quản trị viên' : 'Nhân viên cửa hàng'}</small>
+                </span>
+                <i class="ti ti-chevron-down who-text"></i>
+            </summary>
+            <div class="tb-menu-pop">
+                <a href="${ctx}/" target="_blank" rel="noopener"><i class="ti ti-building-store"></i>Xem trang khách</a>
+                <form method="post" action="${ctx}/logout">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <button type="submit" class="ghost"><i class="ti ti-logout"></i>Đăng xuất</button>
+                </form>
+            </div>
+        </details>
+    </div>
+</header>
+
+<c:if test="${not empty successMessage}"><p class="msg ok"><i class="ti ti-circle-check"></i><c:out value="${successMessage}"/></p></c:if>
+<c:if test="${not empty warningMessage}"><p class="msg warn"><i class="ti ti-alert-triangle"></i><c:out value="${warningMessage}"/></p></c:if>
+<c:if test="${not empty errorMessage}"><p class="msg err"><i class="ti ti-alert-circle"></i><c:out value="${errorMessage}"/></p></c:if>
+
+<script>
+    function toggleSidebar() {
+        var isMobile = window.innerWidth <= 900;
+        if (isMobile) {
+            document.body.classList.toggle('sb-open');
+        } else {
+            var isCollapsed = document.body.classList.toggle('sb-collapsed');
+            document.documentElement.classList.toggle('sb-collapsed', isCollapsed);
+            try {
+                localStorage.setItem('petfood_sb_collapsed', isCollapsed ? '1' : '0');
+            } catch (e) {}
+        }
+    }
+
+    // Khôi phục trạng thái thu gọn thanh bên khi load
+    (function () {
+        try {
+            if (window.innerWidth > 900 && (localStorage.getItem('petfood_sb_collapsed') === '1' || localStorage.getItem('petcare_sb_collapsed') === '1')) {
+                document.documentElement.classList.add('sb-collapsed');
+                if (document.body) document.body.classList.add('sb-collapsed');
+            }
+        } catch (e) {}
+    })();
+
+    // Phím tắt: Ctrl/Cmd + K để tìm kiếm, Ctrl/Cmd + B để ẩn hiện thanh bên
+    document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            var s = document.getElementById('tb-search-input');
+            if (s) s.focus();
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            toggleSidebar();
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        document.querySelectorAll('details.tb-user[open]').forEach(function (d) {
+            if (!d.contains(e.target)) d.removeAttribute('open');
+        });
+    });
+</script>

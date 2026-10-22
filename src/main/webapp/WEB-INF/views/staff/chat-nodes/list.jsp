@@ -6,14 +6,14 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title>Kịch bản chatbox · Food Pet Shop</title>
+    <title>Kịch bản chatbox · PetFood</title>
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
     <style>.muted { opacity: .55; } .bot-msg { color: #555; font-size: 13px; }</style>
 </head>
 <body>
 <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
 <c:set var="csrf"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"></c:set>
-<h1>Kịch bản chatbox</h1>
+<h1>KỊCH BẢN CHATBOX</h1>
 <p class="hint">Khách chọn chủ đề → nội dung con → giải pháp. Nút không có con là giải pháp. Nút ẩn thì khách không thấy cả nhánh con.
     Nút đã có yêu cầu hỗ trợ tham chiếu chỉ ẩn được, không xoá.</p>
 <p><a href="${ctx}/staff/chat-nodes/new">+ Thêm chủ đề gốc</a> · <a href="${ctx}/support" target="_blank">Xem chatbox như khách ›</a></p>

@@ -17,4 +17,6 @@ public class RedLotOption {
     private final int onHandQty;
     private final long availableQty;       // on_hand trừ phần đang dành cho chiến dịch khác chưa kết thúc
     private final BigDecimal sellingPrice;
+    private final int discountPercent;     // 40% (còn 30-89 ngày) hoặc 70% (còn dưới 30 ngày)
+    private final BigDecimal salePrice;    // giá Flash Sale tự tính, lưu vào suất khi thêm
 }

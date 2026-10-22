@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Đặt hàng · Food Pet Shop</title>
+    <title>Đặt hàng · PetFood</title>
     <%-- Style tạm để xem được dữ liệu. FE team thay bằng css/ riêng. --%>
     <style>
         body { font-family: Arial, sans-serif; margin: 16px; color: #222; }
@@ -51,6 +51,10 @@
 
     <%-- Hai nút cùng một form: "Tính phí giao hàng" gửi tới /checkout/quote, "Đặt hàng" gửi tới /checkout --%>
     <form:form method="post" action="${ctx}/checkout" modelAttribute="checkoutForm">
+        <%-- Các dòng giỏ khách đã tick ở trang giỏ (rỗng = cả giỏ); dòng không chọn vẫn ở lại giỏ sau khi đặt --%>
+        <c:forEach var="itemId" items="${checkoutForm.itemIds}">
+            <input type="hidden" name="itemIds" value="${itemId}">
+        </c:forEach>
         <p>
             <label for="shippingAddress">Địa chỉ giao hàng (số nhà, đường, phường, thành phố)</label>
             <form:textarea path="shippingAddress" rows="3" maxlength="500"/>

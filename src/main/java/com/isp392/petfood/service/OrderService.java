@@ -134,6 +134,16 @@ public class OrderService {
         return orderRepository.search(OrderStatus.PROCESSING, true, null, null, PageRequest.of(0, 1)).getTotalElements();
     }
 
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return orderRepository.count();
+    }
+
+    @Transactional(readOnly = true)
+    public long countByStatus(OrderStatus status) {
+        return orderRepository.countByStatus(status);
+    }
+
     // PENDING -> CONFIRMED
     @Transactional
     public Order confirm(Long orderId, Long employeeId) {
