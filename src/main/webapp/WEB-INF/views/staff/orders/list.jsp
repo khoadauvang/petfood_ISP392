@@ -52,7 +52,7 @@
                     <c:otherwise>0</c:otherwise>
                 </c:choose>
             </div>
-            <div class="kpi-meta"><span class="badge ok">Đơn hàng</span> trên toàn hệ thống</div>
+            <div class="kpi-meta"><span class="badge orange">Đơn hàng trên toàn hệ thống</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -66,7 +66,7 @@
                     <c:otherwise>0</c:otherwise>
                 </c:choose>
             </div>
-            <div class="kpi-meta"><span class="badge warn">Cần xử lý</span> Đơn chờ cửa hàng xác nhận</div>
+            <div class="kpi-meta"><span class="badge warn">Cần xử lý · Chờ xác nhận</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -80,7 +80,7 @@
                     <c:otherwise>0</c:otherwise>
                 </c:choose>
             </div>
-            <div class="kpi-meta">Trong hàng đợi đóng gói</div>
+            <div class="kpi-meta"><span class="badge info">Trong hàng đợi đóng gói</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -94,7 +94,7 @@
                     <c:otherwise>0</c:otherwise>
                 </c:choose>
             </div>
-            <div class="kpi-meta"><span class="badge ok">Hoàn tất</span> trên toàn hệ thống</div>
+            <div class="kpi-meta"><span class="badge ok">Hoàn tất trên toàn hệ thống</span></div>
         </div>
     </section>
 

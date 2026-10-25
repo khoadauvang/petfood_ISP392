@@ -30,7 +30,7 @@ public class StaffDashboardService {
                 orderRepository.countByStatus(OrderStatus.PENDING),
                 orderRepository.countByStatus(OrderStatus.CONFIRMED) + orderRepository.countByStatus(OrderStatus.PROCESSING),
                 returnRequestRepository.countByStatus(ReturnStatus.REQUESTED),
-                orderRepository.countByStatus(OrderStatus.CANCELLED) + orderRepository.countByStatus(OrderStatus.RETURNED),
+                orderRepository.countByStatus(OrderStatus.CANCELLED),
                 orderRepository.countByStatus(OrderStatus.COMPLETED));
     }
 

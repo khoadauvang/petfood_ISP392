@@ -9,6 +9,12 @@
      Token CSRF gắn thêm vào URL action (?_csrf=...): nếu ảnh vượt giới hạn 5MB, Spring không đọc được phần thân
      request, token trong ô ẩn bị mất và bị chặn 403; token trên URL thì vẫn đọc được nên hiện đúng thông báo "ảnh quá lớn". --%>
 <c:choose>
+    <c:when test="${not empty parentProduct}">
+        <c:set var="pageHeading" value="Thêm biến thể mới"/>
+        <c:url var="formAction" value="/staff/products/new">
+            <c:param name="${_csrf.parameterName}" value="${_csrf.token}"/>
+        </c:url>
+    </c:when>
     <c:when test="${empty productId}">
         <c:set var="pageHeading" value="Thêm sản phẩm mới"/>
         <c:url var="formAction" value="/staff/products/new">
@@ -245,19 +251,25 @@
         <div>
             <div class="screen-bc">
                 <a href="${ctx}/staff/products" style="text-decoration:none; color:inherit;">
-                    ‹ QUẢN LÝ SẢN PHẨM
+                    ‹ QUẢN LÝ SẢN PHẨM &amp; BIẾN THỂ
                 </a>
                 <span class="sep" style="margin: 0 6px;">&gt;</span>
-                <span class="current" style="color:var(--color-primary)">${empty productId ? 'THÊM MỚI' : 'CHỈNH SỬA'}</span>
+                <span class="current" style="color:var(--color-primary)">${not empty parentProduct ? 'THÊM BIẾN THỂ' : (empty productId ? 'THÊM MỚI' : 'CHỈNH SỬA')}</span>
             </div>
             <h1 style="display:flex; align-items:center; gap:12px; margin-top:4px;">
                 <c:out value="${pageHeading}"/>
                 <c:if test="${not empty productId}">
                     <span class="pill-badge orange" style="font-size:12px;">ID #${productId}</span>
                 </c:if>
+                <c:if test="${not empty parentProduct}">
+                    <span class="pill-badge orange" style="font-size:12px;"><i class="ti ti-layers-subtract"></i> Biến thể quy cách</span>
+                </c:if>
             </h1>
             <p class="page-sub">
                 <c:choose>
+                    <c:when test="${not empty parentProduct}">
+                        Khai báo quy cách mới, điều chỉnh mã SKU và thiết lập định giá bán cho dòng sản phẩm đang chọn.
+                    </c:when>
                     <c:when test="${empty productId}">
                         Khai báo thông tin sản phẩm mới, thiết lập định giá bán, phân loại và tải lên bộ 5 ảnh sản phẩm.
                     </c:when>
@@ -278,7 +290,18 @@
         </div>
     </div>
 
+    <c:if test="${not empty parentProduct}">
+        <div class="note" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; margin-bottom:20px; padding:14px 18px; border-radius:14px; display:flex; align-items:center; gap:14px; font-size:13.5px; box-shadow:0 2px 8px rgba(37,99,235,0.06);">
+            <i class="ti ti-layers-subtract" style="color:#2563eb; font-size:26px; flex-shrink:0;"></i>
+            <div style="line-height:1.5;">
+                <span style="font-weight:800; font-size:14px; color:#1d4ed8;">ĐANG TẠO BIẾN THỂ MỚI CHO: <c:out value="${parentProduct.name}"/></span><br>
+                <span>Hệ thống đã tự động kế thừa <b>Danh mục</b>, <b>Thương hiệu</b>, <b>Loài &amp; Độ tuổi</b>, <b>Mô tả</b> và <b>bộ 5 ảnh</b> từ sản phẩm gốc. Bạn chỉ cần điền quy cách vào tên, hoàn tất SKU, giá bán và bấm Lưu.</span>
+            </div>
+        </div>
+    </c:if>
+
     <form:form id="productMainForm" method="post" action="${formAction}" modelAttribute="productForm" enctype="multipart/form-data">
+        <form:hidden path="variantOf" id="variantOf"/>
         <div class="form-layout">
             <%-- ========================================================
                  CỘT TRÁI (LEFT COLUMN): Thông tin chính & Hình ảnh & Lô
@@ -323,6 +346,7 @@
                         <div style="line-height:1.5;">
                             <b>Yêu cầu hình ảnh:</b> Định dạng JPG, PNG hoặc WEBP, tối thiểu 300×300 px. Hệ thống tự động chuyển sang JPG nền trắng chuẩn hóa cạnh dài tối đa 900 px.
                             <c:if test="${not empty productId}"><br><span style="color:#c2410c;">(Chế độ sửa: Chỉ cần chọn ở vị trí muốn thay, để trống sẽ giữ nguyên ảnh cũ).</span></c:if>
+                            <c:if test="${not empty parentProduct}"><br><span style="color:#2563eb;">(Chế độ biến thể: Hệ thống đã nạp sẵn 5 ảnh từ dòng sản phẩm chính. Bạn có thể giữ nguyên hoặc bấm "Thay đổi" nếu có ảnh quy cách riêng).</span></c:if>
                         </div>
                     </div>
 
@@ -344,6 +368,11 @@
                                 <c:if test="${not empty product}">
                                     <c:set var="currentUrl" value="${product.imageSlots[slot - 1]}"/>
                                 </c:if>
+                                <c:if test="${empty currentUrl and not empty parentProduct}">
+                                    <c:if test="${not empty parentProduct.imageSlots and not empty parentProduct.imageSlots[slot - 1]}">
+                                        <c:set var="currentUrl" value="${parentProduct.imageSlots[slot - 1]}"/>
+                                    </c:if>
+                                </c:if>
 
                                 <div class="slot-preview-wrap" onclick="document.getElementById('fileSlot${slot}').click()" title="Bấm để chọn ảnh cho vị trí ${slot}">
                                     <img id="previewSlot${slot}" class="slot-img"
@@ -360,7 +389,7 @@
 
                                 <input type="file" name="image${slot}" id="fileSlot${slot}" accept="image/jpeg,image/png,image/webp"
                                        style="display:none;" onchange="handleImagePreview(this, ${slot})"
-                                       <c:if test="${empty productId}">required</c:if>>
+                                       <c:if test="${empty productId and empty parentProduct}">required</c:if>>
 
                                 <button type="button" class="slot-upload-trigger" onclick="document.getElementById('fileSlot${slot}').click()">
                                     <i class="ti ti-upload"></i>

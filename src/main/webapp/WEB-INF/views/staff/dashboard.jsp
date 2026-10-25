@@ -18,7 +18,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>● CA LÀM VIỆC 01 • VẬN HÀNH SÀN KHO</span>
+                <span>VẬN HÀNH SÀN KHO</span>
             </div>
             <h1 style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
                 TỔNG QUAN VẬN HÀNH
@@ -44,7 +44,7 @@
                 <span class="kpi-ico orange"><i class="ti ti-clipboard-list"></i></span>
             </div>
             <div class="kpi-value" id="staff-kpi-pending">${pendingOrders != null ? pendingOrders : 0}</div>
-            <div class="kpi-meta"><span class="badge ok">Cần xử lý</span> Chờ xác nhận đơn</div>
+            <div class="kpi-meta"><span class="badge orange">Cần xử lý · Chờ xác nhận</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -53,7 +53,7 @@
                 <span class="kpi-ico blue"><i class="ti ti-package"></i></span>
             </div>
             <div class="kpi-value" id="staff-kpi-processing" style="color:#2563eb">${processingOrders != null ? processingOrders : 0}</div>
-            <div class="kpi-meta">Đang đóng gói &amp; bàn giao</div>
+            <div class="kpi-meta"><span class="badge info">Đang đóng gói &amp; bàn giao</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -62,12 +62,12 @@
                 <span class="kpi-ico purple"><i class="ti ti-arrow-back-up"></i></span>
             </div>
             <div class="kpi-value" id="staff-kpi-returns" style="color:#7c3aed">${returnRequests != null ? returnRequests : 0}</div>
-            <div class="kpi-meta"><span class="badge warn">Chờ duyệt &amp; kiểm tra</span></div>
+            <div class="kpi-meta"><span class="badge purple">Chờ duyệt &amp; kiểm tra</span></div>
         </div>
 
         <div class="panel kpi reveal">
             <div class="kpi-top">
-                <span class="kpi-label">ĐƠN ĐÃ HỦY / HOÀN</span>
+                <span class="kpi-label">ĐƠN ĐÃ HỦY</span>
                 <span class="kpi-ico red"><i class="ti ti-alert-circle"></i></span>
             </div>
             <div class="kpi-value red" id="staff-kpi-cancelled">${cancelledOrders != null ? cancelledOrders : 0}</div>

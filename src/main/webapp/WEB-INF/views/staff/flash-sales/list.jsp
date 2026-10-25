@@ -54,7 +54,7 @@
                 <span class="kpi-ico orange"><i class="ti ti-bolt"></i></span>
             </div>
             <div class="kpi-value">${totalSales}</div>
-            <div class="kpi-meta"><span class="badge ok">Toàn bộ chiến dịch</span></div>
+            <div class="kpi-meta"><span class="badge orange">Toàn bộ chiến dịch</span></div>
         </div>
 
         <div class="panel kpi">
@@ -63,7 +63,7 @@
                 <span class="kpi-ico green"><i class="ti ti-clock-play"></i></span>
             </div>
             <div class="kpi-value" style="color:#10b981">${calcActive}</div>
-            <div class="kpi-meta"><span class="badge ok">${calcActive} active</span> Đang chạy xả kho</div>
+            <div class="kpi-meta"><span class="badge ok">Đang chạy xả kho</span></div>
         </div>
 
         <div class="panel kpi">
@@ -72,7 +72,7 @@
                 <span class="kpi-ico blue"><i class="ti ti-calendar-event"></i></span>
             </div>
             <div class="kpi-value" style="color:#2563eb">${calcDraft}</div>
-            <div class="kpi-meta">Chưa kích hoạt hoặc đã lên lịch</div>
+            <div class="kpi-meta"><span class="badge info">Chưa kích hoạt hoặc đã lên lịch</span></div>
         </div>
 
         <div class="panel kpi">
@@ -81,7 +81,7 @@
                 <span class="kpi-ico gray"><i class="ti ti-archive"></i></span>
             </div>
             <div class="kpi-value" style="color:#6b7280">${calcEnded}</div>
-            <div class="kpi-meta">Chiến dịch hoàn tất • Lưu trữ</div>
+            <div class="kpi-meta"><span class="badge gray">Chiến dịch hoàn tất • Lưu trữ</span></div>
         </div>
     </section>
 

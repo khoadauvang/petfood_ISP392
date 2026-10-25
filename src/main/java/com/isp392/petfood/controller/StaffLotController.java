@@ -50,10 +50,11 @@ public class StaffLotController {
     public String list(@RequestParam(name = "view", defaultValue = "ALL") LotView view,
                        @RequestParam(name = "productId", required = false) Long productId,
                        @RequestParam(name = "keyword", required = false) String keyword,
+                       @RequestParam(name = "stockStatus", required = false) String stockStatus,
                        @RequestParam(name = "page", defaultValue = "1") int page,
                        Model model) {
         Page<LotRow> result = lotService.search(view, productId, keyword, Math.max(page, 1) - 1);
-        List<ProductLotGroupDto> productGroups = lotService.getProductLotGroups(view, productId, keyword);
+        List<ProductLotGroupDto> productGroups = lotService.getProductLotGroups(view, productId, keyword, stockStatus);
 
         model.addAttribute("productGroups", productGroups);
         model.addAttribute("lots", result.getContent());
@@ -64,8 +65,9 @@ public class StaffLotController {
         model.addAttribute("filterView", view);
         model.addAttribute("filterProductId", productId);
         model.addAttribute("filterKeyword", keyword);
+        model.addAttribute("filterStockStatus", stockStatus);
         model.addAttribute("filterQuery", QueryStrings.of(
-                "view", view, "productId", productId, "keyword", keyword));
+                "view", view, "productId", productId, "keyword", keyword, "stockStatus", stockStatus));
 
         model.addAttribute("lotViews", LotView.values());
         model.addAttribute("products", productAdminService.listOptions());

@@ -46,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -223,9 +224,42 @@ public class ReturnService {
 
     @Transactional(readOnly = true)
     public Page<ReturnRow> search(ReturnStatus status, int pageNumber) {
-        return returnRequestRepository.search(status,
+        return search(status, null, null, null, null, pageNumber);
+    }
+
+    // from / to: ngày gửi yêu cầu, tính cả ngày "to". Từ khoá dạng "#RR-0012", "ORD-12" hay "12" còn được
+    // so với mã yêu cầu / mã đơn; ngoài ra tìm theo tên, SĐT, email khách
+    @Transactional(readOnly = true)
+    public Page<ReturnRow> search(ReturnStatus status, ReturnReason reason, LocalDate from, LocalDate to,
+                                  String keyword, int pageNumber) {
+        String text = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        Long numericId = null;
+        if (text != null) {
+            String digits = text.replaceAll("(?i)^#?(RR|ORD)?-?", "");
+            if (digits.matches("\\d{1,18}")) {
+                numericId = Long.parseLong(digits);
+            }
+        }
+        return returnRequestRepository.search(status, reason,
+                        from == null ? null : from.atStartOfDay(),
+                        to == null ? null : to.plusDays(1).atStartOfDay(),
+                        numericId, text,
                         PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id")))
                 .map(this::toRow);
+    }
+
+    // Thẻ KPI trang danh sách trả hàng; "completed" = REFUNDED + CLOSED
+    @Transactional(readOnly = true)
+    public Map<String, Long> getReturnCounts() {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        counts.put("total", returnRequestRepository.count());
+        counts.put("requested", returnRequestRepository.countByStatus(ReturnStatus.REQUESTED));
+        counts.put("approved", returnRequestRepository.countByStatus(ReturnStatus.APPROVED));
+        counts.put("received", returnRequestRepository.countByStatus(ReturnStatus.RECEIVED));
+        counts.put("inspected", returnRequestRepository.countByStatus(ReturnStatus.INSPECTED));
+        counts.put("completed", returnRequestRepository.countByStatus(ReturnStatus.REFUNDED)
+                + returnRequestRepository.countByStatus(ReturnStatus.CLOSED));
+        return counts;
     }
 
     @Transactional(readOnly = true)

@@ -8,6 +8,8 @@ import com.isp392.petfood.repository.OrderRepository.CustomerAmountRow;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,13 @@ public class MembershipService {
     public void scheduledRecalculate() {
         int changed = recalculateAll();
         log.info("Tính lại hạng thành viên: {} khách đổi hạng", changed);
+    }
+
+    // Tính lại ngay lúc khởi động: máy không chạy lúc 00:05 thì hạng vẫn được cập nhật
+    @EventListener(ApplicationReadyEvent.class)
+    public void recalculateOnStartup() {
+        int changed = recalculateAll();
+        log.info("Đồng bộ hạng thành viên lúc khởi động: {} khách đổi hạng", changed);
     }
 
     // Trả về số khách đổi hạng

@@ -35,6 +35,7 @@ import java.util.Map;
 // Quản lý sản phẩm. /staff/** cho phép STAFF và ADMIN (SecurityConfig).
 //   GET  /staff/products                     danh sách + tìm kiếm, lọc, phân trang
 //   GET  /staff/products/new                 form thêm (multipart, 5 ảnh)   POST cùng URL để lưu
+//   GET  /staff/products/new?variantOf={id}  form thêm biến thể: điền sẵn từ sản phẩm gốc, ảnh trống lấy ảnh gốc
 //   GET  /staff/products/{id}                chi tiết: 5 ảnh + tồn theo lô
 //   GET  /staff/products/{id}/edit           form sửa (thay ảnh nào chọn ảnh đó)   POST cùng URL để lưu
 //   POST /staff/products/{id}/toggle-status  ẩn/hiện: ACTIVE <-> DISCONTINUED
@@ -101,9 +102,10 @@ public class StaffProductController {
     }
 
     @GetMapping("/new")
-    public String createForm(Model model) {
-        model.addAttribute("productForm", new ProductForm());
-        return showForm(model, null);
+    public String createForm(@RequestParam(name = "variantOf", required = false) Long variantOf, Model model) {
+        ProductForm form = variantOf == null ? new ProductForm() : productAdminService.buildVariantForm(variantOf);
+        model.addAttribute("productForm", form);
+        return showCreateForm(model, form);
     }
 
     @PostMapping("/new")
@@ -113,16 +115,19 @@ public class StaffProductController {
                          RedirectAttributes redirect) {
         if (result.hasErrors()) {
             FormErrors.summary(model);
-            return showForm(model, null);
+            return showCreateForm(model, form);
         }
         try {
             Product saved = productAdminService.create(form);
-            redirect.addFlashAttribute("successMessage", "Đã thêm sản phẩm " + saved.getSku() + " kèm 5 ảnh"
+            String added = form.getVariantOf() != null
+                    ? "Đã thêm biến thể " + saved.getSku()
+                    : "Đã thêm sản phẩm " + saved.getSku();
+            redirect.addFlashAttribute("successMessage", added + " kèm 5 ảnh"
                     + (form.hasFirstLot() ? " và lô đầu tiên (" + form.getFirstLotQty() + " sản phẩm)" : ""));
             return "redirect:/staff/products/" + saved.getId();
         } catch (BusinessRuleException e) {
             FormErrors.apply(e, result, model);
-            return showForm(model, null);
+            return showCreateForm(model, form);
         }
     }
 
@@ -184,6 +189,14 @@ public class StaffProductController {
     }
 
     // productId == null: form thêm mới; có giá trị: form sửa (kèm ảnh hiện tại để xem trước)
+    // Form thêm; nếu đang thêm biến thể thì kèm sản phẩm gốc (parentProduct) để JSP hiện ảnh sẽ kế thừa
+    private String showCreateForm(Model model, ProductForm form) {
+        if (form.getVariantOf() != null) {
+            model.addAttribute("parentProduct", productAdminService.getDetail(form.getVariantOf()));
+        }
+        return showForm(model, null);
+    }
+
     private String showForm(Model model, Long productId) {
         model.addAttribute("productId", productId);
         if (productId != null) {

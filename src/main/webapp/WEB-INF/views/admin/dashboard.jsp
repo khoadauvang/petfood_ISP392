@@ -37,15 +37,227 @@
         }
         #chartPointHalo { animation: chartPulse 2s infinite ease-in-out; }
 
-        /* Styles cho Báo cáo doanh thu & kinh doanh (Screen 12 Figma) */
-        .rev-filter-box { background: #fff; border-radius: 16px; border: 1px solid var(--line); padding: 18px 22px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .rev-filter-field { display: flex; flex-direction: column; gap: 5px; }
-        .rev-filter-field label { font-size: 12px; font-weight: 700; color: #64748b; }
-        .rev-input-wrap { display: flex; align-items: center; gap: 8px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 7px 12px; background: #fff; }
-        .rev-input-wrap input, .rev-input-wrap select { border: none; outline: none; font-size: 13px; font-weight: 600; color: #1e293b; background: transparent; width: 100%; }
-        .rev-quick-chip { padding: 6px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; font-size: 12.5px; font-weight: 600; color: #475569; cursor: pointer; transition: all .15s ease; }
-        .rev-quick-chip:hover { border-color: #ea580c; color: #ea580c; background: #fff7ed; }
-        .rev-quick-chip.active { background: #ea580c; color: #fff; border-color: #ea580c; font-weight: 700; }
+        /* Styles cho Thanh Lọc Hiện Đại (Screen 12 & Screen 13) theo mẫu Pill Bar */
+        .modern-filter-container {
+            margin-bottom: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .filter-pill-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            padding: 6px 8px 6px 18px;
+            box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+        .filter-pill-card:hover {
+            box-shadow: 0 6px 22px -2px rgba(0, 0, 0, 0.08), 0 3px 8px -1px rgba(0, 0, 0, 0.03);
+            border-color: #cbd5e1;
+        }
+        .filter-controls-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .filter-date-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-cal-icon {
+            color: #ea580c;
+            font-size: 19px;
+            margin-right: 2px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+        }
+        .filter-date-input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #1e293b;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 4px 2px;
+            width: 128px;
+        }
+        .filter-date-input::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+        .filter-date-input::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+        .filter-arrow-sep {
+            color: #94a3b8;
+            font-size: 15px;
+            font-weight: 600;
+            user-select: none;
+            margin: 0 4px;
+        }
+        .filter-sep-line {
+            width: 1px;
+            height: 22px;
+            background: #e2e8f0;
+            margin: 0 2px;
+            flex-shrink: 0;
+        }
+        .filter-select-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            padding: 5px 14px;
+            transition: all 0.15s ease;
+        }
+        .filter-select-pill:focus-within, .filter-select-pill:hover {
+            border-color: #f97316;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.08);
+        }
+        .filter-select-pill select {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            cursor: pointer;
+            font-family: inherit;
+            padding-right: 4px;
+        }
+        .filter-chips-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .rev-quick-chip, .s13-chip {
+            padding: 6px 16px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: #f3f4f6;
+            font-size: 13px;
+            font-weight: 600;
+            color: #52525b;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .rev-quick-chip:hover, .s13-chip:hover {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+        .rev-quick-chip.active, .s13-chip.active {
+            background: #ffedd5 !important;
+            color: #ea580c !important;
+            border-color: #fed7aa !important;
+            font-weight: 700 !important;
+        }
+        .filter-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .filter-btn-reset {
+            height: 38px;
+            padding: 0 14px;
+            border-radius: 9999px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #64748b;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .filter-btn-reset:hover {
+            background: #f8fafc;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+        .filter-btn-apply {
+            height: 38px;
+            padding: 0 24px;
+            border-radius: 9999px;
+            border: none;
+            background: #ea580c;
+            color: #ffffff;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(234, 88, 12, 0.35);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        .filter-btn-apply:hover {
+            background: #d94e08;
+            box-shadow: 0 4px 14px rgba(234, 88, 12, 0.45);
+            transform: translateY(-1px);
+        }
+        .filter-btn-apply:active {
+            transform: translateY(0);
+        }
+        .filter-meta-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 2px 12px 0 12px;
+            font-size: 12.5px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .filter-meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .filter-pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #16a34a;
+            display: inline-block;
+            box-shadow: 0 0 0 2px #bbf7d0;
+        }
+        @media (max-width: 1100px) {
+            .filter-pill-card {
+                border-radius: 24px;
+                padding: 12px 16px;
+            }
+            .filter-actions-group {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
         
         .rev-kpi-card { background: #fff; border-radius: 16px; border: 1px solid var(--line); padding: 20px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
         .rev-kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; position: absolute; right: 20px; top: 20px; }
@@ -60,6 +272,12 @@
         .page-num-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; font-size: 13px; font-weight: 600; color: #475569; display: grid; place-items: center; cursor: pointer; transition: all .15s ease; }
         .page-num-btn:hover { border-color: #ea580c; color: #ea580c; }
         .page-num-btn.active { background: #ea580c; color: #fff; border-color: #ea580c; font-weight: 700; }
+
+        /* Styles cho Báo cáo hội viên (Screen 13 Figma) */
+        .s13-tier-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .s13-tier-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; }
+        .s13-stat-bar { height: 10px; border-radius: 99px; background: #f1f5f9; overflow: hidden; position: relative; margin-top: 6px; }
+        .s13-stat-bar-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; }
     </style>
 </head>
 <body>
@@ -104,8 +322,8 @@
                     <input type="date" name="from" id="from" value="${filterFrom}" aria-label="Từ ngày">
                     <span class="sep">→</span>
                     <input type="date" name="to" id="to" value="${filterTo}" aria-label="Đến ngày">
-                    <button type="button" class="chip" data-preset="7">7 ngày</button>
-                    <button type="button" class="chip on" data-preset="30">30 ngày</button>
+                    <button type="button" class="chip" data-preset="week">Tuần này</button>
+                    <button type="button" class="chip" data-preset="month">Tháng này</button>
                     <button type="submit" id="range-submit"><i class="ti ti-filter"></i> Lọc</button>
                 </form>
                 <a href="javascript:window.print()" class="export-btn"><i class="ti ti-download"></i>Xuất báo cáo</a>
@@ -204,7 +422,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
                     <div>
                         <h3 style="font-size:17px; font-weight:800; color:#1e293b; margin:0 0 4px 0;">Xu hướng doanh thu</h3>
-                        <p style="font-size:13px; color:#64748b; margin:0;">Doanh thu trong kỳ được chọn (Tháng 10/2026)</p>
+                        <p id="trendSubtitle1" style="font-size:13px; color:#64748b; margin:0;">Doanh thu trong kỳ được chọn</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:20px; font-size:13px; font-weight:600; color:#64748b;">
                         <span style="display:inline-flex; align-items:center; gap:8px;">
@@ -250,14 +468,7 @@
                         </div>
                     </div>
 
-                    <div style="display:flex; margin-left:36px; margin-top:14px; justify-content:space-between; font-size:12px; font-weight:600; color:#64748b; padding:0 4px;">
-                        <span>01/10</span>
-                        <span>06/10</span>
-                        <span>11/10</span>
-                        <span>16/10</span>
-                        <span>21/10</span>
-                        <span>26/10</span>
-                        <span>31/10</span>
+                    <div class="trend-axis-labels" style="display:flex; margin-left:36px; margin-top:14px; justify-content:space-between; font-size:12px; font-weight:600; color:#64748b; padding:0 4px;">
                     </div>
                 </div>
             </div>
@@ -612,71 +823,44 @@
             </div>
         </div>
 
-        <%-- Khung Bộ Lọc & Chọn Nhanh (Filter Bar Screen 12) --%>
-        <div class="rev-filter-box">
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 100px 140px; gap:14px; align-items:flex-end; margin-bottom:16px;">
-                <div class="rev-filter-field">
-                    <label>Từ ngày</label>
-                    <div class="rev-input-wrap">
-                        <i class="ti ti-calendar" style="color:#94a3b8; font-size:16px;"></i>
-                        <input type="date" id="screen12FilterFrom" value="${filterFrom != null ? filterFrom : '2026-10-01'}" onchange="applyScreen12Filter()">
+        <%-- Khung Bộ Lọc Kiểu Pill Hiện Đại (Screen 12) --%>
+        <div class="modern-filter-container">
+            <div class="filter-pill-card">
+                <div class="filter-controls-group">
+                    <%-- Chọn khoảng ngày Từ ngày -> Đến ngày --%>
+                    <div class="filter-date-group" title="Khoảng thời gian báo cáo">
+                        <i class="ti ti-calendar filter-cal-icon"></i>
+                        <input type="date" class="filter-date-input" id="screen12FilterFrom" value="2026-10-01" onchange="onScreen12DateChange()" title="Từ ngày">
+                        <span class="filter-arrow-sep">&rarr;</span>
+                        <input type="date" class="filter-date-input" id="screen12FilterTo" value="2026-10-31" onchange="onScreen12DateChange()" title="Đến ngày">
+                    </div>
+
+                    <div class="filter-sep-line"></div>
+
+                    <%-- Các nút chọn nhanh --%>
+                    <div class="filter-chips-group">
+                        <button type="button" class="rev-quick-chip" id="chip-today" onclick="selectQuickChip(this, 'today')">Hôm nay</button>
+                        <button type="button" class="rev-quick-chip" id="chip-week" onclick="selectQuickChip(this, 'week')">Tuần này</button>
+                        <button type="button" class="rev-quick-chip active" id="chip-month" onclick="selectQuickChip(this, 'month')">Tháng này</button>
+                        <button type="button" class="rev-quick-chip" id="chip-year" onclick="selectQuickChip(this, 'year')">Năm nay</button>
                     </div>
                 </div>
-                <div class="rev-filter-field">
-                    <label>Đến ngày</label>
-                    <div class="rev-input-wrap">
-                        <i class="ti ti-calendar" style="color:#94a3b8; font-size:16px;"></i>
-                        <input type="date" id="screen12FilterTo" value="${filterTo != null ? filterTo : '2026-10-31'}" onchange="applyScreen12Filter()">
-                    </div>
-                </div>
-                <div class="rev-filter-field">
-                    <label>Trạng thái đơn</label>
-                    <div class="rev-input-wrap">
-                        <i class="ti ti-filter" style="color:#94a3b8; font-size:16px;"></i>
-                        <select id="screen12FilterStatus" onchange="applyScreen12Filter()">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="COMPLETED">Đã hoàn thành</option>
-                            <option value="SHIPPED">Đang giao</option>
-                            <option value="PROCESSING">Đang xử lý</option>
-                            <option value="CONFIRMED">Đã xác nhận</option>
-                            <option value="CANCELLED">Đã hủy</option>
-                            <option value="RETURNED">Đã trả hàng</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="rev-filter-field">
-                    <label>Phương thức thanh toán</label>
-                    <div class="rev-input-wrap">
-                        <i class="ti ti-credit-card" style="color:#94a3b8; font-size:16px;"></i>
-                        <select id="screen12FilterPayment" onchange="applyScreen12Filter()">
-                            <option value="">Tất cả phương thức</option>
-                            <option value="VNPAY">Cổng VNPay</option>
-                            <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <button type="button" class="chip" onclick="resetScreen12Filter()" style="width:100%; height:40px; justify-content:center; border-radius:10px; font-weight:700; border:1px solid #cbd5e1; background:#fff; cursor:pointer;">
-                        <i class="ti ti-refresh" style="font-size:15px; margin-right:4px;"></i> Đặt lại
+
+                <%-- Nút tác vụ Đặt lại & Lọc --%>
+                <div class="filter-actions-group">
+                    <button type="button" class="filter-btn-reset" onclick="resetScreen12Filter()" title="Đặt lại về mặc định">
+                        <i class="ti ti-rotate-2"></i> Đặt lại
                     </button>
-                </div>
-                <div>
-                    <button type="button" onclick="applyScreen12Filter()" style="width:100%; height:40px; background:#ea580c; color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(234,88,12,0.25);">
-                        <i class="ti ti-filter" style="font-size:15px;"></i> Áp dụng bộ lọc
+                    <button type="button" class="filter-btn-apply" onclick="applyScreen12Filter()" title="Áp dụng lọc doanh thu">
+                        Lọc
                     </button>
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:14px; border-top:1px dashed #f1f5f9;">
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <span style="font-size:12px; font-weight:800; color:#64748b; margin-right:4px; letter-spacing:0.5px;">CHỌN NHANH:</span>
-                    <button type="button" class="rev-quick-chip" id="chip-today" onclick="selectQuickChip(this, 'today')">Hôm nay</button>
-                    <button type="button" class="rev-quick-chip" id="chip-week" onclick="selectQuickChip(this, 'week')">Tuần này</button>
-                    <button type="button" class="rev-quick-chip active" id="chip-month" onclick="selectQuickChip(this, 'month')">Tháng này (Tháng 10/2026)</button>
-                    <button type="button" class="rev-quick-chip" id="chip-year" onclick="selectQuickChip(this, 'year')">Năm nay</button>
-                </div>
-                <div style="font-size:12.5px; color:#64748b; font-weight:600; display:inline-flex; align-items:center; gap:7px;">
-                    <span style="width:7px; height:7px; border-radius:50%; background:#16a34a; display:inline-block; box-shadow:0 0 0 2px #bbf7d0;"></span>
+            <%-- Dòng trạng thái đồng bộ dữ liệu --%>
+            <div class="filter-meta-bar">
+                <div class="filter-meta-badge">
+                    <span class="filter-pulse-dot"></span>
                     <span>Dữ liệu đồng bộ: 5 phút trước &bull; Đơn vị tiền tệ: Việt Nam Đồng (VNĐ ₫)</span>
                 </div>
             </div>
@@ -690,10 +874,10 @@
                     <i class="ti ti-cash"></i>
                 </div>
                 <div class="rev-kpi-val" id="screen12KpiRevenue">
-                    ₫<fmt:formatNumber value="${stats != null && stats.grossRevenue != null && stats.grossRevenue > 0 ? stats.grossRevenue : 35616708}" type="number"/>
+                    ₫<fmt:formatNumber value="${stats != null && stats.grossRevenue != null ? stats.grossRevenue : 0}" type="number"/>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="pill-badge green"><i class="ti ti-arrow-up-right"></i> +14.2%</span>
+                <div style="display:flex; align-items:center; gap:6px;" id="screen12KpiRevenueGrowth">
+                    <span class="pill-badge warn" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-down-right"></i> -8.3%</span>
                     <span style="font-size:12px; color:#64748b; font-weight:600;">so với tháng trước</span>
                 </div>
             </div>
@@ -704,10 +888,10 @@
                     <i class="ti ti-shopping-bag"></i>
                 </div>
                 <div class="rev-kpi-val" id="screen12KpiOrders">
-                    66
+                    <fmt:formatNumber value="${stats != null && stats.allOrders != null ? stats.allOrders.size() : 0}" type="number"/>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="pill-badge green"><i class="ti ti-arrow-up-right"></i> +8.6%</span>
+                <div style="display:flex; align-items:center; gap:6px;" id="screen12KpiOrdersGrowth">
+                    <span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-up-right"></i> +30.8%</span>
                     <span style="font-size:12px; color:#64748b; font-weight:600;">so với tháng trước</span>
                 </div>
             </div>
@@ -718,10 +902,10 @@
                     <i class="ti ti-receipt-2"></i>
                 </div>
                 <div class="rev-kpi-val" id="screen12KpiAov">
-                    ₫<fmt:formatNumber value="${stats != null && stats.completedOrders > 0 ? stats.grossRevenue / stats.completedOrders : 636013}" type="number" maxFractionDigits="0"/>
+                    ₫<fmt:formatNumber value="${stats != null && stats.completedOrders > 0 ? stats.grossRevenue / stats.completedOrders : 0}" type="number" maxFractionDigits="0"/>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="pill-badge green"><i class="ti ti-arrow-up-right"></i> +5.1%</span>
+                <div style="display:flex; align-items:center; gap:6px;" id="screen12KpiAovGrowth">
+                    <span class="pill-badge warn" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-down-right"></i> -6.2%</span>
                     <span style="font-size:12px; color:#64748b; font-weight:600;">so với tháng trước</span>
                 </div>
             </div>
@@ -732,10 +916,10 @@
                     <i class="ti ti-circle-check"></i>
                 </div>
                 <div class="rev-kpi-val" id="screen12KpiCompleted">
-                    <span id="screen12KpiCompletedCount"><fmt:formatNumber value="${stats != null && stats.completedOrders > 0 ? stats.completedOrders : 56}" type="number"/></span> <span style="font-size:14px; font-weight:600; color:#64748b;" id="screen12KpiCompletedPct">(84.8%)</span>
+                    <span id="screen12KpiCompletedCount"><fmt:formatNumber value="${stats != null && stats.completedOrders > 0 ? stats.completedOrders : 0}" type="number"/></span> <span style="font-size:14px; font-weight:600; color:#64748b;" id="screen12KpiCompletedPct">(${stats != null && stats.completedOrders > 0 && stats.allOrders != null && stats.allOrders.size() > 0 ? String.format("%.1f", (stats.completedOrders * 100.0) / stats.allOrders.size()) : '0.0'}%)</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="pill-badge green" id="screen12KpiSuccessRate"><i class="ti ti-check"></i> 84.8%</span>
+                    <span class="pill-badge green" id="screen12KpiSuccessRate"><i class="ti ti-check"></i> <c:out value="${stats != null && stats.completedOrders > 0 && stats.allOrders != null && stats.allOrders.size() > 0 ? String.format('%.1f', (stats.completedOrders * 100.0) / stats.allOrders.size()) : '0.0'}"/>%</span>
                     <span style="font-size:12px; color:#64748b; font-weight:600;">tỷ lệ thành công</span>
                 </div>
             </div>
@@ -748,7 +932,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
                     <div>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Xu hướng doanh thu</h3>
-                        <p style="font-size:12.5px; color:#64748b; margin:0;">Doanh thu trong kỳ được chọn (Tháng 10/2026)</p>
+                        <p id="screen12RevenueSubtitle" style="font-size:12.5px; color:#64748b; margin:0;">Doanh thu trong kỳ được chọn (Tháng 10/2026)</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:16px; font-size:12.5px; font-weight:600; color:#64748b;">
                         <span style="display:inline-flex; align-items:center; gap:6px;">
@@ -793,14 +977,7 @@
                         </div>
                     </div>
 
-                    <div style="display:flex; margin-left:32px; margin-top:14px; justify-content:space-between; font-size:12px; font-weight:600; color:#64748b; padding:0 4px;">
-                        <span>01/10</span>
-                        <span>06/10</span>
-                        <span>11/10</span>
-                        <span>16/10</span>
-                        <span>21/10</span>
-                        <span>26/10</span>
-                        <span>31/10</span>
+                    <div class="trend-axis-labels" style="display:flex; margin-left:32px; margin-top:14px; justify-content:space-between; font-size:12px; font-weight:600; color:#64748b; padding:0 4px;">
                     </div>
                 </div>
             </div>
@@ -810,7 +987,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
                     <div>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Xu hướng đơn hàng</h3>
-                        <p style="font-size:12.5px; color:#64748b; margin:0;">Khối lượng đơn hàng hàng ngày (Tháng 10/2026)</p>
+                        <p id="screen12OrdersSubtitle" style="font-size:12.5px; color:#64748b; margin:0;">Khối lượng đơn hàng hàng ngày (Tháng 10/2026)</p>
                     </div>
                     <div>
                         <span id="screen12OrdersAvgBadge" style="background:#fff7ed; color:#ea580c; border:1px solid #fed7aa; padding:5px 12px; border-radius:99px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
@@ -850,14 +1027,7 @@
                         </div>
                     </div>
 
-                    <div style="display:flex; margin-left:32px; margin-top:14px; justify-content:space-between; font-size:12px; font-weight:600; color:#64748b; padding:0 4px;">
-                        <span>01/10</span>
-                        <span>06/10</span>
-                        <span>11/10</span>
-                        <span>16/10</span>
-                        <span>21/10</span>
-                        <span>26/10</span>
-                        <span>31/10</span>
+                    <div class="trend-axis-labels" style="display:flex; margin-left:32px; margin-top:14px; justify-content:space-between; font-size:12px; font-weight:600; color:#64748b; padding:0 4px;">
                     </div>
                 </div>
             </div>
@@ -878,13 +1048,18 @@
                 <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap; padding:6px 0;">
                     <%-- Donut chart SVG --%>
                     <div style="position:relative; width:160px; height:160px; display:grid; place-items:center; flex-shrink:0;">
-                        <svg viewBox="0 0 42 42" style="width:100%; height:100%; transform:rotate(-90deg);">
+                        <svg viewBox="0 0 42 42" style="width:100%; height:100%; transform:rotate(-90deg);" id="screen12DonutCatSvg">
                             <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="#f1f5f9" stroke-width="5"></circle>
-                            <circle id="screen12DonutCatCircle" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="#ea580c" stroke-width="5" stroke-dasharray="100 0" stroke-dashoffset="0"></circle>
+                            <g id="screen12DonutCatSlices">
+                                <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="#ea580c" stroke-width="5" stroke-dasharray="48 52" stroke-dashoffset="0"></circle>
+                                <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="#f59e0b" stroke-width="5" stroke-dasharray="12.5 87.5" stroke-dashoffset="-48"></circle>
+                                <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="#7c2d12" stroke-width="5" stroke-dasharray="32.6 67.4" stroke-dashoffset="-60.5"></circle>
+                                <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="#fb923c" stroke-width="5" stroke-dasharray="6.9 93.1" stroke-dashoffset="-93.1"></circle>
+                            </g>
                         </svg>
                         <div style="position:absolute; text-align:center;">
                             <small style="display:block; font-size:10px; font-weight:800; color:#94a3b8; text-transform:uppercase;">TỔNG CỘNG</small>
-                            <strong style="font-size:16px; font-weight:800; color:#1e293b;" id="screen12CatTotal">₫34.0M</strong>
+                            <strong style="font-size:16px; font-weight:800; color:#1e293b;" id="screen12CatTotal">₫0</strong>
                         </div>
                     </div>
 
@@ -896,10 +1071,10 @@
                                     <span style="width:8px; height:8px; border-radius:50%; background:#ea580c; display:inline-block;"></span>
                                     Thức ăn hạt cho mèo
                                 </span>
-                                <span style="color:#1e293b;" id="screen12CatVal1">₫33,996,708 <small style="color:#64748b; font-weight:600;">(100.0%)</small></span>
+                                <span style="color:#1e293b;" id="screen12CatVal1">₫0 <small style="color:#64748b; font-weight:600;">(0.0%)</small></span>
                             </div>
                             <div style="height:6px; background:#f1f5f9; border-radius:99px; overflow:hidden;">
-                                <div id="screen12CatBar1" style="height:100%; width:100%; background:#ea580c; border-radius:99px;"></div>
+                                <div id="screen12CatBar1" style="height:100%; width:0%; background:#ea580c; border-radius:99px; transition:width 0.4s ease;"></div>
                             </div>
                         </div>
 
@@ -907,12 +1082,12 @@
                             <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;">
                                 <span style="display:inline-flex; align-items:center; gap:6px;">
                                     <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b; display:inline-block;"></span>
-                                    Pate &amp; Thức ăn ướt cho mèo
+                                    Pate &amp; Thức ăn ướt
                                 </span>
                                 <span style="color:#1e293b;" id="screen12CatVal2">₫0 <small style="color:#64748b; font-weight:600;">(0.0%)</small></span>
                             </div>
                             <div style="height:6px; background:#f1f5f9; border-radius:99px; overflow:hidden;">
-                                <div id="screen12CatBar2" style="height:100%; width:0%; background:#f59e0b; border-radius:99px;"></div>
+                                <div id="screen12CatBar2" style="height:100%; width:0%; background:#f59e0b; border-radius:99px; transition:width 0.4s ease;"></div>
                             </div>
                         </div>
 
@@ -925,20 +1100,20 @@
                                 <span style="color:#1e293b;" id="screen12CatVal3">₫0 <small style="color:#64748b; font-weight:600;">(0.0%)</small></span>
                             </div>
                             <div style="height:6px; background:#f1f5f9; border-radius:99px; overflow:hidden;">
-                                <div id="screen12CatBar3" style="height:100%; width:0%; background:#7c2d12; border-radius:99px;"></div>
+                                <div id="screen12CatBar3" style="height:100%; width:0%; background:#7c2d12; border-radius:99px; transition:width 0.4s ease;"></div>
                             </div>
                         </div>
 
                         <div>
                             <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:4px;">
                                 <span style="display:inline-flex; align-items:center; gap:6px;">
-                                    <span style="width:8px; height:8px; border-radius:50%; background:#fed7aa; display:inline-block;"></span>
+                                    <span style="width:8px; height:8px; border-radius:50%; background:#fb923c; display:inline-block;"></span>
                                     Bánh thưởng &amp; Snack huấn luyện
                                 </span>
                                 <span style="color:#1e293b;" id="screen12CatVal4">₫0 <small style="color:#64748b; font-weight:600;">(0.0%)</small></span>
                             </div>
                             <div style="height:6px; background:#f1f5f9; border-radius:99px; overflow:hidden;">
-                                <div id="screen12CatBar4" style="height:100%; width:0%; background:#fed7aa; border-radius:99px;"></div>
+                                <div id="screen12CatBar4" style="height:100%; width:0%; background:#fb923c; border-radius:99px; transition:width 0.4s ease;"></div>
                             </div>
                         </div>
                     </div>
@@ -1293,122 +1468,646 @@
          TAB 3: BÁO CÁO HỘI VIÊN (Screen 13)
          ========================================================================= --%>
     <div id="tab-members" class="tab-pane">
-        <div class="page-head">
+        <%-- Top Breadcrumb & Actions --%>
+        <div class="page-head" style="margin-bottom:20px;">
             <div>
-                <div class="screen-bc">
-                    <span>HỘI VIÊN &amp; BÁO CÁO</span> <span class="sep">&gt;</span> <span class="current">BÁO CÁO HỘI VIÊN</span>
+                <div class="screen-bc" style="font-size:11.5px; font-weight:800; color:#ea580c; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">
+                    <span>HỘI VIÊN &amp; BÁO CÁO</span> <span class="sep" style="margin:0 6px; color:#cbd5e1;">&gt;</span> <span class="current" style="color:#64748b;">BÁO CÁO HỘI VIÊN</span>
                 </div>
-                <h1>BÁO CÁO HỘI VIÊN <span class="pill-badge gold">QUYỀN QUẢN TRỊ VIÊN • ĐỘC QUYỀN</span></h1>
-                <p class="page-sub">Theo dõi phân bổ hội viên, điểm tích lũy và hiệu quả chương trình kích cầu khách hàng.</p>
+                <h1 style="display:flex; align-items:center; gap:12px; margin:0 0 6px 0; font-size:24px; font-weight:800; color:#1e293b; letter-spacing:-0.5px;">
+                    BÁO CÁO HỘI VIÊN
+                    <span class="pill-badge gold" style="font-size:11px; padding:4px 10px; border-radius:99px; background:#fef3c7; color:#92400e; font-weight:700;">
+                        Quyền Quản trị viên • Chỉ xem
+                    </span>
+                </h1>
+                <p class="page-sub" style="font-size:13px; color:#64748b; margin:0;">
+                    Báo cáo tổng hợp cơ cấu hạng, hành vi mua sắm và hiệu quả kinh doanh từ chương trình hội viên PetCare.
+                </p>
             </div>
 
-            <div style="display:flex; align-items:center; gap:10px">
-                <a href="javascript:window.print()" class="export-btn"><i class="ti ti-printer"></i>In báo cáo</a>
-                <a href="javascript:void(0)" class="export-btn" style="background:#ea580c; color:#fff; border-color:#ea580c"><i class="ti ti-download"></i>Xuất báo cáo</a>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button type="button" class="export-btn" onclick="exportScreen13TableCsv()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; font-size:13px; font-weight:700; color:#334155; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <i class="ti ti-download" style="font-size:16px; color:#ea580c;"></i> Xuất CSV
+                </button>
             </div>
         </div>
 
-        <%-- 4 KPI Screen 13 --%>
-        <c:set var="totalCustCount" value="0"/>
-        <c:if test="${not empty stats.customersByTier}">
-            <c:forEach var="t" items="${stats.customersByTier}">
-                <c:set var="totalCustCount" value="${totalCustCount + t.count}"/>
-            </c:forEach>
-        </c:if>
-        <section class="grid g-4">
-            <div class="panel kpi">
-                <div class="kpi-top"><span class="kpi-label">TỔNG HỘI VIÊN</span><span class="kpi-ico"><i class="ti ti-id"></i></span></div>
-                <div class="kpi-value">${totalCustCount}</div>
-                <div class="kpi-meta"><span class="badge ok">Đã phân hạng</span> theo chi tiêu</div>
-            </div>
-            <div class="panel kpi">
-                <div class="kpi-top"><span class="kpi-label">HỘI VIÊN MỚI TRONG KỲ</span><span class="kpi-ico green"><i class="ti ti-user-plus"></i></span></div>
-                <div class="kpi-value" style="color:#10b981"><c:out value="${stats != null ? stats.newCustomers : 0}"/></div>
-                <div class="kpi-meta">Đăng ký mới trong kỳ lọc</div>
-            </div>
-            <div class="panel kpi">
-                <div class="kpi-top"><span class="kpi-label">HỘI VIÊN CAO CẤP (VÀNG &amp; KIM CƯƠNG)</span><span class="kpi-ico orange"><i class="ti ti-crown"></i></span></div>
-                <div class="kpi-value" style="color:#d97706">
-                    <c:out value="${not empty stats.customersByTier ? (stats.customersByTier[2].count + stats.customersByTier[3].count) : 0}"/>
-                </div>
-                <div class="kpi-meta">Tích lũy từ 4.000.000 ₫</div>
-            </div>
-            <div class="panel kpi">
-                <div class="kpi-top"><span class="kpi-label">HỘI VIÊN KHỞI ĐẦU (ĐỒNG)</span><span class="kpi-ico blue"><i class="ti ti-users"></i></span></div>
-                <div class="kpi-value"><c:out value="${not empty stats.customersByTier ? stats.customersByTier[0].count : 0}"/></div>
-                <div class="kpi-meta">Chưa đạt 1.200.000 ₫</div>
-            </div>
-        </section>
+        <%-- Khung Bộ Lọc Kiểu Pill Hiện Đại (Screen 13) --%>
+        <div class="modern-filter-container">
+            <div class="filter-pill-card">
+                <div class="filter-controls-group">
+                    <%-- Chọn khoảng ngày Từ ngày -> Đến ngày --%>
+                    <div class="filter-date-group" title="Khoảng thời gian báo cáo">
+                        <i class="ti ti-calendar filter-cal-icon"></i>
+                        <input type="date" class="filter-date-input" id="s13FilterFrom" value="2026-10-01" onchange="onScreen13DateChange()" title="Từ ngày">
+                        <span class="filter-arrow-sep">&rarr;</span>
+                        <input type="date" class="filter-date-input" id="s13FilterTo" value="2026-10-31" onchange="onScreen13DateChange()" title="Đến ngày">
+                    </div>
 
-        <%-- Phân bổ và quy định hạng --%>
-        <section class="grid g-1-1">
-            <div class="panel">
-                <div class="panel-head">
-                    <div><h3>Quy định phân hạng hội viên</h3><p>Cấu hình ngưỡng chi tiêu tích lũy và chính sách chiết khấu hệ thống</p></div>
+                    <div class="filter-sep-line"></div>
+
+                    <%-- Lọc Hạng thành viên --%>
+                    <div class="filter-select-pill" title="Lọc theo hạng thành viên">
+                        <i class="ti ti-crown" style="color:#f59e0b; font-size:16px;"></i>
+                        <select id="s13FilterTier" onchange="applyScreen13Filter()">
+                            <option value="">Tất cả hạng (Toàn bộ)</option>
+                            <option value="BRONZE">Đồng (Bronze)</option>
+                            <option value="SILVER">Bạc (Silver)</option>
+                            <option value="GOLD">Vàng (Gold)</option>
+                            <option value="DIAMOND">Kim cương (Diamond)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-sep-line"></div>
+
+                    <%-- Các nút chọn nhanh --%>
+                    <div class="filter-chips-group">
+                        <button type="button" class="s13-chip" id="s13-chip-week" onclick="selectScreen13QuickChip(this, 'week')">Tuần này</button>
+                        <button type="button" class="s13-chip active" id="s13-chip-month" onclick="selectScreen13QuickChip(this, 'month')">Tháng này</button>
+                        <button type="button" class="s13-chip" id="s13-chip-prevmonth" onclick="selectScreen13QuickChip(this, 'prevmonth')">Tháng trước</button>
+                        <button type="button" class="s13-chip" id="s13-chip-year" onclick="selectScreen13QuickChip(this, 'year')">Năm nay</button>
+                    </div>
                 </div>
-                <table>
+
+                <%-- Nút tác vụ Đặt lại & Lọc --%>
+                <div class="filter-actions-group">
+                    <button type="button" class="filter-btn-reset" onclick="resetScreen13Filter()" title="Đặt lại về mặc định">
+                        <i class="ti ti-rotate-2"></i> Đặt lại
+                    </button>
+                    <button type="button" class="filter-btn-apply" onclick="applyScreen13Filter()" title="Áp dụng lọc hội viên">
+                        Lọc
+                    </button>
+                </div>
+            </div>
+
+            <%-- Dòng trạng thái lọc & phạm vi dữ liệu --%>
+            <div class="filter-meta-bar">
+                <div class="filter-meta-badge">
+                    <span class="filter-pulse-dot"></span>
+                    <span>Đang lọc: <b id="s13FilterStatusLabel" style="color:#1e293b;">01/10/2026 - 31/10/2026</b> &bull; Phạm vi: <b>Toàn hệ thống PetCare Shop (Cửa hàng &amp; Online)</b></span>
+                </div>
+            </div>
+        </div>
+
+        <%-- Row 1: 3 Thẻ KPI --%>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; margin-bottom:22px;">
+            <div class="rev-kpi-card" style="padding:18px 22px;">
+                <span style="font-size:11.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">TỔNG SỐ HỘI VIÊN</span>
+                <div class="rev-kpi-icon" style="background:#fef3c7; color:#92400e; width:40px; height:40px; top:18px; right:18px;">
+                    <i class="ti ti-users"></i>
+                </div>
+                <div class="rev-kpi-val" id="s13KpiTotalMembers" style="margin:10px 0 6px 0;">3,842</div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:12.5px;" id="s13KpiTotalMembersGrowth">
+                    <span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> 5.4%</span>
+                    <span style="color:#64748b; font-weight:600;">so với tháng trước</span>
+                </div>
+            </div>
+
+            <div class="rev-kpi-card" style="padding:18px 22px;">
+                <span style="font-size:11.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">HỘI VIÊN MỚI</span>
+                <div class="rev-kpi-icon" style="background:#ffedd5; color:#c2410c; width:40px; height:40px; top:18px; right:18px;">
+                    <i class="ti ti-user-plus"></i>
+                </div>
+                <div class="rev-kpi-val" id="s13KpiNewMembers" style="margin:10px 0 6px 0;">312</div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:12.5px;" id="s13KpiNewMembersGrowth">
+                    <span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> 15.1%</span>
+                    <span style="color:#64748b; font-weight:600;">so với tháng trước</span>
+                </div>
+            </div>
+
+            <div class="rev-kpi-card" style="padding:18px 22px;">
+                <span style="font-size:11.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">HỘI VIÊN PHÁT SINH ĐƠN</span>
+                <div class="rev-kpi-icon" style="background:#dcfce7; color:#166534; width:40px; height:40px; top:18px; right:18px;">
+                    <i class="ti ti-shopping-bag"></i>
+                </div>
+                <div class="rev-kpi-val" id="s13KpiActiveMembers" style="margin:10px 0 6px 0;">2,460</div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:12.5px;" id="s13KpiActiveMembersRatio">
+                    <span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:6px; background:#dcfce7; color:#166534; font-weight:700;">64.0% tỷ lệ</span>
+                    <span style="color:#64748b; font-weight:600;">phát sinh đơn hàng</span>
+                </div>
+            </div>
+        </div>
+
+        <%-- Row 2: 2 Panels (Phân bổ hạng & Biến động số lượng theo tháng) --%>
+        <div style="display:grid; grid-template-columns: 42% 1fr; gap:20px; margin-bottom:22px;">
+            <%-- Panel Trái: Phân bổ hạng thành viên --%>
+            <div class="rev-chart-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                    <div>
+                        <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Phân bổ hạng thành viên</h3>
+                        <p id="s13DonutSubtitle" style="font-size:12px; color:#64748b; margin:0;">Cơ cấu 3,842 hội viên theo các cấp bậc</p>
+                    </div>
+                    <div style="width:34px; height:34px; border-radius:50%; border:1px solid #e2e8f0; display:grid; place-items:center; color:#64748b;">
+                        <i class="ti ti-chart-pie" style="font-size:18px;"></i>
+                    </div>
+                </div>
+
+                <%-- SVG Donut Chart --%>
+                <div style="display:flex; justify-content:center; align-items:center; position:relative; height:200px; margin-bottom:16px;">
+                    <svg viewBox="0 0 200 200" width="190" height="190" style="transform: rotate(-90deg);">
+                        <%-- Background track --%>
+                        <circle cx="100" cy="100" r="76" fill="transparent" stroke="#f1f5f9" stroke-width="22"/>
+                        <%-- Bronze segment (55.7% -> 266px of 477.5px) --%>
+                        <circle id="s13DonutBronze" cx="100" cy="100" r="76" fill="transparent" stroke="#d97706" stroke-width="22"
+                                stroke-dasharray="266 477.5" stroke-dashoffset="0" style="transition:all 0.4s ease;"/>
+                        <%-- Silver segment (26.5% -> 126.5px) --%>
+                        <circle id="s13DonutSilver" cx="100" cy="100" r="76" fill="transparent" stroke="#64748b" stroke-width="22"
+                                stroke-dasharray="126.5 477.5" stroke-dashoffset="-266" style="transition:all 0.4s ease;"/>
+                        <%-- Gold segment (13.5% -> 64.5px) --%>
+                        <circle id="s13DonutGold" cx="100" cy="100" r="76" fill="transparent" stroke="#f59e0b" stroke-width="22"
+                                stroke-dasharray="64.5 477.5" stroke-dashoffset="-392.5" style="transition:all 0.4s ease;"/>
+                        <%-- Diamond segment (4.2% -> 20.5px) --%>
+                        <circle id="s13DonutDiamond" cx="100" cy="100" r="76" fill="transparent" stroke="#06b6d4" stroke-width="22"
+                                stroke-dasharray="20.5 477.5" stroke-dashoffset="-457" style="transition:all 0.4s ease;"/>
+                    </svg>
+                    <%-- Center Text in Donut --%>
+                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; pointer-events:none; text-align:center;">
+                        <span id="s13DonutCenterVal" style="font-size:24px; font-weight:800; color:#1e293b; line-height:1.1;">3,842</span>
+                        <span id="s13DonutCenterLabel" style="font-size:11px; font-weight:600; color:#64748b; margin-top:2px;">Tổng số hội viên</span>
+                    </div>
+                </div>
+
+                <%-- 4 Thẻ chỉ số phân bổ 2x2 --%>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="s13-tier-card" style="background:#fffcf9; border-color:#fed7aa;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="s13-tier-dot" style="background:#d97706;"></span>
+                            <div>
+                                <div style="font-size:13px; font-weight:700; color:#1e293b;">Đồng</div>
+                                <div style="font-size:10.5px; font-weight:600; color:#94a3b8;">Bronze</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:13px; font-weight:800; color:#1e293b;" id="s13CardBronzeCount">2,140</div>
+                            <div style="font-size:11px; font-weight:600; color:#d97706;" id="s13CardBronzePct">55.7%</div>
+                        </div>
+                    </div>
+
+                    <div class="s13-tier-card" style="background:#f8fafc; border-color:#e2e8f0;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="s13-tier-dot" style="background:#64748b;"></span>
+                            <div>
+                                <div style="font-size:13px; font-weight:700; color:#1e293b;">Bạc</div>
+                                <div style="font-size:10.5px; font-weight:600; color:#94a3b8;">Silver</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:13px; font-weight:800; color:#1e293b;" id="s13CardSilverCount">1,020</div>
+                            <div style="font-size:11px; font-weight:600; color:#64748b;" id="s13CardSilverPct">26.5%</div>
+                        </div>
+                    </div>
+
+                    <div class="s13-tier-card" style="background:#fffbeb; border-color:#fef08a;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="s13-tier-dot" style="background:#f59e0b;"></span>
+                            <div>
+                                <div style="font-size:13px; font-weight:700; color:#1e293b;">Vàng</div>
+                                <div style="font-size:10.5px; font-weight:600; color:#94a3b8;">Gold</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:13px; font-weight:800; color:#1e293b;" id="s13CardGoldCount">520</div>
+                            <div style="font-size:11px; font-weight:600; color:#d97706;" id="s13CardGoldPct">13.5%</div>
+                        </div>
+                    </div>
+
+                    <div class="s13-tier-card" style="background:#ecfeff; border-color:#a5f3fc;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="s13-tier-dot" style="background:#06b6d4;"></span>
+                            <div>
+                                <div style="font-size:13px; font-weight:700; color:#1e293b;">Kim cương</div>
+                                <div style="font-size:10.5px; font-weight:600; color:#94a3b8;">Diamond</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:13px; font-weight:800; color:#1e293b;" id="s13CardDiamondCount">162</div>
+                            <div style="font-size:11px; font-weight:600; color:#0891b2;" id="s13CardDiamondPct">4.2%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%-- Panel Phải: Biến động số lượng hội viên theo hạng qua các tháng --%>
+            <div class="rev-chart-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                        <div>
+                            <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Biến động số lượng hội viên theo hạng qua các tháng</h3>
+                            <p style="font-size:12px; color:#64748b; margin:0;">Thước đo tăng trưởng cơ cấu từ Tháng 7 đến Tháng 10/2026</p>
+                        </div>
+                        <div style="width:34px; height:34px; border-radius:50%; border:1px solid #e2e8f0; display:grid; place-items:center; color:#64748b;">
+                            <i class="ti ti-chart-bar" style="font-size:18px;"></i>
+                        </div>
+                    </div>
+
+                    <%-- Danh sách 4 thanh xếp tầng (Stacked horizontal bars) --%>
+                    <div id="s13MonthlyTrendContainer" style="display:flex; flex-direction:column; gap:16px;">
+                        <%-- Tháng 10/2026 (Kỳ này) --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">
+                                <span style="font-weight:700; color:#ea580c; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="ti ti-caret-down" style="font-size:13px;"></i> Tháng 10/2026 (Kỳ này)
+                                </span>
+                                <span style="font-weight:800; color:#ea580c;">3,842 hội viên (+5.4%)</span>
+                            </div>
+                            <div style="height:12px; border-radius:99px; overflow:hidden; display:flex; background:#e2e8f0;">
+                                <div style="width:55.7%; background:#d97706;" title="Đồng: 2,140"></div>
+                                <div style="width:26.5%; background:#64748b;" title="Bạc: 1,020"></div>
+                                <div style="width:13.5%; background:#f59e0b;" title="Vàng: 520"></div>
+                                <div style="width:4.3%; background:#06b6d4;" title="Kim cương: 162"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#64748b; margin-top:3px;">
+                                <span>Đồng: 2,140</span>
+                                <span>Bạc: 1,020</span>
+                                <span>Vàng: 520</span>
+                                <span>Kim cương: 162</span>
+                            </div>
+                        </div>
+
+                        <%-- Tháng 09/2026 --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">
+                                <span style="font-weight:700; color:#334155;">Tháng 09/2026</span>
+                                <span style="font-weight:700; color:#1e293b;">3,645 hội viên (+6.3%)</span>
+                            </div>
+                            <div style="height:12px; border-radius:99px; overflow:hidden; display:flex; background:#e2e8f0;">
+                                <div style="width:56.8%; background:#d97706;" title="Đồng: 2,072"></div>
+                                <div style="width:26.2%; background:#64748b;" title="Bạc: 955"></div>
+                                <div style="width:13.1%; background:#f59e0b;" title="Vàng: 476"></div>
+                                <div style="width:3.9%; background:#06b6d4;" title="Kim cương: 142"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#64748b; margin-top:3px;">
+                                <span>Đồng: 2,072</span>
+                                <span>Bạc: 955</span>
+                                <span>Vàng: 476</span>
+                                <span>Kim cương: 142</span>
+                            </div>
+                        </div>
+
+                        <%-- Tháng 08/2026 --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">
+                                <span style="font-weight:700; color:#334155;">Tháng 08/2026</span>
+                                <span style="font-weight:700; color:#1e293b;">3,430 hội viên (+4.6%)</span>
+                            </div>
+                            <div style="height:12px; border-radius:99px; overflow:hidden; display:flex; background:#e2e8f0;">
+                                <div style="width:58.6%; background:#d97706;" title="Đồng: 2,010"></div>
+                                <div style="width:26.5%; background:#64748b;" title="Bạc: 910"></div>
+                                <div style="width:12.0%; background:#f59e0b;" title="Vàng: 410"></div>
+                                <div style="width:2.9%; background:#06b6d4;" title="Kim cương: 100"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#64748b; margin-top:3px;">
+                                <span>Đồng: 2,010</span>
+                                <span>Bạc: 910</span>
+                                <span>Vàng: 410</span>
+                                <span>Kim cương: 100</span>
+                            </div>
+                        </div>
+
+                        <%-- Tháng 07/2026 --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">
+                                <span style="font-weight:700; color:#334155;">Tháng 07/2026</span>
+                                <span style="font-weight:700; color:#1e293b;">3,278 hội viên (+5.0%)</span>
+                            </div>
+                            <div style="height:12px; border-radius:99px; overflow:hidden; display:flex; background:#e2e8f0;">
+                                <div style="width:60.1%; background:#d97706;" title="Đồng: 1,970"></div>
+                                <div style="width:25.9%; background:#64748b;" title="Bạc: 850"></div>
+                                <div style="width:11.2%; background:#f59e0b;" title="Vàng: 367"></div>
+                                <div style="width:2.8%; background:#06b6d4;" title="Kim cương: 91"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#64748b; margin-top:3px;">
+                                <span>Đồng: 1,970</span>
+                                <span>Bạc: 850</span>
+                                <span>Vàng: 367</span>
+                                <span>Kim cương: 91</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- Chú thích Legend phía dưới --%>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding-top:14px; margin-top:16px; border-top:1px dashed #f1f5f9; font-size:12px;">
+                    <div style="display:flex; align-items:center; gap:14px; font-weight:600; color:#64748b;">
+                        <span style="display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#d97706;"></span> Đồng</span>
+                        <span style="display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#64748b;"></span> Bạc</span>
+                        <span style="display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#f59e0b;"></span> Vàng</span>
+                        <span style="display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#06b6d4;"></span> Kim cương</span>
+                    </div>
+                    <span style="font-weight:700; color:#ea580c; display:inline-flex; align-items:center; gap:4px;">
+                        <i class="ti ti-trending-up"></i> Tăng trưởng đều 4 tháng
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <%-- Row 3: Hành vi mua sắm của hội viên --%>
+        <div class="rev-chart-card" style="margin-bottom:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ti ti-shopping-cart" style="color:#ea580c; font-size:20px;"></i>
+                        <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0;">Hành vi mua sắm của hội viên</h3>
+                    </div>
+                    <p style="font-size:12.5px; color:#64748b; margin:3px 0 0 0;">
+                        So sánh chuyên sâu về tỷ trọng doanh thu, số lượng đơn và giá trị đơn hàng trung bình (AOV) giữa các hạng.
+                    </p>
+                </div>
+                <div>
+                    <span class="pill-badge orange" style="background:#fff7ed; border:1px solid #fed7aa; color:#ea580c; font-size:12px; font-weight:700; padding:6px 14px; border-radius:99px;">
+                        <i class="ti ti-shield-check" style="margin-right:4px;"></i> Dữ liệu giao dịch được xác thực
+                    </span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+                <%-- Cột trái: Tỷ trọng doanh thu theo hạng thành viên --%>
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <span style="font-size:13.5px; font-weight:800; color:#1e293b; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="ti ti-chart-bar" style="color:#ea580c;"></i> Tỷ trọng doanh thu theo hạng thành viên
+                        </span>
+                        <span style="font-size:11px; font-weight:600; color:#94a3b8;">*Tổng doanh thu các đơn trong kỳ</span>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:14px;">
+                        <%-- Kim cương --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#0891b2; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#06b6d4;"></span> Kim cương (Diamond)</span>
+                                <span style="color:#1e293b;"><span id="s13RevDiamondVal">0₫</span> &bull; <b style="color:#0891b2;" id="s13RevDiamondPct">0%</b></span>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13RevDiamondBar" class="s13-stat-bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+                        </div>
+
+                        <%-- Vàng --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#d97706; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#f59e0b;"></span> Vàng (Gold)</span>
+                                <span style="color:#1e293b;"><span id="s13RevGoldVal">0₫</span> &bull; <b style="color:#ea580c;" id="s13RevGoldPct">0%</b></span>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13RevGoldBar" class="s13-stat-bar-fill" style="width:0%; background:#f59e0b;"></div></div>
+                        </div>
+
+                        <%-- Bạc --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#475569; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#64748b;"></span> Bạc (Silver)</span>
+                                <span style="color:#1e293b;"><span id="s13RevSilverVal">0₫</span> &bull; <b style="color:#475569;" id="s13RevSilverPct">0%</b></span>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13RevSilverBar" class="s13-stat-bar-fill" style="width:0%; background:#64748b;"></div></div>
+                        </div>
+
+                        <%-- Đồng --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#b45309; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#d97706;"></span> Đồng (Bronze)</span>
+                                <span style="color:#1e293b;"><span id="s13RevBronzeVal">0₫</span> &bull; <b style="color:#b45309;" id="s13RevBronzePct">0%</b></span>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13RevBronzeBar" class="s13-stat-bar-fill" style="width:0%; background:#d97706;"></div></div>
+                        </div>
+                    </div>
+
+                    <%-- Khung tổng đơn theo hạng --%>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; margin-top:16px; font-size:12px; color:#475569;">
+                        <b>Tổng đơn phân bổ theo hạng:</b>
+                        <span id="s13OrdersSummaryText" style="margin-left:4px;">Đồng: <b>0 đơn</b> &bull; Bạc: <b>0 đơn</b> &bull; Vàng: <b>0 đơn</b> &bull; Kim cương: <b>0 đơn</b></span>
+                    </div>
+                </div>
+
+                <%-- Cột phải: Giá trị đơn hàng trung bình (AOV) theo hạng --%>
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <span style="font-size:13.5px; font-weight:800; color:#1e293b; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="ti ti-trending-up" style="color:#ea580c;"></i> Giá trị đơn hàng trung bình (AOV) theo hạng
+                        </span>
+                        <span style="font-size:11px; font-weight:600; color:#94a3b8;">Giá trị TB trên 1 đơn</span>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:14px;">
+                        <%-- Kim cương --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#0891b2; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#06b6d4;"></span> Kim cương</span>
+                                <b style="color:#0891b2; font-size:13px;" id="s13AovDiamondVal">0₫</b>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13AovDiamondBar" class="s13-stat-bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+                        </div>
+
+                        <%-- Vàng --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#d97706; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#f59e0b;"></span> Vàng</span>
+                                <b style="color:#ea580c; font-size:13px;" id="s13AovGoldVal">0₫</b>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13AovGoldBar" class="s13-stat-bar-fill" style="width:0%; background:#f59e0b;"></div></div>
+                        </div>
+
+                        <%-- Bạc --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#475569; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#64748b;"></span> Bạc</span>
+                                <b style="color:#475569; font-size:13px;" id="s13AovSilverVal">0₫</b>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13AovSilverBar" class="s13-stat-bar-fill" style="width:0%; background:#64748b;"></div></div>
+                        </div>
+
+                        <%-- Đồng --%>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;">
+                                <span style="color:#b45309; display:inline-flex; align-items:center; gap:5px;"><span class="s13-tier-dot" style="background:#d97706;"></span> Đồng</span>
+                                <b style="color:#b45309; font-size:13px;" id="s13AovBronzeVal">0₫</b>
+                            </div>
+                            <div class="s13-stat-bar"><div id="s13AovBronzeBar" class="s13-stat-bar-fill" style="width:0%; background:#d97706;"></div></div>
+                        </div>
+                    </div>
+
+                    <%-- Khung insight nhận xét --%>
+                    <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:10px 14px; margin-top:16px; font-size:12px; color:#9a3412;">
+                        <b>Nhận xét văn hóa:</b>
+                        <span id="s13AovInsightText" style="margin-left:4px;">Hội viên Kim cương có giá trị đơn hàng trung bình (AOV) vượt trội.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <%-- Row 4: Hiệu quả chương trình hội viên --%>
+        <div class="rev-chart-card" style="margin-bottom:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="ti ti-tags" style="color:#ea580c; font-size:20px;"></i>
+                        <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0;">Hiệu quả chương trình hội viên</h3>
+                    </div>
+                    <p style="font-size:12.5px; color:#64748b; margin:3px 0 0 0;">
+                        Đánh giá ROI chương trình khách hàng thân thiết, tác động kích cầu lên doanh số và tỷ lệ chuyển đổi.
+                    </p>
+                </div>
+                <div>
+                    <span class="pill-badge orange" style="background:#fff7ed; border:1px solid #fed7aa; color:#ea580c; font-size:12.5px; font-weight:800; padding:6px 16px; border-radius:99px;" id="s13RoiBadge">
+                        Tỷ suất ROI: 14.3%
+                    </span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <%-- Thẻ 1: Đơn áp dụng ưu đãi --%>
+                <div style="background:#fffcf9; border:1px solid #fed7aa; border-radius:14px; padding:18px 22px; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">ĐƠN HỘI VIÊN TÍCH LŨY</span>
+                        <div style="width:36px; height:36px; border-radius:10px; background:#fef3c7; color:#92400e; display:grid; place-items:center; font-size:18px;">
+                            <i class="ti ti-tag"></i>
+                        </div>
+                    </div>
+                    <div style="font-size:26px; font-weight:800; color:#1e293b; margin:12px 0 6px 0;" id="s13PromoOrdersVal">
+                        0 <span style="font-size:15px; font-weight:600; color:#64748b;">đơn</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; font-size:12.5px;">
+                        <span class="pill-badge green" style="background:#dcfce7; color:#166534; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;" id="s13PromoOrdersPct">0%</span>
+                        <span style="color:#64748b; font-weight:600;">tổng đơn hoàn tất trong kỳ</span>
+                    </div>
+                </div>
+
+                <%-- Thẻ 2: Giá trị ưu đãi đã dùng --%>
+                <div style="background:#fffcf9; border:1px solid #fed7aa; border-radius:14px; padding:18px 22px; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11.5px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">DOANH THU ĐƠN HỘI VIÊN</span>
+                        <div style="width:36px; height:36px; border-radius:10px; background:#ffedd5; color:#c2410c; display:grid; place-items:center; font-size:18px;">
+                            <i class="ti ti-receipt-2"></i>
+                        </div>
+                    </div>
+                    <div style="font-size:26px; font-weight:800; color:#1e293b; margin:12px 0 6px 0;" id="s13PromoAmountVal">
+                        0₫
+                    </div>
+                    <div style="font-size:12.5px; color:#64748b; font-weight:600;" id="s13PromoSubtitle">
+                        Tổng đóng góp từ các hội viên
+                    </div>
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+
+        <%-- Row 5: Bảng tổng hợp kinh doanh theo hạng thành viên --%>
+        <div class="rev-chart-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="ti ti-table" style="color:#ea580c;"></i> Bảng tổng hợp kinh doanh theo hạng thành viên
+                    </h3>
+                    <p id="s13TablePeriodLabel" style="font-size:12px; color:#64748b; margin:0;">
+                        Kỳ báo cáo: Tháng 10/2026 (01/10/2026 - 31/10/2026)
+                    </p>
+                </div>
+                <div>
+                    <button type="button" class="export-btn" onclick="exportScreen13TableCsv()" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">
+                        <i class="ti ti-download" style="font-size:15px;"></i> Xuất bảng (CSV)
+                    </button>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="rev-table" id="screen13Table">
                     <thead>
-                    <tr><th>HẠNG</th><th class="num">CHI TIÊU TÍCH LŨY</th><th class="num">GIẢM GIÁ</th><th class="num">SỐ HỘI VIÊN</th><th class="num">ĐẶC QUYỀN</th></tr>
+                        <tr>
+                            <th style="width:24%;">HẠNG THÀNH VIÊN</th>
+                            <th style="text-align:center;">SỐ LƯỢNG HỘI VIÊN</th>
+                            <th style="text-align:center;">SỐ HỘI VIÊN MỚI</th>
+                            <th style="text-align:center;">SỐ ĐƠN HÀNG</th>
+                            <th style="text-align:right;">TỔNG DOANH THU (VNĐ)</th>
+                            <th style="text-align:right;">GIÁ TRỊ ĐƠN TB (AOV)</th>
+                        </tr>
                     </thead>
-                    <tbody>
-                    <tr>
-                        <td>🥉 <b>Đồng (Bronze)</b></td>
-                        <td class="num">0 ₫</td>
-                        <td class="num" style="color:#ea580c"><b>0.0%</b></td>
-                        <td class="num"><b><c:out value="${not empty stats.customersByTier ? stats.customersByTier[0].count : 0}"/></b></td>
-                        <td class="num"><span class="pill-badge gray">Mặc định</span></td>
-                    </tr>
-                    <tr>
-                        <td>🥈 <b>Bạc (Silver)</b></td>
-                        <td class="num">1.200.000 ₫</td>
-                        <td class="num" style="color:#ea580c"><b>3.0%</b></td>
-                        <td class="num"><b><c:out value="${not empty stats.customersByTier ? stats.customersByTier[1].count : 0}"/></b></td>
-                        <td class="num"><span class="pill-badge green">Giảm 3% giá thường</span></td>
-                    </tr>
-                    <tr>
-                        <td>🥇 <b>Vàng (Gold)</b></td>
-                        <td class="num">4.000.000 ₫</td>
-                        <td class="num" style="color:#ea580c"><b>5.0%</b></td>
-                        <td class="num"><b><c:out value="${not empty stats.customersByTier ? stats.customersByTier[2].count : 0}"/></b></td>
-                        <td class="num"><span class="pill-badge gold">Giảm 5% giá thường</span></td>
-                    </tr>
-                    <tr>
-                        <td>💎 <b>Kim cương (Diamond)</b></td>
-                        <td class="num">10.000.000 ₫</td>
-                        <td class="num" style="color:#ea580c"><b>10.0%</b></td>
-                        <td class="num"><b><c:out value="${not empty stats.customersByTier ? stats.customersByTier[3].count : 0}"/></b></td>
-                        <td class="num"><span class="pill-badge diamond">Giảm 10% + Freeship</span></td>
-                    </tr>
+                    <tbody id="s13TableBody">
+                        <tr id="s13-row-BRONZE">
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="s13-tier-dot" style="background:#d97706;"></span>
+                                    <div>
+                                        <b style="color:#1e293b;">Đồng</b>
+                                        <div style="font-size:11px; color:#94a3b8; font-weight:600;">Bronze</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align:center; font-weight:700; color:#1e293b;">2,140</td>
+                            <td style="text-align:center;"><span style="color:#16a34a; font-weight:700;">+218</span></td>
+                            <td style="text-align:center; font-weight:600; color:#334155;">920 đơn</td>
+                            <td style="text-align:right; font-weight:700; color:#1e293b;">9,845,000₫</td>
+                            <td style="text-align:right; font-weight:700; color:#334155;">245,000₫</td>
+                        </tr>
+                        <tr id="s13-row-SILVER">
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="s13-tier-dot" style="background:#64748b;"></span>
+                                    <div>
+                                        <b style="color:#1e293b;">Bạc</b>
+                                        <div style="font-size:11px; color:#94a3b8; font-weight:600;">Silver</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align:center; font-weight:700; color:#1e293b;">1,020</td>
+                            <td style="text-align:center;"><span style="color:#16a34a; font-weight:700;">+65</span></td>
+                            <td style="text-align:center; font-weight:600; color:#334155;">785 đơn</td>
+                            <td style="text-align:right; font-weight:700; color:#1e293b;">22,643,500₫</td>
+                            <td style="text-align:right; font-weight:700; color:#334155;">450,000₫</td>
+                        </tr>
+                        <tr id="s13-row-GOLD">
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="s13-tier-dot" style="background:#f59e0b;"></span>
+                                    <div>
+                                        <b style="color:#1e293b;">Vàng</b>
+                                        <div style="font-size:11px; color:#94a3b8; font-weight:600;">Gold</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align:center; font-weight:700; color:#1e293b;">520</td>
+                            <td style="text-align:center;"><span style="color:#16a34a; font-weight:700;">+21</span></td>
+                            <td style="text-align:center; font-weight:600; color:#334155;">450 đơn</td>
+                            <td style="text-align:right; font-weight:700; color:#ea580c;">34,467,500₫</td>
+                            <td style="text-align:right; font-weight:700; color:#ea580c;">850,000₫</td>
+                        </tr>
+                        <tr id="s13-row-DIAMOND">
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="s13-tier-dot" style="background:#06b6d4;"></span>
+                                    <div>
+                                        <b style="color:#1e293b;">Kim cương</b>
+                                        <div style="font-size:11px; color:#94a3b8; font-weight:600;">Diamond</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align:center; font-weight:700; color:#1e293b;">162</td>
+                            <td style="text-align:center;"><span style="color:#16a34a; font-weight:700;">+8</span></td>
+                            <td style="text-align:center; font-weight:600; color:#334155;">305 đơn</td>
+                            <td style="text-align:right; font-weight:700; color:#0891b2;">31,504,000₫</td>
+                            <td style="text-align:right; font-weight:700; color:#0891b2;">1,050,000₫</td>
+                        </tr>
                     </tbody>
+                    <tfoot style="background:#fff7ed; border-top:2px solid #fed7aa;">
+                        <tr>
+                            <td style="font-weight:800; color:#1e293b;">
+                                <i class="ti ti-check" style="color:#ea580c; margin-right:4px;"></i> Tổng cộng / Trung bình
+                            </td>
+                            <td style="text-align:center; font-weight:800; color:#1e293b;" id="s13TableTotalMembers">3,842</td>
+                            <td style="text-align:center; font-weight:800; color:#16a34a;" id="s13TableTotalNew">+312</td>
+                            <td style="text-align:center; font-weight:800; color:#1e293b;" id="s13TableTotalOrders">2,460 đơn</td>
+                            <td style="text-align:right; font-weight:800; color:#ea580c; font-size:14px;" id="s13TableTotalRevenue">98,460,000₫</td>
+                            <td style="text-align:right; font-weight:800; color:#1e293b; font-size:14px;" id="s13TableAvgAov">615,000₫</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
-            <div class="panel">
-                <div class="panel-head">
-                    <div><h3>Chính sách &amp; Quyền lợi hội viên</h3><p>Quy tắc thăng hạng tự động theo chi tiêu thực tế</p></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; font-size:12px; color:#64748b;">
+                <div>
+                    * Ghi chú: Doanh thu tính theo giá trị hóa đơn đã thanh toán thành công trong kỳ báo cáo.
                 </div>
-                <div style="display:flex; flex-direction:column; gap:12px; padding:10px 0">
-                    <div style="padding:14px; border-radius:12px; background:#fffcf9; border:1px solid #fed7aa">
-                        <div style="font-weight:700; color:#ea580c; margin-bottom:4px"><i class="ti ti-rotate-clockwise" style="margin-right:6px"></i>Thuật toán tính chi tiêu tích lũy:</div>
-                        <div style="font-size:13px; color:var(--text-main); line-height:1.5">
-                            Chi tiêu tích luỹ được tính bằng tổng tiền hàng (không gồm phí ship) các đơn <b>Hoàn tất (COMPLETED)</b> đã qua thời hạn trả hàng (3 ngày), trừ tiền đã hoàn của yêu cầu trả hàng <b>Đã hoàn tiền (REFUNDED)</b>.
-                        </div>
-                    </div>
-                    <div style="padding:14px; border-radius:12px; background:#f0fdf4; border:1px solid #bbf7d0">
-                        <div style="font-weight:700; color:#166534; margin-bottom:4px"><i class="ti ti-discount-2" style="margin-right:6px"></i>Phạm vi áp dụng chiết khấu:</div>
-                        <div style="font-size:13px; color:var(--text-main); line-height:1.5">
-                            Tỷ lệ chiết khấu theo hạng được tự động khấu trừ trực tiếp cho các sản phẩm giá thường lúc khách đặt hàng. Không áp dụng đồng thời với các suất Flash Sale đã giảm giá riêng.
-                        </div>
-                    </div>
-                    <div style="padding:14px; border-radius:12px; background:#eff6ff; border:1px solid #bfdbfe">
-                        <div style="font-weight:700; color:#1e40af; margin-bottom:4px"><i class="ti ti-truck" style="margin-right:6px"></i>Đặc quyền miễn phí vận chuyển Kim Cương:</div>
-                        <div style="font-size:13px; color:var(--text-main); line-height:1.5">
-                            Hội viên hạng Kim Cương được miễn phí 100% phí giao hàng cho toàn bộ các đơn hàng không giới hạn khoảng cách hay giá trị tối thiểu.
-                        </div>
-                    </div>
+                <div style="color:#ea580c; font-weight:600;">
+                    Xuất dữ liệu chi tiết hỗ trợ đối soát kế toán
                 </div>
             </div>
-        </section>
+        </div>
     </div>
 </main>
 
@@ -1441,12 +2140,22 @@
         if (tabId === 'tab-revenue') {
             if (sbRevenue) sbRevenue.classList.add('active');
             if (window.location.hash !== '#revenue') history.replaceState(null, null, '#revenue');
+            if (typeof syncScreen12QuickChips === 'function') syncScreen12QuickChips();
+            if (typeof applyScreen12Filter === 'function') {
+                applyScreen12Filter();
+            }
         } else if (tabId === 'tab-members') {
             if (sbMembers) sbMembers.classList.add('active');
             if (window.location.hash !== '#members') history.replaceState(null, null, '#members');
+            if (typeof applyScreen13Filter === 'function') {
+                applyScreen13Filter();
+            }
         } else {
             if (sbOverview) sbOverview.classList.add('active');
             if (window.location.hash) history.replaceState(null, null, window.location.pathname);
+            if (typeof renderDynamicRevenueChart === 'function' && revenueDataPoints && revenueDataPoints.length > 0) {
+                renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
+            }
         }
     }
 
@@ -1474,157 +2183,194 @@
         return '₫' + num.toLocaleString('vi-VN');
     }
 
-    // DỮ LIỆU ĐƠN HÀNG THỰC TẾ TRONG HỆ THỐNG
-    const ALL_ORDERS_DATA = [
-        { id: 1, date: '2026-10-05', dayText: '05/10', status: 'COMPLETED', pay: 'VNPAY', total: 984045 },
-        { id: 2, date: '2026-10-07', dayText: '07/10', status: 'COMPLETED', pay: 'COD', total: 1222806 },
-        { id: 3, date: '2026-10-18', dayText: '18/10', status: 'COMPLETED', pay: 'VNPAY', total: 894135 },
-        { id: 4, date: '2026-10-19', dayText: '19/10', status: 'SHIPPED', pay: 'COD', total: 616413 },
-        { id: 5, date: '2026-10-20', dayText: '20/10', status: 'COMPLETED', pay: 'VNPAY', total: 921108 },
-        { id: 6, date: '2026-10-20', dayText: '20/10', status: 'RETURNED', pay: 'COD', total: 313716 },
-        { id: 7, date: '2026-10-15', dayText: '15/10', status: 'CANCELLED', pay: 'COD', total: 185844 },
-        { id: 8, date: '2026-10-20', dayText: '20/10', status: 'PROCESSING', pay: 'COD', total: 192837 },
-        { id: 9, date: '2026-08-15', dayText: '15/08', status: 'COMPLETED', pay: 'VNPAY', total: 10030000 },
-        { id: 10, date: '2026-09-05', dayText: '05/09', status: 'COMPLETED', pay: 'VNPAY', total: 10530000 },
-        { id: 11, date: '2026-09-12', dayText: '12/09', status: 'COMPLETED', pay: 'COD', total: 4230000 },
-        { id: 12, date: '2026-09-18', dayText: '18/09', status: 'COMPLETED', pay: 'COD', total: 1030000 },
-        { id: 13, date: '2026-09-22', dayText: '22/09', status: 'COMPLETED', pay: 'VNPAY', total: 1530000 },
-        { id: 14, date: '2026-10-21', dayText: '21/10', status: 'COMPLETED', pay: 'COD', total: 3465300 },
-        { id: 15, date: '2026-10-01', dayText: '01/10', status: 'COMPLETED', pay: 'VNPAY', total: 689340 },
-        { id: 16, date: '2026-10-01', dayText: '01/10', status: 'COMPLETED', pay: 'COD', total: 793236 },
-        { id: 17, date: '2026-10-01', dayText: '01/10', status: 'COMPLETED', pay: 'VNPAY', total: 616413 },
-        { id: 18, date: '2026-10-02', dayText: '02/10', status: 'COMPLETED', pay: 'COD', total: 758271 },
-        { id: 19, date: '2026-10-02', dayText: '02/10', status: 'COMPLETED', pay: 'VNPAY', total: 168861 },
-        { id: 20, date: '2026-10-02', dayText: '02/10', status: 'COMPLETED', pay: 'COD', total: 616413 },
-        { id: 21, date: '2026-10-03', dayText: '03/10', status: 'CANCELLED', pay: 'VNPAY', total: 616413 },
-        { id: 22, date: '2026-10-03', dayText: '03/10', status: 'COMPLETED', pay: 'COD', total: 171858 },
-        { id: 23, date: '2026-10-03', dayText: '03/10', status: 'COMPLETED', pay: 'VNPAY', total: 1140858 },
-        { id: 24, date: '2026-10-04', dayText: '04/10', status: 'COMPLETED', pay: 'COD', total: 637392 },
-        { id: 25, date: '2026-10-04', dayText: '04/10', status: 'COMPLETED', pay: 'VNPAY', total: 831198 },
-        { id: 26, date: '2026-10-04', dayText: '04/10', status: 'COMPLETED', pay: 'COD', total: 313716 },
-        { id: 27, date: '2026-10-05', dayText: '05/10', status: 'COMPLETED', pay: 'VNPAY', total: 469560 },
-        { id: 28, date: '2026-10-05', dayText: '05/10', status: 'COMPLETED', pay: 'COD', total: 658371 },
-        { id: 29, date: '2026-10-06', dayText: '06/10', status: 'COMPLETED', pay: 'COD', total: 192837 },
-        { id: 30, date: '2026-10-06', dayText: '06/10', status: 'COMPLETED', pay: 'VNPAY', total: 563466 },
-        { id: 31, date: '2026-10-06', dayText: '06/10', status: 'COMPLETED', pay: 'COD', total: 831198 },
-        { id: 32, date: '2026-10-07', dayText: '07/10', status: 'COMPLETED', pay: 'VNPAY', total: 689340 },
-        { id: 33, date: '2026-10-07', dayText: '07/10', status: 'COMPLETED', pay: 'COD', total: 793236 },
-        { id: 34, date: '2026-10-08', dayText: '08/10', status: 'COMPLETED', pay: 'COD', total: 758271 },
-        { id: 35, date: '2026-10-08', dayText: '08/10', status: 'COMPLETED', pay: 'VNPAY', total: 168861 },
-        { id: 36, date: '2026-10-08', dayText: '08/10', status: 'COMPLETED', pay: 'COD', total: 616413 },
-        { id: 37, date: '2026-10-09', dayText: '09/10', status: 'RETURNED', pay: 'VNPAY', total: 616413 },
-        { id: 38, date: '2026-10-09', dayText: '09/10', status: 'COMPLETED', pay: 'COD', total: 171858 },
-        { id: 39, date: '2026-10-09', dayText: '09/10', status: 'COMPLETED', pay: 'VNPAY', total: 1140858 },
-        { id: 40, date: '2026-10-10', dayText: '10/10', status: 'COMPLETED', pay: 'COD', total: 637392 },
-        { id: 41, date: '2026-10-10', dayText: '10/10', status: 'COMPLETED', pay: 'VNPAY', total: 831198 },
-        { id: 42, date: '2026-10-10', dayText: '10/10', status: 'COMPLETED', pay: 'COD', total: 313716 },
-        { id: 43, date: '2026-10-11', dayText: '11/10', status: 'CANCELLED', pay: 'VNPAY', total: 469560 },
-        { id: 44, date: '2026-10-11', dayText: '11/10', status: 'COMPLETED', pay: 'COD', total: 658371 },
-        { id: 45, date: '2026-10-11', dayText: '11/10', status: 'COMPLETED', pay: 'VNPAY', total: 192837 },
-        { id: 46, date: '2026-10-12', dayText: '12/10', status: 'COMPLETED', pay: 'COD', total: 192837 },
-        { id: 47, date: '2026-10-12', dayText: '12/10', status: 'COMPLETED', pay: 'VNPAY', total: 563466 },
-        { id: 48, date: '2026-10-12', dayText: '12/10', status: 'COMPLETED', pay: 'COD', total: 831198 },
-        { id: 49, date: '2026-10-13', dayText: '13/10', status: 'COMPLETED', pay: 'VNPAY', total: 689340 },
-        { id: 50, date: '2026-10-13', dayText: '13/10', status: 'COMPLETED', pay: 'COD', total: 793236 },
-        { id: 51, date: '2026-10-13', dayText: '13/10', status: 'COMPLETED', pay: 'VNPAY', total: 616413 },
-        { id: 52, date: '2026-10-14', dayText: '14/10', status: 'RETURNED', pay: 'COD', total: 758271 },
-        { id: 53, date: '2026-10-14', dayText: '14/10', status: 'COMPLETED', pay: 'VNPAY', total: 168861 },
-        { id: 54, date: '2026-10-14', dayText: '14/10', status: 'COMPLETED', pay: 'COD', total: 616413 },
-        { id: 55, date: '2026-10-15', dayText: '15/10', status: 'COMPLETED', pay: 'VNPAY', total: 616413 },
-        { id: 56, date: '2026-10-15', dayText: '15/10', status: 'COMPLETED', pay: 'COD', total: 171858 },
-        { id: 57, date: '2026-10-16', dayText: '16/10', status: 'CANCELLED', pay: 'COD', total: 637392 },
-        { id: 58, date: '2026-10-16', dayText: '16/10', status: 'COMPLETED', pay: 'VNPAY', total: 831198 },
-        { id: 59, date: '2026-10-16', dayText: '16/10', status: 'COMPLETED', pay: 'COD', total: 313716 },
-        { id: 60, date: '2026-10-17', dayText: '17/10', status: 'COMPLETED', pay: 'VNPAY', total: 469560 },
-        { id: 61, date: '2026-10-17', dayText: '17/10', status: 'COMPLETED', pay: 'COD', total: 658371 },
-        { id: 62, date: '2026-10-17', dayText: '17/10', status: 'COMPLETED', pay: 'VNPAY', total: 192837 },
-        { id: 63, date: '2026-10-18', dayText: '18/10', status: 'COMPLETED', pay: 'COD', total: 192837 },
-        { id: 64, date: '2026-10-18', dayText: '18/10', status: 'COMPLETED', pay: 'VNPAY', total: 563466 },
-        { id: 65, date: '2026-10-19', dayText: '19/10', status: 'COMPLETED', pay: 'VNPAY', total: 689340 },
-        { id: 66, date: '2026-10-19', dayText: '19/10', status: 'COMPLETED', pay: 'COD', total: 793236 },
-        { id: 67, date: '2026-10-21', dayText: '21/10', status: 'COMPLETED', pay: 'VNPAY', total: 616413 },
-        { id: 68, date: '2026-10-21', dayText: '21/10', status: 'COMPLETED', pay: 'COD', total: 171858 },
-        { id: 69, date: '2026-10-22', dayText: '22/10', status: 'COMPLETED', pay: 'COD', total: 637392 },
-        { id: 70, date: '2026-10-22', dayText: '22/10', status: 'PROCESSING', pay: 'VNPAY', total: 831198 },
-        { id: 71, date: '2026-10-22', dayText: '22/10', status: 'COMPLETED', pay: 'COD', total: 313716 }
+    function formatShortCurrency(val) {
+        const num = Number(val) || 0;
+        if (num >= 1000000000) {
+            return '₫' + (num / 1000000000).toFixed(1) + 'B';
+        }
+        if (num >= 1000000) {
+            return '₫' + (num / 1000000).toFixed(1) + 'M';
+        }
+        if (num >= 1000) {
+            return '₫' + (num / 1000).toFixed(0) + 'K';
+        }
+        return '₫' + num.toLocaleString('vi-VN');
+    }
+
+    // DỮ LIỆU HỘI VIÊN VÀ ĐƠN HÀNG THỰC TẾ TRONG HỆ THỐNG (ĐỒNG BỘ 100% TỪ DATABASE)
+    let ALL_CUSTOMERS_DATA = [
+        <c:if test="${not empty stats.allCustomers}">
+            <c:forEach var="c" items="${stats.allCustomers}" varStatus="loop">
+                { id: ${c.id}, tier: '${c.tier}', createdAt: '${c.createdAt}' }<c:if test="${!loop.last}">,</c:if>
+            </c:forEach>
+        </c:if>
     ];
 
-    // 1. SƠ ĐỒ DOANH THU ĐỘNG (HOVER XEM CHI TIẾT, KHÔNG CỐ ĐỊNH 24/10)
-    function renderDynamicRevenueChart(dailyList) {
-        const wrappers = [
-            document.getElementById('trendChartWrapper1'),
-            document.getElementById('screen12RevenueWrapper')
-        ].filter(Boolean);
+    let ALL_ORDERS_DATA = [
+        <c:if test="${not empty stats.allOrders}">
+            <c:forEach var="o" items="${stats.allOrders}" varStatus="loop">
+                { id: ${o.id}, customerId: ${o.customerId != null ? o.customerId : 'null'}, tier: '${o.customerTier}', customerTier: '${o.customerTier}', date: '${o.date}', dayText: '${o.dayText}', status: '${o.status}', pay: '${o.pay}', total: ${o.total}, cats: ${o.catsJson} }<c:if test="${!loop.last}">,</c:if>
+            </c:forEach>
+        </c:if>
+    ];
+
+    // 1. SƠ ĐỒ DOANH THU ĐỘNG (HOVER XEM CHI TIẾT, ĐỘNG THEO BỘ LỌC VÀ CẬP NHẬT TRỤC NGÀY)
+    function renderDynamicRevenueChart(dailyList, targetWrapperId) {
+        const wrappers = targetWrapperId
+            ? [document.getElementById(targetWrapperId)].filter(Boolean)
+            : [document.getElementById('trendChartWrapper1'), document.getElementById('screen12RevenueWrapper')].filter(Boolean);
 
         if (wrappers.length === 0) return;
 
-        const daysInMonth = 31;
-        const dayMap = {};
-        let maxAmount = 0;
-
-        if (Array.isArray(dailyList)) {
-            dailyList.forEach(d => {
-                if (d.dayText) {
-                    const amt = Number(d.amount) || 0;
-                    dayMap[d.dayText] = {
-                        orders: Number(d.orderCount) || 0,
-                        amount: amt
-                    };
-                    if (amt > maxAmount) maxAmount = amt;
-                }
-            });
-        }
-        if (maxAmount === 0) maxAmount = 4000000;
-
-        const scaleCeiling = maxAmount / 0.76;
-
-        const dayDataList = [];
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dayStr = String(i).padStart(2, '0') + '/10';
-            const item = dayMap[dayStr] || { orders: 0, amount: 0 };
-            dayDataList.push({ day: dayStr, orders: item.orders, amount: item.amount });
-        }
-
         wrappers.forEach(wrapper => {
+            const isTab1 = (wrapper.id === 'trendChartWrapper1');
+            const fromInput = isTab1 ? document.getElementById('from') : document.getElementById('screen12FilterFrom');
+            const toInput = isTab1 ? document.getElementById('to') : document.getElementById('screen12FilterTo');
+
+            let fromVal = fromInput ? fromInput.value : '';
+            let toVal = toInput ? toInput.value : '';
+
+            // Mặc định tháng 10/2026 nếu trống
+            if (!fromVal || !toVal) {
+                fromVal = '2026-10-01';
+                toVal = '2026-10-31';
+            }
+
+            const startDate = new Date(fromVal + 'T00:00:00');
+            const endDate = new Date(toVal + 'T00:00:00');
+
+            // Gom dữ liệu từ dailyList
+            const dataMap = {};
+            let maxAmount = 0;
+
+            if (Array.isArray(dailyList)) {
+                dailyList.forEach(d => {
+                    const amt = Number(d.amount) || 0;
+                    const ords = Number(d.orderCount) || 0;
+                    if (amt > maxAmount) maxAmount = amt;
+                    if (d.date) dataMap[d.date] = { orders: ords, amount: amt };
+                    if (d.dayText) dataMap[d.dayText] = { orders: ords, amount: amt };
+                    if (d.rawDate) dataMap[d.rawDate] = { orders: ords, amount: amt };
+                });
+            }
+            if (maxAmount === 0) maxAmount = 3000000;
+
+            const scaleCeiling = maxAmount / 0.76;
+
+            // Tạo danh sách từng ngày trong khoảng [startDate, endDate]
+            const dayDataList = [];
+            let curr = new Date(startDate);
+            while (curr <= endDate && dayDataList.length < 366) {
+                const y = curr.getFullYear();
+                const m = String(curr.getMonth() + 1).padStart(2, '0');
+                const day = String(curr.getDate()).padStart(2, '0');
+                const isoDate = y + '-' + m + '-' + day;
+                const dayText = day + '/' + m;
+                const displayDate = day + '/' + m + '/' + y;
+
+                const match = dataMap[isoDate] || dataMap[dayText] || { orders: 0, amount: 0 };
+                dayDataList.push({
+                    date: isoDate,
+                    dayText: dayText,
+                    displayDate: displayDate,
+                    orders: match.orders,
+                    amount: match.amount
+                });
+
+                curr.setDate(curr.getDate() + 1);
+            }
+
             const container = wrapper.querySelector('.trend-bars-container');
             const tooltip = wrapper.querySelector('.trend-hover-tooltip');
-            if (!container) return;
+            const axisLabels = wrapper.querySelector('.trend-axis-labels');
 
-            // Mặc định ẩn tooltip
+            if (!container) return;
             if (tooltip) tooltip.style.display = 'none';
+
+            const totalDays = dayDataList.length;
+
+            // Khoảng cách giữa các cột co giãn theo tổng số ngày
+            let gap = 5;
+            if (totalDays > 60) gap = 1;
+            else if (totalDays > 35) gap = 2;
+            else if (totalDays > 15) gap = 4;
+            else gap = 8;
+            container.style.gap = gap + 'px';
 
             let barsHtml = '';
             dayDataList.forEach((item, idx) => {
-                const rawPercent = (item.amount / scaleCeiling) * 100;
-                const heightPercent = Math.max(5, Math.min(95, rawPercent));
+                const hasAmount = Number(item.amount) > 0;
+                const rawPercent = hasAmount ? (item.amount / scaleCeiling) * 100 : 0;
+                const heightPercent = hasAmount ? Math.max(6, Math.min(95, rawPercent)) : 0;
 
                 const ratio = maxAmount > 0 ? (item.amount / maxAmount) : 0;
-                let color = '#fed7aa';
-                if (item.amount === 0) {
-                    color = '#fed7aa';
-                } else if (ratio >= 0.85) {
-                    color = '#7c2d12';
-                } else if (ratio >= 0.70) {
-                    color = '#9a3412';
-                } else if (ratio >= 0.55) {
-                    color = '#c2410c';
-                } else if (ratio >= 0.38) {
-                    color = '#ea580c';
-                } else if (ratio >= 0.25) {
-                    color = '#f59e0b';
-                } else if (ratio >= 0.15) {
-                    color = '#fbbf24';
-                } else {
-                    color = '#fed7aa';
+                let color = 'transparent';
+                if (hasAmount) {
+                    if (ratio >= 0.85) color = '#7c2d12';
+                    else if (ratio >= 0.70) color = '#9a3412';
+                    else if (ratio >= 0.55) color = '#c2410c';
+                    else if (ratio >= 0.38) color = '#ea580c';
+                    else if (ratio >= 0.25) color = '#f59e0b';
+                    else if (ratio >= 0.15) color = '#fbbf24';
+                    else color = '#fed7aa';
                 }
 
                 barsHtml += '<div class="trend-bar-item" data-idx="' + idx + '" ' +
-                            'style="flex:1; height:' + heightPercent.toFixed(1) + '%; background:' + color + '; ' +
-                            'border-radius:5px 5px 0 0; cursor:pointer; transition:transform 0.15s ease, filter 0.15s ease;">' +
+                            'style="flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center; cursor:pointer;">' +
+                            '  <div class="trend-bar-fill" style="width:100%; height:' + (hasAmount ? heightPercent.toFixed(1) + '%' : '0') + '; ' +
+                            'background:' + (hasAmount ? color : 'transparent') + '; border-radius:3px 3px 0 0; ' +
+                            'transition:transform 0.15s ease, filter 0.15s ease; transform-origin:bottom center;"></div>' +
                             '</div>';
             });
 
             container.innerHTML = barsHtml;
+
+            // RENDER PHẦN NGÀY PHÍA DƯỚI (TRỤC X) ĐỘNG THEO BỘ LỌC!
+            if (axisLabels && totalDays > 0) {
+                let ticksHtml = '';
+                if (totalDays <= 8) {
+                    dayDataList.forEach(d => {
+                        ticksHtml += '<span>' + d.dayText + '</span>';
+                    });
+                } else {
+                    const tickCount = Math.min(7, totalDays);
+                    const step = (totalDays - 1) / (tickCount - 1);
+                    const usedIndices = new Set();
+                    for (let i = 0; i < tickCount; i++) {
+                        const idx = Math.round(i * step);
+                        if (!usedIndices.has(idx) && dayDataList[idx]) {
+                            usedIndices.add(idx);
+                            ticksHtml += '<span>' + dayDataList[idx].dayText + '</span>';
+                        }
+                    }
+                }
+                axisLabels.innerHTML = ticksHtml;
+            }
+
+            // Cập nhật tiêu đề phụ (Subtitle)
+            if (isTab1) {
+                const sub = document.getElementById('trendSubtitle1');
+                if (sub && dayDataList.length > 0) {
+                    const sDate = dayDataList[0].displayDate;
+                    const eDate = dayDataList[dayDataList.length - 1].displayDate;
+                    if (sDate === eDate) {
+                        sub.innerText = 'Doanh thu ngày ' + sDate;
+                    } else {
+                        sub.innerText = 'Doanh thu từ ' + sDate + ' đến ' + eDate;
+                    }
+                }
+            } else {
+                const sub12 = document.getElementById('screen12RevenueSubtitle');
+                if (sub12 && dayDataList.length > 0) {
+                    const sDate = dayDataList[0].displayDate;
+                    const eDate = dayDataList[dayDataList.length - 1].displayDate;
+                    if (sDate === eDate) {
+                        sub12.innerText = 'Doanh thu ngày ' + sDate;
+                    } else {
+                        sub12.innerText = 'Doanh thu từ ' + sDate + ' đến ' + eDate;
+                    }
+                }
+            }
 
             function showTooltipForIndex(idx) {
                 const d = dayDataList[idx];
@@ -1634,16 +2380,18 @@
                 const amtEl = tooltip.querySelector('.trend-tt-amount');
                 const subEl = tooltip.querySelector('.trend-tt-sub');
 
-                if (dateEl) dateEl.innerText = d.day;
+                if (dateEl) dateEl.innerText = d.displayDate;
                 if (amtEl) amtEl.innerText = formatCurrency(d.amount);
 
                 if (subEl) {
                     if (d.amount > 0 && d.amount === maxAmount && maxAmount > 0) {
                         subEl.innerText = 'Doanh thu cao nhất kỳ • ' + d.orders + ' đơn hoàn tất';
-                    } else if (d.orders > 0) {
+                    } else if (d.amount > 0 && d.orders > 0) {
                         subEl.innerText = d.orders + ' đơn hàng hoàn tất';
+                    } else if (d.amount > 0) {
+                        subEl.innerText = 'Doanh thu ghi nhận';
                     } else {
-                        subEl.innerText = 'Không có đơn hoàn tất';
+                        subEl.innerText = 'Không có doanh thu';
                     }
                 }
 
@@ -1651,11 +2399,18 @@
                 const bar = bars[idx];
                 if (bar) {
                     tooltip.style.display = 'block';
+                    const fillEl = bar.querySelector('.trend-bar-fill');
                     const barRect = bar.getBoundingClientRect();
                     const wrapRect = wrapper.getBoundingClientRect();
 
                     let leftPos = (barRect.left - wrapRect.left + barRect.width / 2) - (tooltip.offsetWidth / 2);
-                    let topPos = (barRect.top - wrapRect.top) - tooltip.offsetHeight - 10;
+                    let topPos;
+                    if (d.amount > 0 && fillEl && fillEl.offsetHeight > 0) {
+                        const fillRect = fillEl.getBoundingClientRect();
+                        topPos = (fillRect.top - wrapRect.top) - tooltip.offsetHeight - 10;
+                    } else {
+                        topPos = wrapRect.height - tooltip.offsetHeight - 35;
+                    }
 
                     if (leftPos < 10) leftPos = 10;
                     if (leftPos + tooltip.offsetWidth > wrapRect.width - 10) {
@@ -1668,19 +2423,25 @@
                 }
             }
 
-            // Gắn sự kiện hover: CHỈ hiển thị khi trỏ chuột tới
+            // Gắn sự kiện hover
             const barEls = container.querySelectorAll('.trend-bar-item');
             barEls.forEach(bar => {
                 bar.addEventListener('mouseenter', () => {
                     const idx = Number(bar.getAttribute('data-idx'));
-                    bar.style.transform = 'scaleY(1.05)';
-                    bar.style.filter = 'brightness(1.15)';
+                    const fill = bar.querySelector('.trend-bar-fill');
+                    if (fill && dayDataList[idx] && dayDataList[idx].amount > 0) {
+                        fill.style.transform = 'scaleY(1.05)';
+                        fill.style.filter = 'brightness(1.15)';
+                    }
                     showTooltipForIndex(idx);
                 });
 
                 bar.addEventListener('mouseleave', () => {
-                    bar.style.transform = 'scaleY(1)';
-                    bar.style.filter = 'none';
+                    const fill = bar.querySelector('.trend-bar-fill');
+                    if (fill) {
+                        fill.style.transform = 'scaleY(1)';
+                        fill.style.filter = 'none';
+                    }
                     if (tooltip) tooltip.style.display = 'none';
                 });
             });
@@ -1696,54 +2457,124 @@
         const wrapper = document.getElementById('screen12OrdersWrapper');
         if (!wrapper) return;
 
-        const container = wrapper.querySelector('.rev-bars-orders');
-        const tooltip = wrapper.querySelector('.rev-tt-orders');
-        if (!container) return;
+        const fromInput = document.getElementById('screen12FilterFrom');
+        const toInput = document.getElementById('screen12FilterTo');
 
-        if (tooltip) tooltip.style.display = 'none';
+        let fromVal = fromInput ? fromInput.value : '';
+        let toVal = toInput ? toInput.value : '';
+        if (!fromVal || !toVal) {
+            fromVal = '2026-10-01';
+            toVal = '2026-10-31';
+        }
 
-        const daysInMonth = 31;
-        const dayMap = {};
+        const startDate = new Date(fromVal + 'T00:00:00');
+        const endDate = new Date(toVal + 'T00:00:00');
+
+        const dataMap = {};
         if (Array.isArray(dailyList)) {
             dailyList.forEach(d => {
-                if (d.dayText) dayMap[d.dayText] = Number(d.orderCount) || 0;
+                const ords = Number(d.orderCount) || 0;
+                if (d.date) dataMap[d.date] = ords;
+                if (d.dayText) dataMap[d.dayText] = ords;
+                if (d.rawDate) dataMap[d.rawDate] = ords;
             });
         }
 
         const dayOrderList = [];
         let maxOrders = 0;
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dayStr = String(i).padStart(2, '0') + '/10';
-            const orders = (dayMap[dayStr] != null) ? dayMap[dayStr] : 0;
-            if (orders > maxOrders) maxOrders = orders;
-            dayOrderList.push({ day: dayStr, count: orders });
+        let curr = new Date(startDate);
+        while (curr <= endDate && dayOrderList.length < 366) {
+            const y = curr.getFullYear();
+            const m = String(curr.getMonth() + 1).padStart(2, '0');
+            const day = String(curr.getDate()).padStart(2, '0');
+            const isoDate = y + '-' + m + '-' + day;
+            const dayText = day + '/' + m;
+            const displayDate = day + '/' + m + '/' + y;
+
+            const count = (dataMap[isoDate] != null) ? dataMap[isoDate] : ((dataMap[dayText] != null) ? dataMap[dayText] : 0);
+            if (count > maxOrders) maxOrders = count;
+            dayOrderList.push({ date: isoDate, dayText: dayText, displayDate: displayDate, count: count });
+
+            curr.setDate(curr.getDate() + 1);
         }
         if (maxOrders === 0) maxOrders = 3;
 
         const scaleCeiling = maxOrders / 0.76;
+        const container = wrapper.querySelector('.rev-bars-orders');
+        const tooltip = wrapper.querySelector('.rev-tt-orders');
+        const axisLabels = wrapper.querySelector('.trend-axis-labels');
+
+        if (!container) return;
+        if (tooltip) tooltip.style.display = 'none';
+
+        const totalDays = dayOrderList.length;
+        let gap = 5;
+        if (totalDays > 60) gap = 1;
+        else if (totalDays > 35) gap = 2;
+        else if (totalDays > 15) gap = 4;
+        else gap = 8;
+        container.style.gap = gap + 'px';
 
         let barsHtml = '';
         dayOrderList.forEach((item, idx) => {
-            const rawPercent = (item.count / scaleCeiling) * 100;
-            const heightPercent = Math.max(5, Math.min(95, rawPercent));
+            const hasCount = Number(item.count) > 0;
+            const rawPercent = hasCount ? (item.count / scaleCeiling) * 100 : 0;
+            const heightPercent = hasCount ? Math.max(6, Math.min(95, rawPercent)) : 0;
 
-            const ratio = item.count / maxOrders;
-            let color = '#fed7aa';
-            if (item.count === 0) color = '#fed7aa';
-            else if (ratio >= 0.85) color = '#7c2d12';
-            else if (ratio >= 0.70) color = '#9a3412';
-            else if (ratio >= 0.55) color = '#c2410c';
-            else if (ratio >= 0.35) color = '#ea580c';
-            else if (ratio >= 0.20) color = '#f59e0b';
-            else color = '#fed7aa';
+            const ratio = maxOrders > 0 ? (item.count / maxOrders) : 0;
+            let color = 'transparent';
+            if (hasCount) {
+                if (ratio >= 0.85) color = '#7c2d12';
+                else if (ratio >= 0.70) color = '#9a3412';
+                else if (ratio >= 0.55) color = '#c2410c';
+                else if (ratio >= 0.35) color = '#ea580c';
+                else if (ratio >= 0.20) color = '#f59e0b';
+                else color = '#fed7aa';
+            }
 
             barsHtml += '<div class="trend-order-bar-item" data-idx="' + idx + '" ' +
-                        'style="flex:1; height:' + heightPercent.toFixed(1) + '%; background:' + color + '; ' +
-                        'border-radius:5px 5px 0 0; cursor:pointer; transition:transform 0.15s ease, filter 0.15s ease;">' +
+                        'style="flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center; cursor:pointer;">' +
+                        '  <div class="trend-order-fill" style="width:100%; height:' + (hasCount ? heightPercent.toFixed(1) + '%' : '0') + '; ' +
+                        'background:' + (hasCount ? color : 'transparent') + '; border-radius:3px 3px 0 0; ' +
+                        'transition:transform 0.15s ease, filter 0.15s ease; transform-origin:bottom center;"></div>' +
                         '</div>';
         });
 
         container.innerHTML = barsHtml;
+
+        // Render trục X ngày động
+        if (axisLabels && totalDays > 0) {
+            let ticksHtml = '';
+            if (totalDays <= 8) {
+                dayOrderList.forEach(d => {
+                    ticksHtml += '<span>' + d.dayText + '</span>';
+                });
+            } else {
+                const tickCount = Math.min(7, totalDays);
+                const step = (totalDays - 1) / (tickCount - 1);
+                const usedIndices = new Set();
+                for (let i = 0; i < tickCount; i++) {
+                    const idx = Math.round(i * step);
+                    if (!usedIndices.has(idx) && dayOrderList[idx]) {
+                        usedIndices.add(idx);
+                        ticksHtml += '<span>' + dayOrderList[idx].dayText + '</span>';
+                    }
+                }
+            }
+            axisLabels.innerHTML = ticksHtml;
+        }
+
+        // Cập nhật tiêu đề phụ (Subtitle)
+        const subOrders = document.getElementById('screen12OrdersSubtitle');
+        if (subOrders && dayOrderList.length > 0) {
+            const sDate = dayOrderList[0].displayDate;
+            const eDate = dayOrderList[dayOrderList.length - 1].displayDate;
+            if (sDate === eDate) {
+                subOrders.innerText = 'Khối lượng đơn hàng ngày ' + sDate;
+            } else {
+                subOrders.innerText = 'Khối lượng đơn hàng từ ' + sDate + ' đến ' + eDate;
+            }
+        }
 
         function showOrderTooltip(idx) {
             const d = dayOrderList[idx];
@@ -1753,7 +2584,7 @@
             const amtEl = tooltip.querySelector('.trend-tt-amount');
             const subEl = tooltip.querySelector('.trend-tt-sub');
 
-            if (dateEl) dateEl.innerText = d.day;
+            if (dateEl) dateEl.innerText = d.displayDate;
             if (amtEl) amtEl.innerText = d.count + ' đơn hàng';
             if (subEl) {
                 if (d.count > 0 && d.count === maxOrders && maxOrders > 1) {
@@ -1769,11 +2600,18 @@
             const bar = bars[idx];
             if (bar) {
                 tooltip.style.display = 'block';
+                const fillEl = bar.querySelector('.trend-order-fill');
                 const barRect = bar.getBoundingClientRect();
                 const wrapRect = wrapper.getBoundingClientRect();
 
                 let leftPos = (barRect.left - wrapRect.left + barRect.width / 2) - (tooltip.offsetWidth / 2);
-                let topPos = (barRect.top - wrapRect.top) - tooltip.offsetHeight - 10;
+                let topPos;
+                if (d.count > 0 && fillEl && fillEl.offsetHeight > 0) {
+                    const fillRect = fillEl.getBoundingClientRect();
+                    topPos = (fillRect.top - wrapRect.top) - tooltip.offsetHeight - 10;
+                } else {
+                    topPos = wrapRect.height - tooltip.offsetHeight - 35;
+                }
 
                 if (leftPos < 10) leftPos = 10;
                 if (leftPos + tooltip.offsetWidth > wrapRect.width - 10) {
@@ -1790,13 +2628,19 @@
         barEls.forEach(bar => {
             bar.addEventListener('mouseenter', () => {
                 const idx = Number(bar.getAttribute('data-idx'));
-                bar.style.transform = 'scaleY(1.05)';
-                bar.style.filter = 'brightness(1.15)';
+                const fill = bar.querySelector('.trend-order-fill');
+                if (fill && dayOrderList[idx] && dayOrderList[idx].count > 0) {
+                    fill.style.transform = 'scaleY(1.05)';
+                    fill.style.filter = 'brightness(1.15)';
+                }
                 showOrderTooltip(idx);
             });
             bar.addEventListener('mouseleave', () => {
-                bar.style.transform = 'scaleY(1)';
-                bar.style.filter = 'none';
+                const fill = bar.querySelector('.trend-order-fill');
+                if (fill) {
+                    fill.style.transform = 'scaleY(1)';
+                    fill.style.filter = 'none';
+                }
                 if (tooltip) tooltip.style.display = 'none';
             });
         });
@@ -1809,7 +2653,7 @@
         const avgBadge = document.getElementById('screen12OrdersAvgBadge');
         if (avgBadge) {
             const totalOrders = dayOrderList.reduce((sum, d) => sum + d.count, 0);
-            const avg = (totalOrders / 31).toFixed(1);
+            const avg = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : '0.0';
             avgBadge.innerHTML = '<i class="ti ti-chart-bar" style="font-size:13px;"></i> Trung bình: ' + avg + ' đơn/ngày';
         }
     }
@@ -1901,14 +2745,10 @@
     function applyScreen12Filter() {
         const fromVal = document.getElementById('screen12FilterFrom')?.value || '';
         const toVal = document.getElementById('screen12FilterTo')?.value || '';
-        const statusVal = document.getElementById('screen12FilterStatus')?.value || '';
-        const payVal = document.getElementById('screen12FilterPayment')?.value || '';
 
         const filtered = ALL_ORDERS_DATA.filter(o => {
             if (fromVal && o.date < fromVal) return false;
             if (toVal && o.date > toVal) return false;
-            if (statusVal && o.status !== statusVal) return false;
-            if (payVal && o.pay !== payVal) return false;
             return true;
         });
 
@@ -1933,6 +2773,9 @@
         if (compCountEl) compCountEl.innerText = completedCount.toLocaleString('vi-VN');
         if (compPctEl) compPctEl.innerText = '(' + completedPct + '%)';
         if (succRateEl) succRateEl.innerHTML = '<i class="ti ti-check"></i> ' + completedPct + '%';
+
+        // Tính toán và hiển thị tăng trưởng % thực tế so với kỳ trước
+        calculateAndRenderGrowth(fromVal, toVal, grossRev, totalOrd, aov);
 
         // Gom nhóm đơn hàng theo ngày
         const dayMap = {};
@@ -1994,11 +2837,12 @@
 
         // Render lại sơ đồ doanh thu & đơn hàng
         const chartList = currentScreen12MasterDays.map(d => ({
+            date: d.rawDate,
             dayText: d.dayText,
             orderCount: d.total,
             amount: d.revenue
         }));
-        renderDynamicRevenueChart(chartList);
+        renderDynamicRevenueChart(chartList, 'screen12RevenueWrapper');
         renderScreen12OrdersChart(chartList);
 
         // Cập nhật tóm tắt trạng thái đơn
@@ -2052,11 +2896,221 @@
         if (codOrdEl) codOrdEl.innerText = codOrders.length + ' đơn (' + codOrdPct + '%)';
         if (codTotEl) codTotEl.innerText = formatCurrency(codRev);
 
-        // Cập nhật phân bổ danh mục
-        const catVal1 = document.getElementById('screen12CatVal1');
-        const catBar1 = document.getElementById('screen12CatBar1');
-        if (catVal1) catVal1.innerHTML = formatCurrency(grossRev) + ' <small style="color:#64748b; font-weight:600;">(' + (grossRev > 0 ? '100%' : '0%') + ')</small>';
-        if (catBar1) catBar1.style.width = (grossRev > 0 ? '100%' : '0%');
+        // Cập nhật phân bổ danh mục theo dữ liệu thực tế
+        let catRev1 = 0; // Thức ăn hạt cho mèo: category 1
+        let catRev2 = 0; // Pate & Thức ăn ướt: category 3 + 4
+        let catRev3 = 0; // Thức ăn hạt cho chó: category 2
+        let catRev4 = 0; // Bánh thưởng & Snack: category 5 + 6 + 7
+
+        completedList.forEach(o => {
+            if (o.cats) {
+                // Category 1: Thức ăn hạt cho mèo
+                if (o.cats['1'] || o.cats[1]) catRev1 += Number(o.cats['1'] || o.cats[1]) || 0;
+                // Category 3 + 4: Pate cho mèo (3) + Pate cho chó (4)
+                if (o.cats['3'] || o.cats[3]) catRev2 += Number(o.cats['3'] || o.cats[3]) || 0;
+                if (o.cats['4'] || o.cats[4]) catRev2 += Number(o.cats['4'] || o.cats[4]) || 0;
+                // Category 2: Thức ăn hạt cho chó
+                if (o.cats['2'] || o.cats[2]) catRev3 += Number(o.cats['2'] || o.cats[2]) || 0;
+                // Category 5 + 6 + 7: Bánh thưởng & Snack
+                if (o.cats['5'] || o.cats[5]) catRev4 += Number(o.cats['5'] || o.cats[5]) || 0;
+                if (o.cats['6'] || o.cats[6]) catRev4 += Number(o.cats['6'] || o.cats[6]) || 0;
+                if (o.cats['7'] || o.cats[7]) catRev4 += Number(o.cats['7'] || o.cats[7]) || 0;
+            }
+        });
+
+        const totalCatRev = catRev1 + catRev2 + catRev3 + catRev4;
+
+        // Cập nhật text tổng cộng ở tâm Donut Chart
+        const catTotalEl = document.getElementById('screen12CatTotal');
+        if (catTotalEl) {
+            catTotalEl.innerText = formatShortCurrency(totalCatRev);
+            catTotalEl.title = 'Tổng tiền hàng theo danh mục: ' + formatCurrency(totalCatRev);
+        }
+
+        const pct1 = totalCatRev > 0 ? (catRev1 / totalCatRev * 100) : 0;
+        const pct2 = totalCatRev > 0 ? (catRev2 / totalCatRev * 100) : 0;
+        const pct3 = totalCatRev > 0 ? (catRev3 / totalCatRev * 100) : 0;
+        const pct4 = totalCatRev > 0 ? (catRev4 / totalCatRev * 100) : 0;
+
+        const updateCatRow = (valId, barId, rev, pct) => {
+            const valEl = document.getElementById(valId);
+            const barEl = document.getElementById(barId);
+            const pctText = pct.toFixed(1);
+            if (valEl) valEl.innerHTML = formatCurrency(rev) + ' <small style="color:#64748b; font-weight:600;">(' + pctText + '%)</small>';
+            if (barEl) barEl.style.width = pctText + '%';
+        };
+
+        updateCatRow('screen12CatVal1', 'screen12CatBar1', catRev1, pct1);
+        updateCatRow('screen12CatVal2', 'screen12CatBar2', catRev2, pct2);
+        updateCatRow('screen12CatVal3', 'screen12CatBar3', catRev3, pct3);
+        updateCatRow('screen12CatVal4', 'screen12CatBar4', catRev4, pct4);
+
+        // Vẽ các lát của Donut Chart SVG
+        const donutGroup = document.getElementById('screen12DonutCatSlices');
+        if (donutGroup) {
+            if (totalCatRev === 0) {
+                donutGroup.innerHTML = '';
+            } else {
+                const slices = [
+                    { pct: pct1, color: '#ea580c' },
+                    { pct: pct2, color: '#f59e0b' },
+                    { pct: pct3, color: '#7c2d12' },
+                    { pct: pct4, color: '#fb923c' }
+                ];
+                let slicesHtml = '';
+                let accum = 0;
+                slices.forEach(s => {
+                    if (s.pct > 0) {
+                        const dashArray = s.pct.toFixed(2) + ' ' + (100 - s.pct).toFixed(2);
+                        const dashOffset = (-accum).toFixed(2);
+                        slicesHtml += '<circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="' + s.color + '" stroke-width="5" stroke-dasharray="' + dashArray + '" stroke-dashoffset="' + dashOffset + '" style="transition:all 0.5s ease;"></circle>';
+                        accum += s.pct;
+                    }
+                });
+                donutGroup.innerHTML = slicesHtml;
+            }
+        }
+    }
+
+    function calculateAndRenderGrowth(fromVal, toVal, grossRev, totalOrd, aov) {
+        const revGrowthEl = document.getElementById('screen12KpiRevenueGrowth');
+        const ordGrowthEl = document.getElementById('screen12KpiOrdersGrowth');
+        const aovGrowthEl = document.getElementById('screen12KpiAovGrowth');
+        if (!revGrowthEl || !ordGrowthEl || !aovGrowthEl) return;
+
+        if (!fromVal || !toVal) {
+            fromVal = '2026-10-01';
+            toVal = '2026-10-31';
+        }
+
+        const startDate = new Date(fromVal + 'T00:00:00');
+        const endDate = new Date(toVal + 'T23:59:59');
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
+        let prevStart, prevEnd, periodLabel;
+
+        const isFullMonth = (startDate.getDate() === 1 &&
+            endDate.getDate() === new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate() &&
+            startDate.getMonth() === endDate.getMonth() &&
+            startDate.getFullYear() === endDate.getFullYear());
+
+        const isFullYear = (startDate.getMonth() === 0 && startDate.getDate() === 1 &&
+            endDate.getMonth() === 11 && endDate.getDate() === 31 &&
+            startDate.getFullYear() === endDate.getFullYear());
+
+        const diffDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (isFullMonth) {
+            prevStart = new Date(startDate.getFullYear(), startDate.getMonth() - 1, 1);
+            prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
+            periodLabel = 'tháng trước';
+        } else if (isFullYear) {
+            prevStart = new Date(startDate.getFullYear() - 1, 0, 1);
+            prevEnd = new Date(startDate.getFullYear() - 1, 11, 31);
+            periodLabel = 'năm trước';
+        } else if (diffDays === 7) {
+            prevEnd = new Date(startDate);
+            prevEnd.setDate(prevEnd.getDate() - 1);
+            prevStart = new Date(prevEnd);
+            prevStart.setDate(prevStart.getDate() - 6);
+            periodLabel = 'tuần trước';
+        } else if (diffDays === 1) {
+            prevEnd = new Date(startDate);
+            prevEnd.setDate(prevEnd.getDate() - 1);
+            prevStart = new Date(prevEnd);
+            periodLabel = 'hôm qua';
+        } else {
+            prevEnd = new Date(startDate);
+            prevEnd.setDate(prevEnd.getDate() - 1);
+            prevStart = new Date(prevEnd);
+            prevStart.setDate(prevStart.getDate() - diffDays + 1);
+            periodLabel = 'kỳ trước';
+        }
+
+        const prevFromIso = toIso(prevStart);
+        const prevToIso = toIso(prevEnd);
+
+        const prevOrders = ALL_ORDERS_DATA.filter(o => o.date >= prevFromIso && o.date <= prevToIso);
+        const prevTotalOrd = prevOrders.length;
+        const prevCompOrders = prevOrders.filter(o => o.status === 'COMPLETED');
+        const prevGrossRev = prevCompOrders.reduce((s, o) => s + o.total, 0);
+        const prevAov = prevCompOrders.length > 0 ? Math.round(prevGrossRev / prevCompOrders.length) : 0;
+
+        function buildGrowthBadge(cur, prev) {
+            if (prev === 0 && cur === 0) {
+                return '<span class="pill-badge" style="background:#f1f5f9; color:#64748b; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;">0.0%</span>' +
+                       '<span style="font-size:12px; color:#64748b; font-weight:600;">so với ' + periodLabel + '</span>';
+            }
+            let pct = 0;
+            if (prev === 0) {
+                pct = 100;
+            } else {
+                pct = ((cur - prev) / prev) * 100;
+            }
+            const isPos = pct >= 0;
+            const sign = isPos ? '+' : '';
+            const text = sign + pct.toFixed(1) + '%';
+            if (isPos) {
+                return '<span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-up-right"></i> ' + text + '</span>' +
+                       '<span style="font-size:12px; color:#64748b; font-weight:600;">so với ' + periodLabel + '</span>';
+            } else {
+                return '<span class="pill-badge warn" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-down-right"></i> ' + text + '</span>' +
+                       '<span style="font-size:12px; color:#64748b; font-weight:600;">so với ' + periodLabel + '</span>';
+            }
+        }
+
+        revGrowthEl.innerHTML = buildGrowthBadge(grossRev, prevGrossRev);
+        ordGrowthEl.innerHTML = buildGrowthBadge(totalOrd, prevTotalOrd);
+        aovGrowthEl.innerHTML = buildGrowthBadge(aov, prevAov);
+    }
+
+    function syncScreen12QuickChips() {
+        const fromInput = document.getElementById('screen12FilterFrom');
+        const toInput = document.getElementById('screen12FilterTo');
+        if (!fromInput || !toInput) return;
+
+        const fromVal = fromInput.value;
+        const toVal = toInput.value;
+
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
+        const todayIso = toIso(now);
+
+        const startOfWeek = new Date(now);
+        const dayOfWeek = (startOfWeek.getDay() + 6) % 7;
+        startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        const weekFromIso = toIso(startOfWeek);
+        const weekToIso = toIso(endOfWeek);
+
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const monthFromIso = toIso(startOfMonth);
+        const monthToIso = toIso(endOfMonth);
+
+        const yearFromIso = now.getFullYear() + '-01-01';
+        const yearToIso = now.getFullYear() + '-12-31';
+
+        document.querySelectorAll('.rev-quick-chip').forEach(c => c.classList.remove('active'));
+
+        if (fromVal === todayIso && toVal === todayIso) {
+            document.getElementById('chip-today')?.classList.add('active');
+        } else if (fromVal === weekFromIso && toVal === weekToIso) {
+            document.getElementById('chip-week')?.classList.add('active');
+        } else if ((fromVal === monthFromIso && toVal === monthToIso) || (fromVal === '2026-10-01' && toVal === '2026-10-31')) {
+            document.getElementById('chip-month')?.classList.add('active');
+        } else if (fromVal === yearFromIso && toVal === yearToIso) {
+            document.getElementById('chip-year')?.classList.add('active');
+        }
+    }
+
+    function onScreen12DateChange() {
+        syncScreen12QuickChips();
+        applyScreen12Filter();
     }
 
     function selectQuickChip(btn, period) {
@@ -2067,18 +3121,29 @@
         const toInput = document.getElementById('screen12FilterTo');
         if (!fromInput || !toInput) return;
 
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
         if (period === 'today') {
-            fromInput.value = '2026-10-22';
-            toInput.value = '2026-10-22';
+            fromInput.value = toIso(now);
+            toInput.value = toIso(now);
         } else if (period === 'week') {
-            fromInput.value = '2026-10-19';
-            toInput.value = '2026-10-25';
+            const startOfWeek = new Date(now);
+            const dayOfWeek = (startOfWeek.getDay() + 6) % 7; // Monday = 0
+            startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+            fromInput.value = toIso(startOfWeek);
+            toInput.value = toIso(endOfWeek);
         } else if (period === 'month') {
-            fromInput.value = '2026-10-01';
-            toInput.value = '2026-10-31';
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            fromInput.value = toIso(startOfMonth);
+            toInput.value = toIso(endOfMonth);
         } else if (period === 'year') {
-            fromInput.value = '2026-01-01';
-            toInput.value = '2026-12-31';
+            fromInput.value = now.getFullYear() + '-01-01';
+            toInput.value = now.getFullYear() + '-12-31';
         }
 
         applyScreen12Filter();
@@ -2087,13 +3152,9 @@
     function resetScreen12Filter() {
         const fromInput = document.getElementById('screen12FilterFrom');
         const toInput = document.getElementById('screen12FilterTo');
-        const stSelect = document.getElementById('screen12FilterStatus');
-        const paySelect = document.getElementById('screen12FilterPayment');
 
         if (fromInput) fromInput.value = '2026-10-01';
         if (toInput) toInput.value = '2026-10-31';
-        if (stSelect) stSelect.selectedIndex = 0;
-        if (paySelect) paySelect.selectedIndex = 0;
 
         document.querySelectorAll('.rev-quick-chip').forEach(c => c.classList.remove('active'));
         const monthChip = document.getElementById('chip-month') || document.querySelectorAll('.rev-quick-chip')[2];
@@ -2127,6 +3188,514 @@
 
     function exportRevenueReportCsv() {
         exportDailyAuditCsv();
+    }
+
+    // ========================================================
+    // BÁO CÁO HỘI VIÊN (Screen 13 - Figma)
+    // ========================================================
+    // ========================================================
+    // BÁO CÁO HỘI VIÊN (Screen 13 - Dữ liệu thực từ Database)
+    // ========================================================
+    function formatVnDate(val) {
+        if (!val) return '';
+        if (val.includes('-')) {
+            const parts = val.split('-');
+            if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        return val;
+    }
+
+    function onScreen13DateChange() {
+        document.querySelectorAll('.s13-chip').forEach(c => c.classList.remove('active'));
+        applyScreen13Filter();
+    }
+
+    function selectScreen13QuickChip(btn, type) {
+        document.querySelectorAll('.s13-chip').forEach(c => c.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const fromInput = document.getElementById('s13FilterFrom');
+        const toInput = document.getElementById('s13FilterTo');
+        if (!fromInput || !toInput) return;
+
+        if (type === 'week') {
+            fromInput.value = '2026-10-19';
+            toInput.value = '2026-10-25';
+        } else if (type === 'month') {
+            fromInput.value = '2026-10-01';
+            toInput.value = '2026-10-31';
+        } else if (type === 'prevmonth') {
+            fromInput.value = '2026-09-01';
+            toInput.value = '2026-09-30';
+        } else if (type === 'year') {
+            fromInput.value = '2026-01-01';
+            toInput.value = '2026-12-31';
+        }
+        applyScreen13Filter();
+    }
+
+    function resetScreen13Filter() {
+        document.querySelectorAll('.s13-chip').forEach(c => c.classList.remove('active'));
+        const monthChip = document.getElementById('s13-chip-month');
+        if (monthChip) monthChip.classList.add('active');
+
+        const fromInput = document.getElementById('s13FilterFrom');
+        const toInput = document.getElementById('s13FilterTo');
+        const tierSelect = document.getElementById('s13FilterTier');
+
+        if (fromInput) fromInput.value = '2026-10-01';
+        if (toInput) toInput.value = '2026-10-31';
+        if (tierSelect) tierSelect.value = '';
+
+        applyScreen13Filter();
+    }
+
+    function applyScreen13Filter() {
+        const fromRaw = document.getElementById('s13FilterFrom')?.value || '2026-10-01';
+        const toRaw = document.getElementById('s13FilterTo')?.value || '2026-10-31';
+        const tierVal = document.getElementById('s13FilterTier')?.value || '';
+
+        const fromDisplay = formatVnDate(fromRaw);
+        const toDisplay = formatVnDate(toRaw);
+
+        const statusLabel = document.getElementById('s13FilterStatusLabel');
+        if (statusLabel) statusLabel.innerText = fromDisplay + ' - ' + toDisplay;
+
+        const tablePeriodLabel = document.getElementById('s13TablePeriodLabel');
+        if (tablePeriodLabel) {
+            tablePeriodLabel.innerText = 'Kỳ báo cáo: ' + fromDisplay + ' - ' + toDisplay;
+        }
+
+        const allCust = Array.isArray(ALL_CUSTOMERS_DATA) ? ALL_CUSTOMERS_DATA : [];
+        const allOrd = Array.isArray(ALL_ORDERS_DATA) ? ALL_ORDERS_DATA : [];
+
+        // Tính khoảng ngày trước đó để so sánh tăng trưởng
+        const fromD = new Date(fromRaw + 'T00:00:00');
+        const toD = new Date(toRaw + 'T23:59:59');
+        const durationMs = toD.getTime() - fromD.getTime();
+        const prevToD = new Date(fromD.getTime() - 1);
+        const prevFromD = new Date(prevToD.getTime() - durationMs);
+        const prevFromIso = prevFromD.toISOString().slice(0, 10);
+        const prevToIso = prevToD.toISOString().slice(0, 10);
+
+        // Bảng tra cứu hạng hội viên theo customerId để đảm bảo 100% khớp đúng dù là từ JSP render hay API polling
+        const custTierMap = {};
+        allCust.forEach(c => {
+            const t = c.tier || c.customerTier || 'BRONZE';
+            custTierMap[c.id] = t;
+        });
+        const getOrderTier = (o) => (o.customerTier || o.tier || (o.customerId ? custTierMap[o.customerId] : null) || 'BRONZE');
+
+        // Lọc khách hàng theo hạng (nếu có chọn)
+        const scopedCust = tierVal ? allCust.filter(c => (c.tier || c.customerTier) === tierVal) : allCust;
+        const totalMembers = scopedCust.length;
+
+        // Hội viên mới gia nhập trong kỳ
+        const newMembers = scopedCust.filter(c => c.createdAt >= fromRaw && c.createdAt <= toRaw).length;
+        const prevNewMembers = scopedCust.filter(c => c.createdAt >= prevFromIso && c.createdAt <= prevToIso).length;
+
+        let newGrowthHtml = '';
+        if (prevNewMembers > 0) {
+            const growthRate = ((newMembers - prevNewMembers) / prevNewMembers * 100).toFixed(1);
+            const isUp = (newMembers >= prevNewMembers);
+            newGrowthHtml = '<span style="color:' + (isUp ? '#16a34a' : '#ef4444') + '; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-' + (isUp ? 'up' : 'down') + '"></i> ' + Math.abs(growthRate) + '%</span><span style="color:#64748b; font-weight:600;">so với kỳ trước (' + prevNewMembers + ' mới)</span>';
+        } else {
+            newGrowthHtml = '<span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:6px; background:#dcfce7; color:#166534; font-weight:700;">+' + newMembers + ' mới</span><span style="color:#64748b; font-weight:600;">trong kỳ lọc</span>';
+        }
+
+        // Tăng trưởng tổng quy mô
+        const prevTotalMembers = scopedCust.filter(c => c.createdAt < fromRaw).length;
+        let totalGrowthHtml = '';
+        if (prevTotalMembers > 0) {
+            const totalGrowthRate = ((totalMembers - prevTotalMembers) / prevTotalMembers * 100).toFixed(1);
+            totalGrowthHtml = '<span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> ' + totalGrowthRate + '%</span><span style="color:#64748b; font-weight:600;">tăng trưởng tổng quy mô</span>';
+        } else {
+            totalGrowthHtml = '<span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> 100%</span><span style="color:#64748b; font-weight:600;">quy mô hiện tại</span>';
+        }
+
+        // Đơn hàng COMPLETED trong kỳ
+        const completedOrders = allOrd.filter(o => o.status === 'COMPLETED' && o.date >= fromRaw && o.date <= toRaw);
+        const scopedOrders = tierVal ? completedOrders.filter(o => getOrderTier(o) === tierVal) : completedOrders;
+
+        // Hội viên phát sinh đơn trong kỳ
+        const activeCustIds = new Set(scopedOrders.map(o => o.customerId).filter(Boolean));
+        const activeMembersCount = activeCustIds.size;
+        const activeRatio = totalMembers > 0 ? ((activeMembersCount / totalMembers) * 100).toFixed(1) : '0.0';
+
+        // 1. CẬP NHẬT 3 THẺ KPI TRÊN CÙNG
+        const kpiMembers = document.getElementById('s13KpiTotalMembers');
+        const kpiMembersGrowth = document.getElementById('s13KpiTotalMembersGrowth');
+        const kpiNew = document.getElementById('s13KpiNewMembers');
+        const kpiNewGrowth = document.getElementById('s13KpiNewMembersGrowth');
+        const kpiOrders = document.getElementById('s13KpiActiveMembers');
+        const kpiOrdersRatio = document.getElementById('s13KpiActiveMembersRatio');
+
+        if (kpiMembers) kpiMembers.innerText = totalMembers.toLocaleString('vi-VN');
+        if (kpiMembersGrowth) kpiMembersGrowth.innerHTML = totalGrowthHtml;
+        if (kpiNew) kpiNew.innerText = newMembers.toLocaleString('vi-VN');
+        if (kpiNewGrowth) kpiNewGrowth.innerHTML = newGrowthHtml;
+        if (kpiOrders) kpiOrders.innerText = activeMembersCount.toLocaleString('vi-VN');
+        if (kpiOrdersRatio) {
+            kpiOrdersRatio.innerHTML = '<span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:6px; background:#dcfce7; color:#166534; font-weight:700;">' + activeRatio + '% tỷ lệ</span><span style="color:#64748b; font-weight:600;">hội viên mua sắm</span>';
+        }
+
+        // 2. THỐNG KÊ CHI TIẾT THEO 4 HẠNG
+        const tierStats = {
+            'BRONZE': { name: 'Đồng', en: 'Bronze', color: '#d97706', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 },
+            'SILVER': { name: 'Bạc', en: 'Silver', color: '#64748b', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 },
+            'GOLD': { name: 'Vàng', en: 'Gold', color: '#f59e0b', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 },
+            'DIAMOND': { name: 'Kim cương', en: 'Diamond', color: '#06b6d4', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 }
+        };
+
+        const totalAllCust = allCust.length || 1;
+        ['BRONZE', 'SILVER', 'GOLD', 'DIAMOND'].forEach(t => {
+            const mList = allCust.filter(c => (c.tier || c.customerTier) === t);
+            tierStats[t].count = mList.length;
+            tierStats[t].pct = (mList.length / totalAllCust * 100).toFixed(1);
+            tierStats[t].newCount = mList.filter(c => c.createdAt >= fromRaw && c.createdAt <= toRaw).length;
+
+            const tOrders = completedOrders.filter(o => getOrderTier(o) === t);
+            tierStats[t].orders = tOrders.length;
+            tierStats[t].revenue = tOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+            tierStats[t].aov = tOrders.length > 0 ? Math.round(tierStats[t].revenue / tOrders.length) : 0;
+        });
+
+        // 3. CẬP NHẬT BIỂU ĐỒ DONUT VÀ 4 THẺ CHỈ SỐ PHÂN BỔ
+        const C = 477.5; // Chu vi vòng tròn r=76
+        const lenB = (tierStats.BRONZE.count / totalAllCust) * C;
+        const lenS = (tierStats.SILVER.count / totalAllCust) * C;
+        const lenG = (tierStats.GOLD.count / totalAllCust) * C;
+        const lenD = (tierStats.DIAMOND.count / totalAllCust) * C;
+
+        const elB = document.getElementById('s13DonutBronze');
+        const elS = document.getElementById('s13DonutSilver');
+        const elG = document.getElementById('s13DonutGold');
+        const elD = document.getElementById('s13DonutDiamond');
+
+        if (elB) {
+            elB.setAttribute('stroke-dasharray', lenB.toFixed(1) + ' ' + C);
+            elB.setAttribute('stroke-dashoffset', '0');
+        }
+        if (elS) {
+            elS.setAttribute('stroke-dasharray', lenS.toFixed(1) + ' ' + C);
+            elS.setAttribute('stroke-dashoffset', (-lenB).toFixed(1));
+        }
+        if (elG) {
+            elG.setAttribute('stroke-dasharray', lenG.toFixed(1) + ' ' + C);
+            elG.setAttribute('stroke-dashoffset', (-(lenB + lenS)).toFixed(1));
+        }
+        if (elD) {
+            elD.setAttribute('stroke-dasharray', lenD.toFixed(1) + ' ' + C);
+            elD.setAttribute('stroke-dashoffset', (-(lenB + lenS + lenG)).toFixed(1));
+        }
+
+        const centerVal = document.getElementById('s13DonutCenterVal');
+        const centerLabel = document.getElementById('s13DonutCenterLabel');
+        const donutSubtitle = document.getElementById('s13DonutSubtitle');
+
+        const donutSegments = {
+            'BRONZE': elB,
+            'SILVER': elS,
+            'GOLD': elG,
+            'DIAMOND': elD
+        };
+
+        if (tierVal && tierStats[tierVal]) {
+            const st = tierStats[tierVal];
+            if (centerVal) centerVal.innerText = st.count.toLocaleString('vi-VN');
+            if (centerLabel) centerLabel.innerText = 'Hội viên ' + st.name + ' (' + st.pct + '%)';
+            if (donutSubtitle) donutSubtitle.innerText = 'Chi tiết hạng ' + st.name + ': ' + st.count + ' hội viên (' + st.pct + '%)';
+
+            Object.keys(donutSegments).forEach(k => {
+                if (donutSegments[k]) {
+                    if (k === tierVal) {
+                        donutSegments[k].style.opacity = '1';
+                        donutSegments[k].setAttribute('stroke-width', '26');
+                    } else {
+                        donutSegments[k].style.opacity = '0.25';
+                        donutSegments[k].setAttribute('stroke-width', '22');
+                    }
+                }
+            });
+        } else {
+            if (centerVal) centerVal.innerText = allCust.length.toLocaleString('vi-VN');
+            if (centerLabel) centerLabel.innerText = 'Tổng số hội viên';
+            if (donutSubtitle) donutSubtitle.innerText = 'Cơ cấu ' + allCust.length + ' hội viên thực tế theo các cấp bậc';
+
+            Object.keys(donutSegments).forEach(k => {
+                if (donutSegments[k]) {
+                    donutSegments[k].style.opacity = '1';
+                    donutSegments[k].setAttribute('stroke-width', '22');
+                }
+            });
+        }
+
+        const cBc = document.getElementById('s13CardBronzeCount');
+        const cBp = document.getElementById('s13CardBronzePct');
+        const cSc = document.getElementById('s13CardSilverCount');
+        const cSp = document.getElementById('s13CardSilverPct');
+        const cGc = document.getElementById('s13CardGoldCount');
+        const cGp = document.getElementById('s13CardGoldPct');
+        const cDc = document.getElementById('s13CardDiamondCount');
+        const cDp = document.getElementById('s13CardDiamondPct');
+
+        if (cBc) cBc.innerText = tierStats.BRONZE.count.toLocaleString('vi-VN');
+        if (cBp) cBp.innerText = tierStats.BRONZE.pct + '%';
+        if (cSc) cSc.innerText = tierStats.SILVER.count.toLocaleString('vi-VN');
+        if (cSp) cSp.innerText = tierStats.SILVER.pct + '%';
+        if (cGc) cGc.innerText = tierStats.GOLD.count.toLocaleString('vi-VN');
+        if (cGp) cGp.innerText = tierStats.GOLD.pct + '%';
+        if (cDc) cDc.innerText = tierStats.DIAMOND.count.toLocaleString('vi-VN');
+        if (cDp) cDp.innerText = tierStats.DIAMOND.pct + '%';
+
+        // 4. BIẾN ĐỘNG SỐ LƯỢNG HỘI VIÊN THEO HẠNG QUA CÁC THÁNG (DỮ LIỆU THỰC TẾ)
+        const monthlyContainer = document.getElementById('s13MonthlyTrendContainer');
+        if (monthlyContainer) {
+            const targetDate = new Date(toRaw + 'T00:00:00');
+            let months = [];
+            for (let i = 0; i < 4; i++) {
+                const d = new Date(targetDate.getFullYear(), targetDate.getMonth() - i, 1);
+                const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                const endYmd = ym + '-' + String(lastDay).padStart(2, '0');
+                months.push({ ym: ym, endYmd: endYmd, label: 'Tháng ' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() });
+            }
+
+            let trendHtml = '';
+            months.forEach((m, idx) => {
+                const mCust = allCust.filter(c => c.createdAt <= m.endYmd);
+                const mTotal = mCust.length;
+                const mB = mCust.filter(c => (c.tier || c.customerTier) === 'BRONZE').length;
+                const mS = mCust.filter(c => (c.tier || c.customerTier) === 'SILVER').length;
+                const mG = mCust.filter(c => (c.tier || c.customerTier) === 'GOLD').length;
+                const mD = mCust.filter(c => (c.tier || c.customerTier) === 'DIAMOND').length;
+
+                const prevM = new Date(targetDate.getFullYear(), targetDate.getMonth() - idx - 1, 1);
+                const prevLastDay = new Date(prevM.getFullYear(), prevM.getMonth() + 1, 0).getDate();
+                const prevEndYmd = prevM.getFullYear() + '-' + String(prevM.getMonth() + 1).padStart(2, '0') + '-' + String(prevLastDay).padStart(2, '0');
+                const prevTotal = allCust.filter(c => c.createdAt <= prevEndYmd).length;
+                const growthPct = prevTotal > 0 ? (((mTotal - prevTotal) / prevTotal) * 100).toFixed(1) : '100.0';
+
+                const pB = mTotal > 0 ? (mB / mTotal * 100).toFixed(1) : 0;
+                const pS = mTotal > 0 ? (mS / mTotal * 100).toFixed(1) : 0;
+                const pG = mTotal > 0 ? (mG / mTotal * 100).toFixed(1) : 0;
+                const pD = mTotal > 0 ? (mD / mTotal * 100).toFixed(1) : 0;
+
+                const isCurrent = (idx === 0);
+
+                trendHtml += '<div>' +
+                    '<div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">' +
+                        '<span style="font-weight:700; color:' + (isCurrent ? '#ea580c' : '#334155') + '; display:inline-flex; align-items:center; gap:4px;">' +
+                            (isCurrent ? '<i class="ti ti-caret-down" style="font-size:13px;"></i> ' : '') + m.label + (isCurrent ? ' (Kỳ lọc)' : '') +
+                        '</span>' +
+                        '<span style="font-weight:' + (isCurrent ? '800' : '700') + '; color:' + (isCurrent ? '#ea580c' : '#1e293b') + ';">' + mTotal.toLocaleString('vi-VN') + ' hội viên (+' + growthPct + '%)</span>' +
+                    '</div>' +
+                    '<div style="height:12px; border-radius:99px; overflow:hidden; display:flex; background:#e2e8f0;">' +
+                        '<div style="width:' + pB + '%; background:#d97706;" title="Đồng: ' + mB + '"></div>' +
+                        '<div style="width:' + pS + '%; background:#64748b;" title="Bạc: ' + mS + '"></div>' +
+                        '<div style="width:' + pG + '%; background:#f59e0b;" title="Vàng: ' + mG + '"></div>' +
+                        '<div style="width:' + pD + '%; background:#06b6d4;" title="Kim cương: ' + mD + '"></div>' +
+                    '</div>' +
+                    '<div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#64748b; margin-top:3px;">' +
+                        '<span>Đồng: ' + mB + '</span>' +
+                        '<span>Bạc: ' + mS + '</span>' +
+                        '<span>Vàng: ' + mG + '</span>' +
+                        '<span>Kim cương: ' + mD + '</span>' +
+                    '</div>' +
+                '</div>';
+            });
+            monthlyContainer.innerHTML = trendHtml;
+        }
+
+        // 5. ROW 3: HÀNH VI MUA SẮM (TỶ TRỌNG DOANH THU & AOV THEO HẠNG)
+        const totalRev = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const pRevD = totalRev > 0 ? (tierStats.DIAMOND.revenue / totalRev * 100).toFixed(0) : 0;
+        const pRevG = totalRev > 0 ? (tierStats.GOLD.revenue / totalRev * 100).toFixed(0) : 0;
+        const pRevS = totalRev > 0 ? (tierStats.SILVER.revenue / totalRev * 100).toFixed(0) : 0;
+        const pRevB = totalRev > 0 ? (tierStats.BRONZE.revenue / totalRev * 100).toFixed(0) : 0;
+
+        const revDVal = document.getElementById('s13RevDiamondVal');
+        const revDPct = document.getElementById('s13RevDiamondPct');
+        const revDBar = document.getElementById('s13RevDiamondBar');
+        if (revDVal) revDVal.innerText = tierStats.DIAMOND.revenue.toLocaleString('vi-VN') + '₫';
+        if (revDPct) revDPct.innerText = pRevD + '%';
+        if (revDBar) revDBar.style.width = pRevD + '%';
+
+        const revGVal = document.getElementById('s13RevGoldVal');
+        const revGPct = document.getElementById('s13RevGoldPct');
+        const revGBar = document.getElementById('s13RevGoldBar');
+        if (revGVal) revGVal.innerText = tierStats.GOLD.revenue.toLocaleString('vi-VN') + '₫';
+        if (revGPct) revGPct.innerText = pRevG + '%';
+        if (revGBar) revGBar.style.width = pRevG + '%';
+
+        const revSVal = document.getElementById('s13RevSilverVal');
+        const revSPct = document.getElementById('s13RevSilverPct');
+        const revSBar = document.getElementById('s13RevSilverBar');
+        if (revSVal) revSVal.innerText = tierStats.SILVER.revenue.toLocaleString('vi-VN') + '₫';
+        if (revSPct) revSPct.innerText = pRevS + '%';
+        if (revSBar) revSBar.style.width = pRevS + '%';
+
+        const revBVal = document.getElementById('s13RevBronzeVal');
+        const revBPct = document.getElementById('s13RevBronzePct');
+        const revBBar = document.getElementById('s13RevBronzeBar');
+        if (revBVal) revBVal.innerText = tierStats.BRONZE.revenue.toLocaleString('vi-VN') + '₫';
+        if (revBPct) revBPct.innerText = pRevB + '%';
+        if (revBBar) revBBar.style.width = pRevB + '%';
+
+        const ordersSummary = document.getElementById('s13OrdersSummaryText');
+        if (ordersSummary) {
+            ordersSummary.innerHTML = 'Đồng: <b>' + tierStats.BRONZE.orders + ' đơn</b> &bull; Bạc: <b>' + tierStats.SILVER.orders + ' đơn</b> &bull; Vàng: <b>' + tierStats.GOLD.orders + ' đơn</b> &bull; Kim cương: <b>' + tierStats.DIAMOND.orders + ' đơn</b>';
+        }
+
+        // AOV Bars & Values
+        const maxAov = Math.max(tierStats.DIAMOND.aov, tierStats.GOLD.aov, tierStats.SILVER.aov, tierStats.BRONZE.aov, 1);
+
+        const aovDVal = document.getElementById('s13AovDiamondVal');
+        const aovDBar = document.getElementById('s13AovDiamondBar');
+        if (aovDVal) aovDVal.innerText = tierStats.DIAMOND.aov.toLocaleString('vi-VN') + '₫';
+        if (aovDBar) aovDBar.style.width = Math.round(tierStats.DIAMOND.aov / maxAov * 100) + '%';
+
+        const aovGVal = document.getElementById('s13AovGoldVal');
+        const aovGBar = document.getElementById('s13AovGoldBar');
+        if (aovGVal) aovGVal.innerText = tierStats.GOLD.aov.toLocaleString('vi-VN') + '₫';
+        if (aovGBar) aovGBar.style.width = Math.round(tierStats.GOLD.aov / maxAov * 100) + '%';
+
+        const aovSVal = document.getElementById('s13AovSilverVal');
+        const aovSBar = document.getElementById('s13AovSilverBar');
+        if (aovSVal) aovSVal.innerText = tierStats.SILVER.aov.toLocaleString('vi-VN') + '₫';
+        if (aovSBar) aovSBar.style.width = Math.round(tierStats.SILVER.aov / maxAov * 100) + '%';
+
+        const aovBVal = document.getElementById('s13AovBronzeVal');
+        const aovBBar = document.getElementById('s13AovBronzeBar');
+        if (aovBVal) aovBVal.innerText = tierStats.BRONZE.aov.toLocaleString('vi-VN') + '₫';
+        if (aovBBar) aovBBar.style.width = Math.round(tierStats.BRONZE.aov / maxAov * 100) + '%';
+
+        const aovInsight = document.getElementById('s13AovInsightText');
+        if (aovInsight) {
+            if (tierStats.BRONZE.aov > 0 && tierStats.DIAMOND.aov > 0) {
+                const ratioD = (tierStats.DIAMOND.aov / tierStats.BRONZE.aov).toFixed(1);
+                aovInsight.innerHTML = 'Hội viên Kim cương có giá trị đơn TB (AOV) gấp <b>' + ratioD + ' lần</b> so với hạng Đồng.';
+            } else if (tierStats.SILVER.aov > 0 && tierStats.BRONZE.aov > 0) {
+                const ratioS = (tierStats.SILVER.aov / tierStats.BRONZE.aov).toFixed(1);
+                aovInsight.innerHTML = 'Hội viên Bạc có giá trị đơn TB (AOV) gấp <b>' + ratioS + ' lần</b> so với hạng Đồng.';
+            } else {
+                aovInsight.innerHTML = 'Hạng thành viên càng cao tương ứng với sức chi tiêu và giá trị đơn hàng trung bình càng lớn.';
+            }
+        }
+
+        // 6. ROW 4: HIỆU QUẢ CHƯƠNG TRÌNH HỘI VIÊN
+        const promoOrdersVal = document.getElementById('s13PromoOrdersVal');
+        const promoOrdersPct = document.getElementById('s13PromoOrdersPct');
+        const promoAmountVal = document.getElementById('s13PromoAmountVal');
+
+        const memberOrdersCount = scopedOrders.length;
+        const totalPeriodOrders = completedOrders.length;
+        const memberOrdersPct = totalPeriodOrders > 0 ? ((memberOrdersCount / totalPeriodOrders) * 100).toFixed(1) : '100.0';
+        const memberRevenue = scopedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        if (promoOrdersVal) promoOrdersVal.innerHTML = memberOrdersCount.toLocaleString('vi-VN') + ' <span style="font-size:15px; font-weight:600; color:#64748b;">đơn</span>';
+        if (promoOrdersPct) promoOrdersPct.innerText = memberOrdersPct + '%';
+        if (promoAmountVal) promoAmountVal.innerText = memberRevenue.toLocaleString('vi-VN') + '₫';
+
+        // 7. ROW 5: BẢNG TỔNG HỢP KINH DOANH THEO HẠNG THÀNH VIÊN
+        const tableBody = document.getElementById('s13TableBody');
+        const tiersToRender = tierVal ? [tierVal] : ['BRONZE', 'SILVER', 'GOLD', 'DIAMOND'];
+
+        if (tableBody) {
+            let bodyHtml = '';
+            tiersToRender.forEach(t => {
+                const st = tierStats[t];
+                if (!st) return;
+                const isSelected = (tierVal === t);
+                bodyHtml += '<tr id="s13-row-' + t + '" style="' + (isSelected ? 'background:#fff7ed;' : '') + '">' +
+                    '<td>' +
+                        '<div style="display:flex; align-items:center; gap:8px;">' +
+                            '<span class="s13-tier-dot" style="background:' + st.color + ';"></span>' +
+                            '<div>' +
+                                '<b style="color:#1e293b;">' + st.name + '</b>' +
+                                '<div style="font-size:11px; color:#94a3b8; font-weight:600;">' + st.en + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td style="text-align:center; font-weight:700; color:#1e293b;">' + st.count.toLocaleString('vi-VN') + '</td>' +
+                    '<td style="text-align:center;"><span style="color:#16a34a; font-weight:700;">+' + st.newCount.toLocaleString('vi-VN') + '</span></td>' +
+                    '<td style="text-align:center; font-weight:600; color:#334155;">' + st.orders.toLocaleString('vi-VN') + ' đơn</td>' +
+                    '<td style="text-align:right; font-weight:700; color:#1e293b;">' + st.revenue.toLocaleString('vi-VN') + '₫</td>' +
+                    '<td style="text-align:right; font-weight:700; color:#334155;">' + st.aov.toLocaleString('vi-VN') + '₫</td>' +
+                '</tr>';
+            });
+            tableBody.innerHTML = bodyHtml;
+        }
+
+        // Cập nhật Footer Table
+        let footMembers = 0;
+        let footNew = 0;
+        let footOrders = 0;
+        let footRev = 0;
+        tiersToRender.forEach(t => {
+            const st = tierStats[t];
+            if (st) {
+                footMembers += st.count;
+                footNew += st.newCount;
+                footOrders += st.orders;
+                footRev += st.revenue;
+            }
+        });
+        const footAov = footOrders > 0 ? Math.round(footRev / footOrders) : 0;
+
+        const elTotM = document.getElementById('s13TableTotalMembers');
+        const elTotN = document.getElementById('s13TableTotalNew');
+        const elTotO = document.getElementById('s13TableTotalOrders');
+        const elTotR = document.getElementById('s13TableTotalRevenue');
+        const elAvgA = document.getElementById('s13TableAvgAov');
+
+        if (elTotM) elTotM.innerText = footMembers.toLocaleString('vi-VN');
+        if (elTotN) elTotN.innerText = '+' + footNew.toLocaleString('vi-VN');
+        if (elTotO) elTotO.innerText = footOrders.toLocaleString('vi-VN') + ' đơn';
+        if (elTotR) elTotR.innerText = footRev.toLocaleString('vi-VN') + '₫';
+        if (elAvgA) elAvgA.innerText = footAov.toLocaleString('vi-VN') + '₫';
+    }
+
+    function exportScreen13TableCsv() {
+        const fromRaw = document.getElementById('s13FilterFrom')?.value || '2026-10-01';
+        const toRaw = document.getElementById('s13FilterTo')?.value || '2026-10-31';
+        const fromVal = formatVnDate(fromRaw);
+        const toVal = formatVnDate(toRaw);
+
+        const tableBody = document.getElementById('s13TableBody');
+        let csv = '\uFEFF"HẠNG THÀNH VIÊN","SỐ LƯỢNG HỘI VIÊN","SỐ HỘI VIÊN MỚI","SỐ ĐƠN HÀNG","TỔNG DOANH THU (VNĐ)","GIÁ TRỊ ĐƠN TB (AOV)"\n';
+
+        if (tableBody) {
+            const trs = tableBody.querySelectorAll('tr');
+            trs.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 6) {
+                    const name = tds[0].innerText.replace(/\n/g, ' ').trim();
+                    const members = tds[1].innerText.replace(/,/g, '').trim();
+                    const newM = tds[2].innerText.replace(/[\+,]/g, '').trim();
+                    const orders = tds[3].innerText.replace(/[^\d]/g, '').trim();
+                    const rev = tds[4].innerText.replace(/[^\d]/g, '').trim();
+                    const aov = tds[5].innerText.replace(/[^\d]/g, '').trim();
+                    csv += '"' + name + '",' + members + ',' + newM + ',' + orders + ',' + rev + ',' + aov + '\n';
+                }
+            });
+        }
+
+        const elTotM = document.getElementById('s13TableTotalMembers')?.innerText.replace(/,/g, '') || '';
+        const elTotN = document.getElementById('s13TableTotalNew')?.innerText.replace(/[\+,]/g, '') || '';
+        const elTotO = document.getElementById('s13TableTotalOrders')?.innerText.replace(/[^\d]/g, '') || '';
+        const elTotR = document.getElementById('s13TableTotalRevenue')?.innerText.replace(/[^\d]/g, '') || '';
+        const elAvgA = document.getElementById('s13TableAvgAov')?.innerText.replace(/[^\d]/g, '') || '';
+        csv += '"Tổng cộng / Trung bình",' + elTotM + ',' + elTotN + ',' + elTotO + ',' + elTotR + ',' + elAvgA + '\n';
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Bao_cao_hoi_vien_PetCare_' + fromVal.replace(/\//g, '') + '_den_' + toVal.replace(/\//g, '') + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
     // 4. BIỂU ĐỒ TRÒN TRẠNG THÁI ĐƠN HÀNG (DONUT CHART ĐỘNG)
@@ -2256,9 +3825,12 @@
                     alertEl.innerText = data.alertSummary.lowStockCount;
                 }
 
-                // Cập nhật sơ đồ Tab 1 nếu không ở tab Screen 12
-                if (data.stats.dailyRevenue && window.location.hash !== '#revenue') {
-                    renderDynamicRevenueChart(data.stats.dailyRevenue);
+                // Cập nhật sơ đồ Tab 1 nếu có dailyRevenue
+                if (data.stats.dailyRevenue) {
+                    revenueDataPoints = data.stats.dailyRevenue;
+                    if (window.location.hash !== '#revenue') {
+                        renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
+                    }
                 }
 
                 // Vẽ lại biểu đồ tròn trạng thái đơn
@@ -2269,6 +3841,16 @@
                 // Cập nhật thanh hội viên
                 if (data.stats.customersByTier) {
                     renderDynamicTierBar(data.stats.customersByTier);
+                }
+
+                // Cập nhật ALL_ORDERS_DATA, ALL_CUSTOMERS_DATA và các màn hình Screen 12, Screen 13
+                if (Array.isArray(data.stats.allOrders)) {
+                    ALL_ORDERS_DATA = data.stats.allOrders;
+                    applyScreen12Filter();
+                }
+                if (Array.isArray(data.stats.allCustomers)) {
+                    ALL_CUSTOMERS_DATA = data.stats.allCustomers;
+                    applyScreen13Filter();
                 }
             }
 
@@ -2287,10 +3869,121 @@
         }
     }
 
+    // Khởi tạo bộ chọn nhanh (Presets) cho form lọc khoảng ngày Tab 1
+    function initRangeFormPresets() {
+        const form = document.getElementById('range-form');
+        if (!form) return;
+        const fromInput = document.getElementById('from');
+        const toInput = document.getElementById('to');
+
+        function checkActivePreset() {
+            if (!fromInput || !toInput || !fromInput.value || !toInput.value) return;
+            const d1 = new Date(fromInput.value + 'T00:00:00');
+            const d2 = new Date(toInput.value + 'T00:00:00');
+
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
+            const startOfWeek = new Date(now);
+            const dayOfWeek = (startOfWeek.getDay() + 6) % 7; // Monday = 0
+            startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+            const weekFromIso = toIso(startOfWeek);
+            const weekToIso = toIso(endOfWeek);
+
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const monthFromIso = toIso(startOfMonth);
+            const monthToIso = toIso(endOfMonth);
+
+            form.querySelectorAll('.chip[data-preset]').forEach(btn => {
+                const p = btn.getAttribute('data-preset');
+                if (p === 'week') {
+                    if (fromInput.value === weekFromIso && toInput.value === weekToIso) {
+                        btn.classList.add('on');
+                    } else {
+                        btn.classList.remove('on');
+                    }
+                } else if (p === 'month') {
+                    if ((fromInput.value === monthFromIso && toInput.value === monthToIso) ||
+                        (fromInput.value === '2026-10-01' && toInput.value === '2026-10-31') ||
+                        (d1.getDate() === 1 && d2.getDate() === new Date(d2.getFullYear(), d2.getMonth() + 1, 0).getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear())) {
+                        btn.classList.add('on');
+                    } else {
+                        btn.classList.remove('on');
+                    }
+                } else {
+                    btn.classList.remove('on');
+                }
+            });
+        }
+        checkActivePreset();
+
+        form.querySelectorAll('.chip[data-preset]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.getAttribute('data-preset');
+                const now = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+                let newFromStr, newToStr;
+
+                if (preset === 'week') {
+                    const startOfWeek = new Date(now);
+                    const dayOfWeek = (startOfWeek.getDay() + 6) % 7; // Monday = 0
+                    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(endOfWeek.getDate() + 6);
+                    newFromStr = toIso(startOfWeek);
+                    newToStr = toIso(endOfWeek);
+                } else if (preset === 'month') {
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    newFromStr = toIso(startOfMonth);
+                    newToStr = toIso(endOfMonth);
+                }
+
+                if (newFromStr && newToStr) {
+                    fromInput.value = newFromStr;
+                    toInput.value = newToStr;
+                    form.querySelectorAll('.chip[data-preset]').forEach(b => b.classList.remove('on'));
+                    btn.classList.add('on');
+                    form.submit();
+                }
+            });
+        });
+    }
+
     // Khởi tạo sơ đồ khi trang tải xong
     document.addEventListener('DOMContentLoaded', () => {
-        // 1, 2, 3: Khởi tạo và áp dụng dữ liệu thực tế cho Báo cáo doanh thu (Screen 12)
+        // 0. Khởi tạo bộ lọc preset cho Tab 1
+        initRangeFormPresets();
+
+        // 1. Render Tab 1 Xu hướng doanh thu với dữ liệu thực tế từ Database
+        revenueDataPoints = [
+            <c:if test="${not empty stats.dailyRevenue}">
+                <c:forEach var="d" items="${stats.dailyRevenue}" varStatus="loop">
+                    { date: '${d.date}', dayText: '${d.dayText}', orderCount: ${d.orderCount}, amount: ${d.amount} }<c:if test="${!loop.last}">,</c:if>
+                </c:forEach>
+            </c:if>
+        ];
+        renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
+
+        // 2, 3: Khởi tạo và áp dụng dữ liệu thực tế cho Báo cáo doanh thu (Screen 12)
+        const s12From = document.getElementById('screen12FilterFrom');
+        const s12To = document.getElementById('screen12FilterTo');
+        if (s12From && (!s12From.value || s12From.value !== '2026-10-01')) {
+            s12From.value = '2026-10-01';
+        }
+        if (s12To && (!s12To.value || s12To.value !== '2026-10-31')) {
+            s12To.value = '2026-10-31';
+        }
+        if (typeof syncScreen12QuickChips === 'function') syncScreen12QuickChips();
         applyScreen12Filter();
+
+        // Screen 13: Báo cáo hội viên
+        applyScreen13Filter();
 
         // 4. Render biểu đồ tròn trạng thái đơn
         const initialStatuses = [

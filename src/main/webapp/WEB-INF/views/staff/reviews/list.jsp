@@ -175,7 +175,7 @@
                 <span class="kpi-ico orange"><i class="ti ti-star"></i></span>
             </div>
             <div class="kpi-value">${totalItems != null ? totalItems : 0}</div>
-            <div class="kpi-meta"><span class="badge ok">Tất cả thời gian</span></div>
+            <div class="kpi-meta"><span class="badge orange">Tất cả thời gian</span></div>
         </div>
 
         <div class="panel kpi">
@@ -184,7 +184,7 @@
                 <span class="kpi-ico green"><i class="ti ti-star-filled"></i></span>
             </div>
             <div class="kpi-value" style="color:#10b981">${star5Count}</div>
-            <div class="kpi-meta"><span class="badge ok">5 sao</span> trong trang này</div>
+            <div class="kpi-meta"><span class="badge ok">5 sao · Rất hài lòng</span></div>
         </div>
 
         <div class="panel kpi">
@@ -193,7 +193,7 @@
                 <span class="kpi-ico red"><i class="ti ti-mood-sad"></i></span>
             </div>
             <div class="kpi-value" style="color:#ef4444">${starLowCount}</div>
-            <div class="kpi-meta"><span class="badge red">Chú ý</span> Đánh giá thấp</div>
+            <div class="kpi-meta"><span class="badge red">Chú ý · Đánh giá thấp</span></div>
         </div>
 
         <div class="panel kpi">
@@ -202,7 +202,7 @@
                 <span class="kpi-ico yellow"><i class="ti ti-message-dots"></i></span>
             </div>
             <div class="kpi-value" style="color:#d97706">${unrepliedCount}</div>
-            <div class="kpi-meta"><span class="badge warn">Cần trả lời</span> khách hàng</div>
+            <div class="kpi-meta"><span class="badge warn">Cần trả lời khách hàng</span></div>
         </div>
     </section>
 

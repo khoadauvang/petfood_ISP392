@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title>Tồn kho theo lô &amp; Quản lý FEFO · PetFood</title>
+    <title>Tồn kho · PetFood</title>
     <meta name="description" content="Theo dõi tồn kho theo từng sản phẩm, hạn sử dụng, trạng thái hàng và ưu tiên xuất kho theo FEFO.">
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
     <style>
@@ -109,9 +109,9 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>QUẢN LÝ KHO &amp; ĐỔI TRẢ</span> <span class="sep">&gt;</span> <span class="current">TỒN KHO THEO LÔ &amp; QUẢN LÝ FEFO</span>
+                <span>QUẢN LÝ KHO &amp; ĐỔI TRẢ</span> <span class="sep">&gt;</span> <span class="current">TỒN KHO</span>
             </div>
-            <h1>TỒN KHO THEO LÔ &amp; QUẢN LÝ FEFO</h1>
+            <h1>TỒN KHO</h1>
             <p class="page-sub">Theo dõi tồn kho theo từng sản phẩm, bấm vào sản phẩm để xem chi tiết lô hàng sắp xếp theo thứ tự ưu tiên FEFO.</p>
         </div>
 
@@ -143,8 +143,18 @@
                 <span class="kpi-ico blue"><i class="ti ti-building-warehouse"></i></span>
             </div>
             <div class="kpi-value" style="color:#2563eb"><fmt:formatNumber value="${lotStats.activeLots != null ? lotStats.activeLots : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta">Trên tổng <fmt:formatNumber value="${lotStats.totalLots != null ? lotStats.totalLots : 0}"/> lô từng nhập</div>
+            <div class="kpi-meta"><span class="badge info">Trên tổng <fmt:formatNumber value="${lotStats.totalLots != null ? lotStats.totalLots : 0}"/> lô từng nhập</span></div>
         </div>
+
+        <%-- Card: Sản phẩm tồn thấp chuyển từ màn Cảnh báo sang --%>
+        <a href="${ctx}/staff/lots?stockStatus=LOW_STOCK" class="panel kpi" style="text-decoration:none; cursor:pointer" title="Bấm để lọc các sản phẩm tồn kho thấp">
+            <div class="kpi-top">
+                <span class="kpi-label">SẢN PHẨM TỒN THẤP</span>
+                <span class="kpi-ico yellow"><i class="ti ti-alert-circle"></i></span>
+            </div>
+            <div class="kpi-value" style="color:#d97706"><fmt:formatNumber value="${lotStats.lowStockCount != null ? lotStats.lowStockCount : 0}"/> <small>Sản phẩm</small></div>
+            <div class="kpi-meta"><span class="badge warn">Cần nhập bổ sung kho</span></div>
+        </a>
 
         <div class="panel kpi">
             <div class="kpi-top">
@@ -152,7 +162,7 @@
                 <span class="kpi-ico orange"><i class="ti ti-bolt"></i></span>
             </div>
             <div class="kpi-value" style="color:#ea580c"><fmt:formatNumber value="${lotStats.warningLots != null ? lotStats.warningLots : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta">Ưu tiên kích hoạt Flash Sale</div>
+            <div class="kpi-meta"><span class="badge orange">Ưu tiên kích hoạt Flash Sale</span></div>
         </div>
 
         <div class="panel kpi">
@@ -161,16 +171,7 @@
                 <span class="kpi-ico red"><i class="ti ti-alert-triangle"></i></span>
             </div>
             <div class="kpi-value red"><fmt:formatNumber value="${lotStats.criticalLots != null ? lotStats.criticalLots : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta"><span class="badge warn">&lt; ${quarantineDays} ngày hoặc quá hạn</span></div>
-        </div>
-
-        <div class="panel kpi">
-            <div class="kpi-top">
-                <span class="kpi-label">CAM KẾT HSD XUẤT</span>
-                <span class="kpi-ico green"><i class="ti ti-shield-check"></i></span>
-            </div>
-            <div class="kpi-value" style="color:#16a34a">&ge; ${shelfLifeDays} <small>Ngày</small></div>
-            <div class="kpi-meta">Chuẩn FEFO xuất bán thường</div>
+            <div class="kpi-meta"><span class="badge red">&lt; ${quarantineDays} ngày hoặc quá hạn</span></div>
         </div>
     </section>
 
@@ -194,6 +195,21 @@
         </div>
     </div>
 
+    <%-- Tabs chuyển đổi nhanh: Tất cả / Tồn thấp / Hết hàng --%>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px">
+        <div class="screen-tabs" style="margin:0; border:0">
+            <a href="${ctx}/staff/lots" class="screen-tab-btn ${empty filterStockStatus and (empty filterView or filterView == 'ALL') ? 'active' : ''}">
+                <i class="ti ti-layout-grid" style="margin-right:6px"></i>Tất cả tồn kho
+            </a>
+            <a href="${ctx}/staff/lots?stockStatus=LOW_STOCK" class="screen-tab-btn ${filterStockStatus == 'LOW_STOCK' or filterView == 'LOW_STOCK' ? 'active' : ''}" style="${filterStockStatus == 'LOW_STOCK' or filterView == 'LOW_STOCK' ? 'background:#fffbeb; border-color:#f59e0b; color:#b45309; font-weight:800' : ''}">
+                <i class="ti ti-alert-circle" style="margin-right:6px; color:#d97706"></i>Sản phẩm tồn thấp (${lotStats.lowStockCount != null ? lotStats.lowStockCount : 0})
+            </a>
+            <a href="${ctx}/staff/lots?stockStatus=OUT_OF_STOCK" class="screen-tab-btn ${filterStockStatus == 'OUT_OF_STOCK' ? 'active' : ''}">
+                <i class="ti ti-circle-x" style="margin-right:6px; color:#dc2626"></i>Hết hàng
+            </a>
+        </div>
+    </div>
+
     <%-- Filter bar Screen 10 --%>
     <form method="get" action="${ctx}/staff/lots" class="filters" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
         <div style="flex:1; min-width:260px; position:relative">
@@ -203,23 +219,45 @@
                    style="width:100%; padding:9px 14px 9px 38px; border-radius:12px; border:1px solid var(--line); font-size:13px">
         </div>
 
-        <select name="productId" style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px">
+        <select name="productId" style="max-width:260px; padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px">
             <option value="">Tất cả sản phẩm</option>
             <c:forEach var="p" items="${products}">
                 <option value="${p.id}" ${p.id == filterProductId ? 'selected' : ''}><c:out value="${p.sku}"/> - <c:out value="${p.name}"/></option>
             </c:forEach>
         </select>
 
-        <select name="view" style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px">
-            <option value="">Hạn sử dụng (Tất cả)</option>
-            <c:forEach var="v" items="${lotViews}">
-                <option value="${v}" ${v == filterView ? 'selected' : ''}>${v.label}</option>
-            </c:forEach>
+        <%-- Lọc Trạng thái tồn kho (Tồn thấp / Hết hàng / Đủ hàng) --%>
+        <select name="stockStatus" style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px; font-weight:600; color:var(--text-main)">
+            <option value="">Trạng thái tồn (Tất cả)</option>
+            <option value="LOW_STOCK" ${filterStockStatus == 'LOW_STOCK' ? 'selected' : ''}>⚠️ Tồn kho thấp (Cần nhập)</option>
+            <option value="OUT_OF_STOCK" ${filterStockStatus == 'OUT_OF_STOCK' ? 'selected' : ''}>❌ Hết hàng (0 đơn vị)</option>
+            <option value="IN_STOCK" ${filterStockStatus == 'IN_STOCK' ? 'selected' : ''}>✅ Còn đủ hàng</option>
+        </select>
+
+        <%-- Lọc Hạn sử dụng (FEFO) - Không trùng lặp với Trạng thái tồn --%>
+        <select name="view" style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px; font-weight:600; color:var(--text-main)">
+            <option value="ALL">Hạn sử dụng (Tất cả)</option>
+            <option value="NEAR_EXPIRY" ${filterView == 'NEAR_EXPIRY' ? 'selected' : ''}>⚡ Lô cận hạn (&lt; 90 ngày)</option>
+            <option value="CRITICAL" ${filterView == 'CRITICAL' ? 'selected' : ''}>🚨 Cấp bách (&lt; 21 ngày / Quá hạn)</option>
+            <option value="SAFE" ${filterView == 'SAFE' ? 'selected' : ''}>🛡️ HSD an toàn (&ge; 90 ngày)</option>
         </select>
 
         <button type="submit" class="btn-pill-primary"><i class="ti ti-filter"></i>Lọc</button>
         <a href="${ctx}/staff/lots" class="act-icon" title="Xóa bộ lọc"><i class="ti ti-x"></i></a>
     </form>
+
+    <%-- Banner thông báo nếu đang lọc Sản phẩm tồn kho thấp --%>
+    <c:if test="${filterStockStatus == 'LOW_STOCK' or filterView == 'LOW_STOCK'}">
+        <div style="margin:14px 0; padding:12px 18px; border-radius:12px; background:#fffbeb; border:1px solid #fde68a; color:#92400e; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:600; box-shadow:0 2px 8px rgba(217, 119, 6, 0.08)">
+            <div style="display:flex; align-items:center; gap:10px">
+                <i class="ti ti-alert-triangle" style="font-size:20px; color:#d97706"></i>
+                <span>Đang hiển thị <b>Danh sách sản phẩm tồn kho thấp</b> (Tồn khả dụng &le; Định mức an toàn). Ưu tiên lập đơn nhập bổ sung!</span>
+            </div>
+            <a href="${ctx}/staff/lots" class="btn-pill-outline" style="padding:4px 14px; font-size:12px; text-decoration:none">
+                <i class="ti ti-x"></i>Xem tất cả
+            </a>
+        </div>
+    </c:if>
 
     <%-- BẢNG SẢN PHẨM & TỒN KHO THEO LÔ (Master-Detail Accordion giống Figma) --%>
     <div class="panel" style="background:#fff; border-radius:14px; border:1px solid var(--line); overflow:hidden; margin-top:16px; padding:0">

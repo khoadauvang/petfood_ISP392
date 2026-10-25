@@ -27,12 +27,6 @@
                 <p class="page-subtitle" style="margin: 0; color: #64748b; font-size: 0.88rem;">Quản lý thông tin tài khoản, vai trò phân quyền và trạng thái nhân sự trong hệ thống PetFood.</p>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <button type="button" class="btn btn-secondary btn-sm" style="background: #fff; border: 1px solid #cbd5e1; color: #475569;">
-                    <i class="ti ti-download" style="margin-right: 4px;"></i> Xuất danh sách (CSV)
-                </button>
-                <button type="button" class="btn btn-secondary btn-sm" style="background: #fff; border: 1px solid #cbd5e1; color: #475569;">
-                    <i class="ti ti-history" style="margin-right: 4px;"></i> Nhật ký truy cập
-                </button>
                 <a href="${ctx}/admin/employees/new" class="btn btn-primary" style="background: #f97316; border: 1px solid #ea580c; color: #fff; font-weight: 700; padding: 0.5rem 1.1rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="ti ti-user-plus"></i> + Tạo tài khoản mới
                 </a>

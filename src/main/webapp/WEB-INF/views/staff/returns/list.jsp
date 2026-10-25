@@ -35,7 +35,7 @@
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Tổng yêu cầu</span><span class="kpi-ico orange"><i class="ti ti-files"></i></span></div>
             <div class="kpi-value">${returnCounts.total != null ? returnCounts.total : 0}</div>
-            <div class="kpi-meta">Tất cả kênh</div>
+            <div class="kpi-meta"><span class="badge orange">Tất cả kênh</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -47,52 +47,62 @@
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Đã duyệt</span><span class="kpi-ico blue"><i class="ti ti-truck-return"></i></span></div>
             <div class="kpi-value" style="color:#2563eb">${returnCounts.approved != null ? returnCounts.approved : 0}</div>
-            <div class="kpi-meta">Chờ gửi/nhận hàng</div>
+            <div class="kpi-meta"><span class="badge info">Chờ gửi/nhận hàng</span></div>
         </div>
 
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Chờ kiểm tra hàng</span><span class="kpi-ico purple"><i class="ti ti-box"></i></span></div>
             <div class="kpi-value" style="color:#7c3aed">${returnCounts.received != null ? returnCounts.received : 0}</div>
-            <div class="kpi-meta">Đã đến kho · chờ QC</div>
+            <div class="kpi-meta"><span class="badge purple">Đã đến kho · Chờ QC</span></div>
         </div>
 
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Chờ hoàn tiền</span><span class="kpi-ico green"><i class="ti ti-cash"></i></span></div>
             <div class="kpi-value" style="color:#10b981">${returnCounts.inspected != null ? returnCounts.inspected : 0}</div>
-            <div class="kpi-meta">Đã kiểm tra đạt</div>
+            <div class="kpi-meta"><span class="badge ok">Đã kiểm tra đạt</span></div>
         </div>
 
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Đã hoàn tất</span><span class="kpi-ico green"><i class="ti ti-circle-check"></i></span></div>
             <div class="kpi-value" style="color:#10b981">${returnCounts.completed != null ? returnCounts.completed : 0}</div>
-            <div class="kpi-meta">Đã hoàn tiền &amp; xử lý kho</div>
+            <div class="kpi-meta"><span class="badge ok">Đã hoàn tiền &amp; xử lý kho</span></div>
         </div>
     </section>
 
     <%-- Filter bar Screen 11 --%>
-    <form method="get" action="${ctx}/staff/returns" class="filters" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
-        <div style="flex:1; min-width:240px; position:relative">
+    <form method="get" action="${ctx}/staff/returns" class="filters" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <div style="flex:1; min-width:200px; position:relative">
             <i class="ti ti-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-placeholder)"></i>
-            <input type="search" placeholder="Tìm theo Mã yêu cầu, Mã đơn hàng, Tên khách hàng... (Nhấn / để tìm)"
+            <input type="search" name="keyword" value="<c:out value='${filterKeyword}'/>"
+                   placeholder="Tìm theo Mã yêu cầu, Mã đơn hàng, Tên khách hàng... (Nhấn / để tìm)"
                    style="width:100%; padding:9px 12px 9px 36px; border-radius:12px; border:1px solid var(--line); font-size:13px">
         </div>
 
-        <select name="status" style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px">
+        <select name="status" style="padding:9px 12px; border-radius:12px; border:1px solid var(--line); font-size:13px; background:#fff">
             <option value="">Tất cả trạng thái</option>
             <c:forEach var="s" items="${statuses}">
                 <option value="${s}" ${filterStatus == s ? 'selected' : ''}>${s.label}</option>
             </c:forEach>
         </select>
 
-        <select style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px"><option>Tất cả nguồn</option></select>
+        <select name="reason" style="padding:9px 12px; border-radius:12px; border:1px solid var(--line); font-size:13px; background:#fff">
+            <option value="">Tất cả lý do trả hàng</option>
+            <c:forEach var="r" items="${reasons}">
+                <option value="${r}" ${filterReason == r ? 'selected' : ''}>${r.label}</option>
+            </c:forEach>
+        </select>
 
-        <div style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:6px 12px; font-size:13px">
+        <div style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:5px 10px; font-size:13px">
             <i class="ti ti-calendar" style="color:var(--color-primary)"></i>
-            <span>01/10/2026 - 08/10/2026</span>
+            <input type="date" name="from" value="<c:out value='${filterFrom}'/>" style="border:none; outline:none; font-size:12.5px; color:var(--text-main); background:transparent" title="Từ ngày">
+            <span style="color:var(--text-muted)">→</span>
+            <input type="date" name="to" value="<c:out value='${filterTo}'/>" style="border:none; outline:none; font-size:12.5px; color:var(--text-main); background:transparent" title="Đến ngày">
         </div>
 
-        <button type="submit" class="export-btn" style="background:#ea580c; color:#fff; border-color:#ea580c">Lọc</button>
-        <a href="${ctx}/staff/returns" class="act-icon" title="Đặt lại bộ lọc"><i class="ti ti-rotate"></i></a>
+        <div style="display:inline-flex; gap:6px; align-items:center">
+            <button type="submit" class="export-btn" style="background:#ea580c; color:#fff; border-color:#ea580c; cursor:pointer"><i class="ti ti-filter"></i> Lọc</button>
+            <a href="${ctx}/staff/returns" class="act-icon" title="Đặt lại bộ lọc" style="display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--text-main); text-decoration:none"><i class="ti ti-rotate"></i></a>
+        </div>
     </form>
 
     <%-- Split Layout: Danh sách yêu cầu & Chi tiết xử lý (Screen 11) --%>
@@ -160,14 +170,14 @@
                 <span>Hiển thị trang <b>${currentPage}</b> / <b>${totalPages > 0 ? totalPages : 1}</b> (Tổng số <b>${totalItems != null ? totalItems : 0}</b> yêu cầu)</span>
                 <div class="pager" style="margin:0">
                     <c:if test="${totalPages > 1}">
-                        <c:if test="${currentPage > 1}"><a href="?${filterQuery}&page=${currentPage - 1}">‹</a></c:if>
+                        <c:if test="${currentPage > 1}"><a href="${ctx}/staff/returns?page=${currentPage - 1}${not empty filterQuery ? '&' : ''}${filterQuery}">‹</a></c:if>
                         <c:forEach begin="1" end="${totalPages}" var="n">
                             <c:choose>
                                 <c:when test="${n == currentPage}"><strong>${n}</strong></c:when>
-                                <c:otherwise><a href="?${filterQuery}&page=${n}">${n}</a></c:otherwise>
+                                <c:otherwise><a href="${ctx}/staff/returns?page=${n}${not empty filterQuery ? '&' : ''}${filterQuery}">${n}</a></c:otherwise>
                             </c:choose>
                         </c:forEach>
-                        <c:if test="${currentPage < totalPages}"><a href="?${filterQuery}&page=${currentPage + 1}">›</a></c:if>
+                        <c:if test="${currentPage < totalPages}"><a href="${ctx}/staff/returns?page=${currentPage + 1}${not empty filterQuery ? '&' : ''}${filterQuery}">›</a></c:if>
                     </c:if>
                 </div>
             </div>

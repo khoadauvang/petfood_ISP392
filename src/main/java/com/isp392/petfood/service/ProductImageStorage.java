@@ -3,11 +3,13 @@ package com.isp392.petfood.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
@@ -90,6 +92,29 @@ public class ProductImageStorage {
         } else {
             deleteQuietly(file);
         }
+    }
+
+    // Đọc nội dung ảnh của một URL /images/products/...: ảnh đã tải lên (uploads/) hoặc ảnh mẫu trong static/.
+    // Trả về null nếu không đọc được. Dùng khi biến thể mới kế thừa ảnh của sản phẩm gốc.
+    public byte[] readBytes(String url) {
+        if (url == null || !url.startsWith(URL_PREFIX) || url.contains("..")) {
+            return null;
+        }
+        try {
+            Path file = toUploadedFile(url);
+            if (file != null && Files.isRegularFile(file)) {
+                return Files.readAllBytes(file);
+            }
+            ClassPathResource resource = new ClassPathResource("static" + url);
+            if (resource.exists()) {
+                try (InputStream in = resource.getInputStream()) {
+                    return in.readAllBytes();
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Không đọc được ảnh {}: {}", url, e.getMessage());
+        }
+        return null;
     }
 
     // Thư mục của một SKU; chặn SKU kiểu "../.." thoát ra ngoài thư mục gốc

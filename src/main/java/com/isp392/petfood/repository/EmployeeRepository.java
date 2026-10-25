@@ -45,4 +45,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             where a.role = com.isp392.petfood.enums.Role.ADMIN and a.status = com.isp392.petfood.enums.AccountStatus.ACTIVE
             """)
     long countActiveAdmins();
+
+    // Số đếm trên các thẻ KPI của trang quản lý nhân viên
+    @Query("select count(e) from Employee e join e.account a where a.role = :role")
+    long countByRole(@Param("role") Role role);
+
+    @Query("select count(e) from Employee e join e.account a where a.status = :status")
+    long countByStatus(@Param("status") AccountStatus status);
 }

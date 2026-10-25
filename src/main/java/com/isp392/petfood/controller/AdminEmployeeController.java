@@ -70,6 +70,7 @@ public class AdminEmployeeController {
         model.addAttribute("filterStatus", status);
         model.addAttribute("filterKeyword", keyword);
         model.addAttribute("filterQuery", QueryStrings.of("role", role, "status", status, "keyword", keyword));
+        model.addAttribute("employeeCounts", employeeService.getEmployeeCounts());
         return "admin/employees/list";
     }
 

@@ -33,6 +33,9 @@ public class ProductForm {
 
     public static final int IMAGE_COUNT = 5;
 
+    // Id sản phẩm gốc khi thêm biến thể mới cho dòng sản phẩm (null = thêm sản phẩm bình thường)
+    private Long variantOf;
+
     // SKU dùng làm tên thư mục ảnh nên chỉ cho chữ in hoa, số và dấu gạch ngang (setter tự đổi sang chữ in hoa)
     @NotBlank(message = "Vui lòng nhập SKU")
     @Size(max = 50, message = "SKU tối đa 50 ký tự")

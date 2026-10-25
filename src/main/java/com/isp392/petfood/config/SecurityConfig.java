@@ -28,7 +28,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final RoleBasedLoginSuccessHandler loginSuccessHandler;
+    private final RoleBasedLoginSuccessHandler loginSuccessHandler; //Do annotation @Component
     private final GoogleAccountService googleAccountService;
     // Chỉ có bean này khi file .env khai báo client-id/secret của Google (xem application.properties)
     private final ObjectProvider<ClientRegistrationRepository> clientRegistrations;
@@ -81,6 +81,8 @@ public class SecurityConfig {
                 // (5) Còn lại: chỉ cần đã đăng nhập
                 .anyRequest().authenticated()
                 //với những req chưa khớp bất kỳ quy tắc nào phía trên, ycầu ng dùng phải login.
+                //KHỐI TRÊN BẠN ĐANG BẢO SPRING: "hãy ghi nhớ tất cả các quy tắc trên, những request còn lại
+                //  thì bắt buộc phải authenticated() - Login.
             )
             .formLogin(form -> form
                 .loginPage("/login")            //GET la trang cua minh, POST do Spring xu ly

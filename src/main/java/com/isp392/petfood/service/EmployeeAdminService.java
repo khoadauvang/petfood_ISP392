@@ -49,6 +49,17 @@ public class EmployeeAdminService {
                 .map(EmployeeAdminService::toRow);
     }
 
+    // Thẻ KPI trang danh sách: tổng, số Admin, số Staff, số tài khoản bị khoá
+    @Transactional(readOnly = true)
+    public Map<String, Long> getEmployeeCounts() {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        counts.put("TOTAL", employeeRepository.count());
+        counts.put("ADMIN", employeeRepository.countByRole(Role.ADMIN));
+        counts.put("STAFF", employeeRepository.countByRole(Role.STAFF));
+        counts.put("LOCKED", employeeRepository.countByStatus(AccountStatus.LOCKED));
+        return counts;
+    }
+
     @Transactional(readOnly = true)
     public EmployeeRow get(Long employeeId) {
         return toRow(find(employeeId));

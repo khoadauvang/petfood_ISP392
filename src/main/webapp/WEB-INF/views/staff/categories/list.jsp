@@ -47,7 +47,7 @@
                 <span class="kpi-ico orange"><i class="ti ti-category"></i></span>
             </div>
             <div class="kpi-value">${categories != null ? categories.size() : 0}</div>
-            <div class="kpi-meta"><span class="badge ok">Toàn bộ danh mục</span></div>
+            <div class="kpi-meta"><span class="badge orange">Toàn bộ danh mục</span></div>
         </div>
 
         <div class="panel kpi">
@@ -56,7 +56,7 @@
                 <span class="kpi-ico green"><i class="ti ti-eye"></i></span>
             </div>
             <div class="kpi-value" style="color:#10b981">${activeCount}</div>
-            <div class="kpi-meta"><span class="badge ok">Hoạt động</span> Trên trang khách hàng</div>
+            <div class="kpi-meta"><span class="badge ok">Hoạt động trên trang khách</span></div>
         </div>
 
         <div class="panel kpi">
@@ -65,7 +65,7 @@
                 <span class="kpi-ico yellow"><i class="ti ti-dog"></i></span>
             </div>
             <div class="kpi-value" style="color:#d97706">${dogCount}</div>
-            <div class="kpi-meta">Dành riêng cho Chó cưng</div>
+            <div class="kpi-meta"><span class="badge warn">Dành riêng cho Chó cưng</span></div>
         </div>
 
         <div class="panel kpi">
@@ -74,7 +74,7 @@
                 <span class="kpi-ico purple"><i class="ti ti-cat"></i></span>
             </div>
             <div class="kpi-value" style="color:#7c3aed">${catCount}</div>
-            <div class="kpi-meta">Dành riêng cho Mèo cưng</div>
+            <div class="kpi-meta"><span class="badge purple">Dành riêng cho Mèo cưng</span></div>
         </div>
     </section>
 

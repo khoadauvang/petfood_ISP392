@@ -5,6 +5,8 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 // Số liệu dashboard Admin cho một khoảng ngày (module 10, phần thêm)
 @Getter
@@ -24,11 +26,16 @@ public class AdminDashboard {
     private final long pendingOrders;
     private final long requestedReturns;
     private final long newSupportTickets;
+    // Toàn bộ đơn / khách (không phụ thuộc khoảng ngày): JS trên trang tự lọc theo các ô ngày riêng của từng tab
+    // và so sánh với kỳ trước
+    private final List<OrderAuditItem> allOrders;
+    private final List<CustomerAuditItem> allCustomers;
 
     @Getter
     @AllArgsConstructor
     public static class DayRevenue {
-        private final String dayText;
+        private final String date;              // yyyy-MM-dd
+        private final String dayText;           // dd/MM
         private final long orderCount;
         private final BigDecimal amount;
         private final int barPercent;           // độ dài thanh so với ngày cao nhất (0-100)
@@ -50,5 +57,34 @@ public class AdminDashboard {
         private final String sku;
         private final long quantity;
         private final BigDecimal revenue;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OrderAuditItem {
+        private final Long id;
+        private final Long customerId;
+        private final String customerTier;      // hạng hiện tại của khách
+        private final String date;              // yyyy-MM-dd, ngày đặt
+        private final String dayText;           // dd/MM
+        private final String status;
+        private final String pay;               // COD | VNPAY
+        private final long total;
+        private final Map<Long, Long> categoryAmounts;   // category_id -> tiền hàng sau giảm hạng
+
+        // JSP nhúng thẳng vào JS: {"<categoryId>":<tiền>,...}
+        public String getCatsJson() {
+            return categoryAmounts.entrySet().stream()
+                    .map(e -> "\"" + e.getKey() + "\":" + e.getValue())
+                    .collect(Collectors.joining(",", "{", "}"));
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class CustomerAuditItem {
+        private final Long id;
+        private final String tier;
+        private final String createdAt;         // yyyy-MM-dd, ngày tạo tài khoản
     }
 }

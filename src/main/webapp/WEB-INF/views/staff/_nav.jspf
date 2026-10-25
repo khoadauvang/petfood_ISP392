@@ -49,7 +49,7 @@
         <details class="sb-group" open>
             <summary>Quản lý kho &amp; đổi trả <i class="ti ti-chevron-down"></i></summary>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/lots')) ? 'active' : ''}" href="${ctx}/staff/lots">
-                <i class="ti ti-building-warehouse"></i>Tồn kho theo lô &amp; Quản lý FEFO</a>
+                <i class="ti ti-building-warehouse"></i>Tồn kho</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/alerts')) ? 'active' : ''}" href="${ctx}/staff/alerts">
                 <i class="ti ti-alert-triangle"></i>Cảnh báo hạn sử dụng</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/returns')) ? 'active' : ''}" href="${ctx}/staff/returns">
@@ -84,10 +84,6 @@
     </nav>
 
     <div class="sb-foot">
-        <div style="background:#fff7ee; border:1px solid #ffd8b8; border-radius:10px; padding:8px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; color:#9a3412;">
-            <span><i class="ti ti-building-store" style="color:#ea580c; margin-right:6px"></i>Cửa Hàng Chính #01<br><small style="color:#c2410c; font-weight:normal">Bán lẻ trực tuyến</small></span>
-            <i class="ti ti-selector" style="color:#ea580c"></i>
-        </div>
         <a class="sb-link" href="${ctx}/" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Xem trang khách</a>
     </div>
 </aside>

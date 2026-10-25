@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,7 +59,8 @@ public class AdminDashboardService {
         BigDecimal maxDay = days.stream().map(DashboardRepository.DailyRevenueRow::getTotalAmount)
                 .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
         List<AdminDashboard.DayRevenue> daily = days.stream().map(d -> new AdminDashboard.DayRevenue(
-                d.getDay().format(DAY), d.getOrderCount(), d.getTotalAmount(), percent(d.getTotalAmount(), maxDay))).toList();
+                d.getDay().toString(), d.getDay().format(DAY), d.getOrderCount(), d.getTotalAmount(),
+                percent(d.getTotalAmount(), maxDay))).toList();
 
         Map<String, Long> byStatus = toMap(dashboardRepository.ordersByStatus(start, end));
         List<AdminDashboard.Count> orders = Arrays.stream(OrderStatus.values())
@@ -76,7 +78,28 @@ public class AdminDashboardService {
                 gross.subtract(refunds), dashboardRepository.newCustomers(start, end), daily, orders, top, tiers,
                 orderRepository.countByStatus(OrderStatus.PENDING),
                 returnRequestRepository.countByStatus(ReturnStatus.REQUESTED),
-                supportService.countNew());
+                supportService.countNew(),
+                allOrders(), allCustomers());
+    }
+
+    // 3 query cho toàn bộ dữ liệu (không tải entity từng đơn, tránh N+1)
+    private List<AdminDashboard.OrderAuditItem> allOrders() {
+        Map<Long, Map<Long, Long>> byCategory = new HashMap<>();
+        for (DashboardRepository.OrderCategoryAmountRow r : dashboardRepository.orderCategoryAmounts()) {
+            byCategory.computeIfAbsent(r.getOrderId(), id -> new HashMap<>())
+                    .merge(r.getCategoryId(), r.getAmount().longValue(), Long::sum);
+        }
+        return dashboardRepository.allOrders().stream()
+                .map(o -> new AdminDashboard.OrderAuditItem(o.getId(), o.getCustomerId(), o.getCustomerTier(), o.getDate(),
+                        LocalDate.parse(o.getDate()).format(DAY), o.getStatus(), o.getPay(), o.getTotal().longValue(),
+                        byCategory.getOrDefault(o.getId(), Map.of())))
+                .toList();
+    }
+
+    private List<AdminDashboard.CustomerAuditItem> allCustomers() {
+        return dashboardRepository.allCustomers().stream()
+                .map(c -> new AdminDashboard.CustomerAuditItem(c.getId(), c.getTier(), c.getCreatedAt()))
+                .toList();
     }
 
     private static Map<String, Long> toMap(List<StatusCountRow> rows) {

@@ -142,7 +142,7 @@
             <div class="kpi-value">
                 ${productCounts.total != null ? productCounts.total : (totalItems != null ? totalItems : 0)} <small>mã SKU</small>
             </div>
-            <div class="kpi-meta">Gồm <b>${productGroups != null ? productGroups.size() : 0}</b> dòng sản phẩm chính</div>
+            <div class="kpi-meta"><span class="badge orange">Gồm <b>${productGroups != null ? productGroups.size() : 0}</b> dòng sản phẩm chính</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -153,7 +153,7 @@
             <div class="kpi-value" style="color:#10b981">
                 ${productCounts.active != null ? productCounts.active : 0} <small>biến thể</small>
             </div>
-            <div class="kpi-meta"><span class="badge ok">Đang mở bán</span> trên hệ thống</div>
+            <div class="kpi-meta"><span class="badge ok">Đang mở bán trên hệ thống</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -164,7 +164,7 @@
             <div class="kpi-value" style="color:#6b7280">
                 ${productCounts.discontinued != null ? productCounts.discontinued : 0} <small>biến thể</small>
             </div>
-            <div class="kpi-meta">Tạm ngưng hoặc lưu trữ</div>
+            <div class="kpi-meta"><span class="badge gray">Tạm ngưng hoặc lưu trữ</span></div>
         </div>
     </section>
 
@@ -219,12 +219,13 @@
         <table style="margin:0; width:100%; border-collapse:collapse; border:0; box-shadow:none">
             <thead>
             <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:11px; font-weight:800; color:#64748b; text-align:left; letter-spacing:.04em; text-transform:uppercase;">
-                <th style="padding:14px 16px; width:64px">ẢNH</th>
-                <th style="padding:14px 16px; min-width:300px">TÊN DÒNG SẢN PHẨM &amp; BIẾN THỂ</th>
+                <th style="padding:14px 16px; width:64px; text-align:center;">ẢNH</th>
+                <th style="padding:14px 16px; min-width:260px">TÊN DÒNG SẢN PHẨM &amp; BIẾN THỂ</th>
                 <th style="padding:14px 16px;">MÃ SKU GỐC</th>
                 <th style="padding:14px 16px;">DANH MỤC</th>
                 <th style="padding:14px 16px;">THÚ CƯNG</th>
-                <th style="padding:14px 16px;" class="num">GIÁ NIÊM YẾT</th>
+                <th style="padding:14px 16px; text-align:right;" class="num">GIÁ NIÊM YẾT</th>
+                <th style="padding:14px 16px; min-width:160px">TRẠNG THÁI</th>
                 <th style="padding:14px 16px; text-align:center; min-width:210px">THAO TÁC / BIẾN THỂ</th>
             </tr>
             </thead>
@@ -234,8 +235,8 @@
                     <c:forEach var="g" items="${productGroups}">
                         <%-- Dòng Sản phẩm chính (Master Row) --%>
                         <tr class="prod-group-row" id="row-${g.groupId}" onclick="toggleProductAccordion('${g.groupId}')" style="border-bottom:1px solid #f1f5f9; font-size:13px;">
-                            <td style="padding:14px 16px;">
-                                <div style="position:relative; width:48px; height:48px">
+                            <td style="padding:14px 16px; text-align:center;">
+                                <div style="position:relative; width:48px; height:48px; margin:0 auto;">
                                     <c:choose>
                                         <c:when test="${not empty g.imageUrl}">
                                             <img src="${ctx}<c:out value='${g.imageUrl}'/>" alt="" class="prod-thumb"
@@ -378,7 +379,7 @@
                                                     onclick="batchDeleteGroup('${g.groupId}', '<c:out value="${g.baseName}"/>', [<c:forEach var='v' items='${g.variants}' varStatus='vs'>{id:${v.id},sku:'${v.sku}'}<c:if test='${!vs.last}'>,</c:if></c:forEach>])">
                                                 <i class="ti ti-trash"></i> Xóa cả dòng sản phẩm
                                             </button>
-                                            <a href="${ctx}/staff/products/new" class="btn-pill-primary" style="padding:4px 14px; font-size:11px; text-decoration:none">
+                                            <a href="${ctx}/staff/products/new?variantOf=${g.variants[0].id}" class="btn-pill-primary" style="padding:4px 14px; font-size:11px; text-decoration:none" title="Thêm quy cách mới cho dòng sản phẩm này">
                                                 <i class="ti ti-plus"></i>Thêm biến thể mới
                                             </a>
                                         </div>

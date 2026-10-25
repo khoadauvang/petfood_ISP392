@@ -103,21 +103,16 @@ public class ProductAdminService {
 
             // Tách tên gốc và quy cách
             String fullName = p.getName() != null ? p.getName().trim() : "";
-            String baseName = fullName;
+            String baseName = baseName(fullName);
             String spec = "Tiêu chuẩn";
 
             Matcher matcher = SPEC_PATTERN.matcher(fullName);
             if (matcher.find()) {
                 spec = matcher.group(1).trim();
-                baseName = fullName.substring(0, matcher.start()).trim();
             }
 
             // Tách SKU gốc
-            String sku = p.getSku() != null ? p.getSku().trim() : "";
-            String baseSku = SKU_VARIANT_PATTERN.matcher(sku).replaceAll("").trim();
-            if (baseSku.isEmpty()) {
-                baseSku = sku;
-            }
+            String baseSku = baseSku(p.getSku());
 
             String groupKey = !baseSku.isEmpty() ? baseSku.toLowerCase() : baseName.toLowerCase();
 
@@ -201,6 +196,28 @@ public class ProductAdminService {
         return ProductForm.from(findOrThrow(id));
     }
 
+    // Form "Thêm biến thể" (/staff/products/new?variantOf=..): điền sẵn thông tin chung của sản phẩm gốc,
+    // tên / SKU chỉ còn phần gốc để nhân viên gõ thêm quy cách. Ảnh để trống thì lấy ảnh sản phẩm gốc (xem create).
+    @Transactional(readOnly = true)
+    public ProductForm buildVariantForm(Long parentId) {
+        Product parent = findOrThrow(parentId);
+        ProductForm form = new ProductForm();
+        form.setVariantOf(parentId);
+        String baseName = baseName(parent.getName());
+        String baseSku = baseSku(parent.getSku());
+        form.setName(baseName.isEmpty() ? "" : baseName + " ");
+        form.setSku(baseSku.isEmpty() ? "" : baseSku + "-");
+        form.setCategoryId(parent.getCategory() != null ? parent.getCategory().getId() : null);
+        form.setBrand(parent.getBrand());
+        form.setSpecies(parent.getSpecies());
+        form.setAgeGroup(parent.getAgeGroup());
+        form.setDescription(parent.getDescription());
+        form.setSellingPrice(parent.getSellingPrice());
+        form.setLowStockThreshold(parent.getLowStockThreshold());
+        form.setStatus(ProductStatus.ACTIVE);
+        return form;
+    }
+
     @Transactional(readOnly = true)
     public List<ProductOption> listOptions() {
         return productRepository.findAllByOrderBySkuAsc().stream().map(ProductOption::new).toList();
@@ -217,7 +234,12 @@ public class ProductAdminService {
         Category category = checkCategory(form, errors);
         checkUnique(form, null, errors);
         checkFirstLot(form, errors);
-        Map<Integer, byte[]> images = processImages(form, true, errors);   // bắt buộc đủ 5 ảnh
+        // Bắt buộc đủ 5 ảnh; riêng biến thể thì ô bỏ trống lấy ảnh cùng vị trí của sản phẩm gốc
+        boolean variant = form.getVariantOf() != null;
+        Map<Integer, byte[]> images = processImages(form, !variant, errors);
+        if (variant) {
+            inheritImages(form.getVariantOf(), images, errors);
+        }
         if (!errors.isEmpty()) {
             throw new BusinessRuleException(errors);
         }
@@ -408,6 +430,47 @@ public class ProductAdminService {
             }
         }
         return result;
+    }
+
+    // Chép nội dung ảnh của sản phẩm gốc vào các vị trí nhân viên chưa chọn file. Ghi thành file mới theo SKU
+    // của biến thể (không dùng chung URL): sửa / thay ảnh sản phẩm gốc sau này không ảnh hưởng biến thể.
+    private void inheritImages(Long parentId, Map<Integer, byte[]> images, Map<String, String> errors) {
+        findOrThrow(parentId);                                  // sản phẩm gốc phải còn tồn tại
+        Map<Integer, String> parentUrls = new HashMap<>();
+        for (ProductImage image : productImageRepository.findByProduct_IdOrderBySortOrderAsc(parentId)) {
+            parentUrls.put(image.getSortOrder(), image.getImageUrl());
+        }
+        for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
+            String field = "image" + slot;
+            if (images.containsKey(slot) || errors.containsKey(field)) {
+                continue;
+            }
+            byte[] bytes = imageStorage.readBytes(parentUrls.get(slot));
+            if (bytes == null) {
+                errors.put(field, "Sản phẩm gốc không có ảnh số " + slot + ", hãy chọn ảnh");
+            } else {
+                images.put(slot, bytes);
+            }
+        }
+    }
+
+    // Tên gốc của dòng sản phẩm: bỏ phần quy cách ở cuối (vd "... 400g")
+    private static String baseName(String fullName) {
+        if (fullName == null || fullName.isBlank()) {
+            return "";
+        }
+        String name = fullName.trim();
+        Matcher matcher = SPEC_PATTERN.matcher(name);
+        return matcher.find() ? name.substring(0, matcher.start()).trim() : name;
+    }
+
+    // SKU gốc của dòng sản phẩm: bỏ đuôi quy cách (vd "-400G")
+    private static String baseSku(String sku) {
+        if (sku == null || sku.isBlank()) {
+            return "";
+        }
+        String baseSku = SKU_VARIANT_PATTERN.matcher(sku.trim()).replaceAll("").trim();
+        return baseSku.isEmpty() ? sku.trim() : baseSku;
     }
 
     // =====================================================================

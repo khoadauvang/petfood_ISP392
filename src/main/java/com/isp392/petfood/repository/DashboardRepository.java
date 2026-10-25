@@ -95,6 +95,57 @@ public interface DashboardRepository extends Repository<Order, Long> {
             """, nativeQuery = true)
     long newCustomers(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
+    // ===== Dữ liệu thô cho biểu đồ tự lọc phía trình duyệt (tab doanh thu / hội viên) =====
+    interface OrderAuditRow {
+        Long getId();
+        Long getCustomerId();
+        String getCustomerTier();
+        String getDate();
+        String getStatus();
+        String getPay();
+        BigDecimal getTotal();
+    }
+
+    interface OrderCategoryAmountRow {
+        Long getOrderId();
+        Long getCategoryId();
+        BigDecimal getAmount();
+    }
+
+    interface CustomerAuditRow {
+        Long getId();
+        String getTier();
+        String getCreatedAt();
+    }
+
+    // Mọi đơn kèm hạng hiện tại của khách, mới nhất trước; date = ngày đặt dạng yyyy-MM-dd
+    @Query(value = """
+            SELECT o.order_id AS id, o.customer_id AS customerId, c.membership_tier AS customerTier,
+                   CONVERT(char(10), o.created_at, 23) AS date, o.order_status AS status,
+                   o.payment_method AS pay, o.total_amount AS total
+            FROM dbo.Orders o
+            JOIN dbo.Customer c ON c.customer_id = o.customer_id
+            ORDER BY o.created_at DESC, o.order_id DESC
+            """, nativeQuery = true)
+    List<OrderAuditRow> allOrders();
+
+    // Tiền hàng (sau giảm hạng) của từng đơn theo danh mục
+    @Query(value = """
+            SELECT oi.order_id AS orderId, p.category_id AS categoryId,
+                   COALESCE(SUM(oi.unit_price * oi.quantity - oi.discount_amount), 0) AS amount
+            FROM dbo.OrderItem oi
+            JOIN dbo.Product p ON p.product_id = oi.product_id
+            GROUP BY oi.order_id, p.category_id
+            """, nativeQuery = true)
+    List<OrderCategoryAmountRow> orderCategoryAmounts();
+
+    @Query(value = """
+            SELECT c.customer_id AS id, c.membership_tier AS tier, CONVERT(char(10), a.created_at, 23) AS createdAt
+            FROM dbo.Customer c
+            JOIN dbo.Account a ON a.account_id = c.account_id
+            """, nativeQuery = true)
+    List<CustomerAuditRow> allCustomers();
+
     // Số khách theo hạng thành viên hiện tại
     @Query(value = """
             SELECT c.membership_tier AS status, COUNT(*) AS count

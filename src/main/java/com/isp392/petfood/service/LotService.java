@@ -27,6 +27,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 // Quản lý lô (MVP: kho chỉ còn bảng Lot): nhập lô, xem tồn theo lô, sửa/xoá lô nhập nhầm
 @Service
@@ -54,13 +56,17 @@ public class LotService {
         Integer maxOnHand = null;
         LocalDate expiryBefore = null;
         switch (view) {
-            case IN_STOCK -> minOnHand = 1;
+            case IN_STOCK, SAFE -> minOnHand = 1;
             case NEAR_EXPIRY -> {
                 minOnHand = 1;
                 expiryBefore = inventoryPolicy.minSellableExpiry();
             }
+            case CRITICAL -> {
+                minOnHand = 1;
+                expiryBefore = inventoryPolicy.minFlashSaleExpiry();
+            }
             case DEPLETED -> maxOnHand = 0;
-            case ALL -> {
+            case LOW_STOCK, ALL -> {
                 // không lọc thêm
             }
         }
@@ -188,12 +194,22 @@ public class LotService {
             }
         }
 
-        return new LotStats(totalOnHand, activeLots, totalLots, warningLots, criticalLots);
+        // Cùng cách đếm với trang Cảnh báo (InventoryAlertService): sản phẩm đang bán có tồn khả dụng <= định mức
+        long lowStockCount = productRepository.findLowStock(ProductStatus.ACTIVE, inventoryPolicy.minSellableExpiry()).size();
+
+        return new LotStats(totalOnHand, activeLots, totalLots, warningLots, criticalLots, lowStockCount);
     }
 
+    // stockStatus: LOW_STOCK (sản phẩm đang bán, tồn khả dụng <= định mức) | OUT_OF_STOCK | IN_STOCK (còn đủ hàng);
+    // null / rỗng = không lọc theo tồn
     @Transactional(readOnly = true)
-    public List<ProductLotGroupDto> getProductLotGroups(LotView view, Long filterProductId, String keyword) {
+    public List<ProductLotGroupDto> getProductLotGroups(LotView view, Long filterProductId, String keyword,
+                                                        String stockStatus) {
         List<Product> products = productRepository.findAll(Sort.by("name"));
+        Set<Long> activeIds = products.stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
+                .map(Product::getId)
+                .collect(Collectors.toSet());
         Map<Long, ProductLotGroupDto> groupMap = new LinkedHashMap<>();
 
         for (Product p : products) {
@@ -231,6 +247,22 @@ public class LotService {
                             return false;
                         }
                     }
+                    boolean lowStock = activeIds.contains(g.getProductId())
+                            && g.getSellableQty() <= g.getLowStockThreshold();
+                    if (stockStatus != null && !stockStatus.isBlank()) {
+                        switch (stockStatus) {
+                            case "LOW_STOCK" -> {
+                                if (!lowStock) return false;
+                            }
+                            case "OUT_OF_STOCK" -> {
+                                if (g.getTotalOnHand() > 0) return false;
+                            }
+                            case "IN_STOCK" -> {
+                                if (g.getTotalOnHand() <= 0 || g.getSellableQty() <= g.getLowStockThreshold()) return false;
+                            }
+                            default -> {}
+                        }
+                    }
                     if (view != null) {
                         switch (view) {
                             case IN_STOCK -> {
@@ -239,8 +271,17 @@ public class LotService {
                             case NEAR_EXPIRY -> {
                                 if (g.getFlashSaleQty() <= 0 && g.getCriticalQty() <= 0) return false;
                             }
+                            case CRITICAL -> {
+                                if (g.getCriticalQty() <= 0) return false;
+                            }
+                            case SAFE -> {
+                                if (!"SAFE".equals(g.getExpiryStatus())) return false;
+                            }
                             case DEPLETED -> {
                                 if (g.getTotalOnHand() > 0) return false;
+                            }
+                            case LOW_STOCK -> {
+                                if (!lowStock) return false;
                             }
                             case ALL -> {}
                         }

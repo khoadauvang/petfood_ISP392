@@ -91,51 +91,75 @@
             gap: 8px;
         }
 
-        .dropdown-menu-container {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-menu-list {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            margin-top: 4px;
-            background: #ffffff;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            box-shadow: var(--shadow-pop);
-            min-width: 170px;
-            z-index: 50;
-            padding: 6px;
-        }
-        .dropdown-menu-list.show {
-            display: block;
-        }
-        .dropdown-menu-list a, .dropdown-menu-list button {
-            display: flex;
+        /* Nút Quick Actions ở Header trang Cảnh báo */
+        .head-btn-flashsale {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            width: 100%;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-main);
-            border-radius: 8px;
-            background: none;
-            border: 0;
+            padding: 9px 20px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff !important;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 700;
             text-decoration: none;
-            text-align: left;
+            border: 1px solid transparent;
             cursor: pointer;
-            box-sizing: border-box;
+            box-shadow: 0 3px 10px rgba(234, 88, 12, 0.28);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            white-space: nowrap;
         }
-        .dropdown-menu-list a:hover, .dropdown-menu-list button:hover {
-            background: var(--orange-50);
-            color: var(--color-primary-dark);
+        .head-btn-flashsale:hover {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            box-shadow: 0 6px 18px rgba(234, 88, 12, 0.4);
+            transform: translateY(-2px);
+            color: #ffffff !important;
         }
-        .dropdown-menu-list button.danger:hover {
-            background: #fef2f2;
-            color: #dc2626;
+        .head-btn-flashsale:active {
+            transform: translateY(0);
+        }
+        .head-btn-flashsale .ti {
+            font-size: 17px;
+            color: #fef08a;
+            filter: drop-shadow(0 0 4px rgba(254, 240, 138, 0.6));
+        }
+
+        .head-btn-lots {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            border-radius: 9999px;
+            background: #ffffff;
+            color: #334155 !important;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            border: 1.5px solid #e2e8f0;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            white-space: nowrap;
+        }
+        .head-btn-lots:hover {
+            background: #fff7ed;
+            border-color: #ea580c;
+            color: #ea580c !important;
+            box-shadow: 0 4px 14px rgba(234, 88, 12, 0.15);
+            transform: translateY(-2px);
+        }
+        .head-btn-lots:active {
+            transform: translateY(0);
+        }
+        .head-btn-lots .ti {
+            font-size: 17px;
+            color: #64748b;
+            transition: color 0.2s ease;
+        }
+        .head-btn-lots:hover .ti {
+            color: #ea580c;
         }
     </style>
 </head>
@@ -152,18 +176,32 @@
             <p class="page-sub">Giám sát các ngưỡng hạn sử dụng cấp bách, đề xuất Flash Sale giải phóng hàng cận hạn và theo dõi các lô hàng đã hết hạn.</p>
         </div>
 
-        <div style="display:flex; align-items:center; gap:10px">
-            <a href="${ctx}/staff/flash-sales" class="export-btn" style="text-decoration:none">
-                <i class="ti ti-bolt" style="color:#ea580c"></i>Quản lý Flash Sale
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+            <a href="${ctx}/staff/flash-sales" class="head-btn-flashsale">
+                <i class="ti ti-bolt"></i>Quản lý Flash Sale
             </a>
-            <a href="${ctx}/staff/lots" class="export-btn" style="text-decoration:none">
-                <i class="ti ti-building-warehouse" style="color:var(--text-muted)"></i>Tồn kho theo lô
+            <a href="${ctx}/staff/lots" class="head-btn-lots">
+                <i class="ti ti-building-warehouse"></i>Tồn kho theo lô
             </a>
         </div>
     </div>
 
-    <%-- 4 KPI Cards: Thông tin chính xác theo số liệu thực tế kho --%>
-    <section class="grid g-4">
+    <%-- Thông báo Flash message nếu có --%>
+    <c:if test="${not empty successMessage}">
+        <div style="margin-bottom:18px; padding:12px 18px; border-radius:12px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; box-shadow:0 2px 8px rgba(16, 185, 129, 0.1)">
+            <i class="ti ti-circle-check" style="font-size:20px; color:#10b981"></i>
+            <span><c:out value="${successMessage}"/></span>
+        </div>
+    </c:if>
+    <c:if test="${not empty errorMessage}">
+        <div style="margin-bottom:18px; padding:12px 18px; border-radius:12px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; box-shadow:0 2px 8px rgba(239, 68, 68, 0.1)">
+            <i class="ti ti-alert-circle" style="font-size:20px; color:#ef4444"></i>
+            <span><c:out value="${errorMessage}"/></span>
+        </div>
+    </c:if>
+
+    <%-- 3 KPI Cards: Thông tin chính xác theo số liệu thực tế hạn dùng kho --%>
+    <section class="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px">
         <%-- Card 1: Lô cận hạn (21-90 ngày) - Ưu tiên Flash Sale --%>
         <div class="panel kpi reveal">
             <div class="kpi-top">
@@ -171,7 +209,7 @@
                 <span class="pill-badge orange">CẬN HẠN</span>
             </div>
             <div class="kpi-value" style="color:#ea580c"><c:out value="${alertSummary != null ? alertSummary.redLotCount : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta" style="color:#ea580c; font-weight:700">● Đề xuất bán Flash Sale</div>
+            <div class="kpi-meta"><span class="badge orange">● Đề xuất bán Flash Sale</span></div>
         </div>
 
         <%-- Card 2: Lô cấp bách (< 21 ngày) - Chặn bán --%>
@@ -181,7 +219,7 @@
                 <span class="pill-badge red">CẤP BÁCH</span>
             </div>
             <div class="kpi-value red"><c:out value="${alertSummary != null ? alertSummary.blockedLotCount : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta" style="color:#ef4444; font-weight:700">● Đã chặn bán đơn hàng mới</div>
+            <div class="kpi-meta"><span class="badge red">● Đã chặn bán đơn hàng mới</span></div>
         </div>
 
         <%-- Card 3: Lô đã quá hạn - Khóa bán --%>
@@ -191,17 +229,7 @@
                 <span class="pill-badge dark">QUÁ HẠN</span>
             </div>
             <div class="kpi-value" style="color:#78350f"><c:out value="${alertSummary != null ? alertSummary.expiredLotCount : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta" style="color:#78350f; font-weight:700">● Khóa bán, không xuất kho</div>
-        </div>
-
-        <%-- Card 4: Sản phẩm tồn thấp --%>
-        <div class="panel kpi reveal">
-            <div class="kpi-top">
-                <span class="kpi-label">SẢN PHẨM TỒN THẤP</span>
-                <span class="pill-badge yellow">TỒN THẤP</span>
-            </div>
-            <div class="kpi-value" style="color:#d97706"><c:out value="${alertSummary != null ? alertSummary.lowStockCount : 0}"/> <small>Sản phẩm</small></div>
-            <div class="kpi-meta">● Cần nhập bổ sung kho</div>
+            <div class="kpi-meta"><span class="badge gray">● Khóa bán, không xuất kho</span></div>
         </div>
     </section>
 
@@ -339,23 +367,6 @@
                                             </a>
                                         </c:otherwise>
                                     </c:choose>
-
-                                    <%-- Menu mở rộng 3 chấm --%>
-                                    <div class="dropdown-menu-container">
-                                        <button type="button" class="act-icon" onclick="toggleRowMenu(event, ${l.id})" title="Thao tác khác">
-                                            <i class="ti ti-dots-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu-list" id="row-menu-${l.id}">
-                                            <a href="${ctx}/staff/products/${l.productId}">
-                                                <i class="ti ti-eye"></i>Xem chi tiết sản phẩm
-                                            </a>
-                                            <c:if test="${l.level == 'RED'}">
-                                                <a href="${ctx}/staff/flash-sales/new">
-                                                    <i class="ti ti-bolt" style="color:#ea580c"></i>Đề xuất Flash Sale
-                                                </a>
-                                            </c:if>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -520,25 +531,6 @@
         });
     }
 
-    function toggleRowMenu(event, id) {
-        event.stopPropagation();
-        var menu = document.getElementById('row-menu-' + id);
-        var isOpen = menu.classList.contains('show');
-        document.querySelectorAll('.dropdown-menu-list').forEach(function(m) {
-            m.classList.remove('show');
-        });
-        if (!isOpen) {
-            menu.classList.add('show');
-        }
-    }
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.dropdown-menu-container')) {
-            document.querySelectorAll('.dropdown-menu-list').forEach(function(m) {
-                m.classList.remove('show');
-            });
-        }
-    });
 </script>
 </body>
 </html>
