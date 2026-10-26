@@ -41,6 +41,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
             """)
     Optional<CartItem> findOwnedById(@Param("id") Long id, @Param("customerId") Long customerId);
 
-    // Số dòng trong giỏ, hiện trên thanh đầu trang
-    long countByCart_Customer_Id(Long customerId);
+    // Tổng số lượng sản phẩm trong giỏ (cộng quantity mọi dòng), hiện trên icon giỏ ở thanh đầu trang
+    @Query("select coalesce(sum(i.quantity), 0) from CartItem i where i.cart.customer.id = :customerId")
+    long sumQuantityByCustomerId(@Param("customerId") Long customerId);
 }

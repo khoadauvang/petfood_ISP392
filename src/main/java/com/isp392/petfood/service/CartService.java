@@ -116,10 +116,10 @@ public class CartService {
         return items.stream().filter(i -> ids.contains(i.getId())).toList();
     }
 
-    // Số dòng trong giỏ, hiện trên thanh đầu trang
+    // Tổng số lượng sản phẩm trong giỏ (2 gói A + 1 gói B = 3), hiện trên icon giỏ ở thanh đầu trang
     @Transactional(readOnly = true)
-    public long countLines(Long customerId) {
-        return cartItemRepository.countByCart_Customer_Id(customerId);
+    public long countItems(Long customerId) {
+        return cartItemRepository.sumQuantityByCustomerId(customerId);
     }
 
     // ===== Thêm vào giỏ =====

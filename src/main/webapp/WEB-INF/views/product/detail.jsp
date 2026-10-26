@@ -147,7 +147,9 @@
                                     <form method="post" action="${ctx}/cart/add" id="detailAddCartForm">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                         <input type="hidden" name="productId" value="${product.id}">
-                                        <input type="hidden" name="returnUrl" id="detailReturnUrl" value="${pageContext.request.requestURI}">
+                                        <%-- Lỗi (vượt tồn...) thì quay lại trang này; "Mua ngay" thành công thì BE chuyển thẳng sang /checkout --%>
+                                        <input type="hidden" name="returnUrl" value="/products/${product.id}">
+                                        <input type="hidden" name="buyNow" id="detailBuyNow" value="false">
 
                                         <div class="qty-stock-label-row">
                                             <span>Số lượng</span>
@@ -339,14 +341,33 @@
                 return true;
             }
 
+            // "Mua ngay": thêm vào giỏ rồi sang thẳng trang đặt hàng chỉ với sản phẩm này (CartController, buyNow)
             function setBuyMode(isBuyNow) {
                 if (!requireLogin())
                     return false;
-                const returnUrlInput = document.getElementById('detailReturnUrl');
-                if (returnUrlInput)
-                    returnUrlInput.value = isBuyNow ? '/cart' : '/products/${product.id}';
+                const buyNowInput = document.getElementById('detailBuyNow');
+                if (buyNowInput)
+                    buyNowInput.value = isBuyNow ? 'true' : 'false';
                 return true;
-                    }
+            }
+
+            // Số trên icon giỏ ở header = tổng số lượng trong giỏ (cartItemCount do BE trả về, giống CartCountAdvice)
+            function updateCartBadge(cartIcon, cartItemCount) {
+                if (!cartIcon)
+                    return;
+                let badge = cartIcon.querySelector('.cart-badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'cart-badge';
+                    cartIcon.appendChild(badge);
+                }
+                badge.textContent = cartItemCount;
+                cartIcon.style.transition = 'transform 0.25s ease';
+                cartIcon.style.transform = 'scale(1.35)';
+                setTimeout(() => {
+                    cartIcon.style.transform = 'scale(1)';
+                }, 250);
+            }
 
                     // HÀM THÊM VÀO GIỎ NGẦM + HIỆU ỨNG BAY LÊN ICON GIỎ HÀNG TRÊN HEADER
                     function addToCartFly(btnEl) {
@@ -425,24 +446,14 @@
                                 flyImg.style.transform = 'scale(0.3) rotate(15deg)';
                             });
 
-                            // Khi bay tới nơi: Xóa ảnh bay, làm hiệu ứng nảy nhẹ icon giỏ hàng & cộng số lượng badge (nếu có)
+                            // Khi bay tới nơi: xoá ảnh bay, nảy nhẹ icon giỏ hàng và cập nhật số
                             setTimeout(() => {
                                 flyImg.remove();
-                                cartIcon.style.transition = 'transform 0.25s ease';
-                                cartIcon.style.transform = 'scale(1.35)';
-                                setTimeout(() => {
-                                    cartIcon.style.transform = 'scale(1)';
-                                }, 250);
-
-                                // số trên icon = số dòng trong giỏ (cartItemCount do BE trả về, giống CartCountAdvice)
-                                let badge = cartIcon.querySelector('.cart-badge');
-                                if (!badge) {
-                                    badge = document.createElement('span');
-                                    badge.className = 'cart-badge';
-                                    cartIcon.appendChild(badge);
-                                }
-                                badge.textContent = cartItemCount;
+                                updateCartBadge(cartIcon, cartItemCount);
                             }, 750);
+                        } else {
+                            // sản phẩm chưa có ảnh (không có #mainImage): không có hiệu ứng bay, cập nhật số ngay
+                            updateCartBadge(cartIcon, cartItemCount);
                         }
 
                         // 3. Đổi chữ trên nút bấm 1.2 giây để báo hiệu đã thêm thành công

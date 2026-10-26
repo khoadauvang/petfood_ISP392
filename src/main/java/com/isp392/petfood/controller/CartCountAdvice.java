@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-// Số dòng trong giỏ cho link "Giỏ hàng (n)" trên thanh đầu trang của khách (common/_header.jspf).
+// Tổng số lượng sản phẩm trong giỏ cho icon giỏ trên thanh đầu trang của khách (common/_header.jspf), vd 2 gói A + 1 gói B = 3.
 // Guest / Staff / Admin không có giỏ: null. Trang lỗi (/error) không cần số này: bỏ qua để trang lỗi
 // vẫn hiện được khi lỗi gốc là do CSDL.
 @ControllerAdvice
@@ -24,6 +24,6 @@ public class CartCountAdvice {
         if (user == null || user.getRole() != Role.CUSTOMER || request.getDispatcherType() == DispatcherType.ERROR) {
             return null;
         }
-        return cartService.countLines(user.getCustomerId());
+        return cartService.countItems(user.getCustomerId());
     }
 }

@@ -27,6 +27,7 @@ import java.util.Map;
 //   POST /cart/add                      productId, quantity            -> dòng giá thường
 //                                       flashSaleItemId, quantity      -> dòng Flash Sale (tách riêng, BR-65)
 //                                       gọi bằng fetch (X-Requested-With) -> JSON {ok, message, cartItemCount}
+//                                       buyNow=true ("Mua ngay") -> thêm xong sang thẳng /checkout chỉ với dòng vừa thêm
 //   POST /cart/items/{id}/quantity      đổi số lượng
 //   POST /cart/items/{id}/delete        xoá dòng
 @Controller
@@ -50,6 +51,7 @@ public class CartController {
                       @RequestParam(name = "flashSaleItemId", required = false) Long flashSaleItemId,
                       @RequestParam(name = "quantity", defaultValue = "1") int quantity,
                       @RequestParam(name = "returnUrl", required = false) String returnUrl,
+                      @RequestParam(name = "buyNow", defaultValue = "false") boolean buyNow,
                       RedirectAttributes redirect) {
         // Trang gửi kèm returnUrl (trang chủ, danh sách sản phẩm) thì quay lại đúng trang đó;
         // không có thì: thêm từ trang chi tiết quay lại trang đó, thêm suất Flash Sale thì về giỏ
@@ -57,6 +59,10 @@ public class CartController {
                 : flashSaleItemId == null && productId != null ? "redirect:/products/" + productId : "redirect:/cart";
         try {
             CartItem item = addItem(user, productId, flashSaleItemId, quantity);
+            if (buyNow) {
+                // chỉ đặt dòng này, các dòng khác ở lại giỏ (đặt hàng theo dòng được chọn, mục 7.4)
+                return "redirect:/checkout?itemIds=" + item.getId();
+            }
             redirect.addFlashAttribute("successMessage", addedMessage(item, quantity));
         } catch (BusinessRuleException e) {
             redirect.addFlashAttribute("errorMessage", "Chưa thêm được vào giỏ: " + e.getMessage());
@@ -75,7 +81,7 @@ public class CartController {
         try {
             CartItem item = addItem(user, productId, flashSaleItemId, quantity);
             return ResponseEntity.ok(Map.of("ok", true, "message", addedMessage(item, quantity),
-                    "cartItemCount", cartService.countLines(user.getCustomerId())));
+                    "cartItemCount", cartService.countItems(user.getCustomerId())));
         } catch (BusinessRuleException e) {
             return ResponseEntity.unprocessableEntity()
                     .body(Map.of("ok", false, "message", "Chưa thêm được vào giỏ: " + e.getMessage()));

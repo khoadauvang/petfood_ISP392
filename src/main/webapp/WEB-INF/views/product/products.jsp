@@ -299,7 +299,7 @@
                                         this.classList.add("added");
                                         this.disabled = true;
 
-                                        // 4. Cập nhật số dòng giỏ trên icon ở header (cartItemCount do BE trả về)
+                                        // 4. Cập nhật tổng số lượng trong giỏ trên icon ở header (cartItemCount do BE trả về)
                                         const cartIcon = document.querySelector('.header-cart');
                                         if (cartIcon) {
                                             let badge = cartIcon.querySelector('.cart-badge');
