@@ -4,12 +4,14 @@ import com.isp392.petfood.dto.CartLineDto;
 import com.isp392.petfood.dto.CartView;
 import com.isp392.petfood.entity.Cart;
 import com.isp392.petfood.entity.CartItem;
+import com.isp392.petfood.entity.Customer;
 import com.isp392.petfood.entity.FlashSale;
 import com.isp392.petfood.entity.FlashSaleItem;
 import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Product;
 import com.isp392.petfood.enums.CategoryStatus;
 import com.isp392.petfood.enums.ExpiryLevel;
+import com.isp392.petfood.enums.MembershipTier;
 import com.isp392.petfood.enums.ProductStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
@@ -59,6 +61,7 @@ public class CartService {
     private final FlashSaleItemRepository flashSaleItemRepository;
     private final LotRepository lotRepository;
     private final InventoryPolicy inventoryPolicy;
+    private final MembershipPolicy membershipPolicy;
 
     // ===== Xem giỏ =====
 
@@ -98,7 +101,10 @@ public class CartService {
                 hasProblems = true;
             }
         }
-        return new CartView(lines, subtotal, totalQuantity, hasProblems);
+        MembershipTier tier = customerRepository.findById(customerId)
+                .map(Customer::getMembershipTier)
+                .orElse(MembershipTier.BRONZE);
+        return new CartView(lines, subtotal, totalQuantity, hasProblems, tier.getLabel(), membershipPolicy.rateOf(tier));
     }
 
     // Lọc các dòng giỏ theo id khách đã chọn; null hoặc rỗng: giữ cả giỏ. Giữ thứ tự của giỏ.
@@ -302,7 +308,7 @@ public class CartService {
         return new CartLineDto(
                 item.getId(),
                 product.getId(),
-                product.getSku(),
+                product.getFullSku(),
                 product.getName(),
                 product.getImageUrl(),
                 fsItem != null,

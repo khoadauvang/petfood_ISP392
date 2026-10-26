@@ -1,5 +1,6 @@
 package com.isp392.petfood.service;
 
+import com.isp392.petfood.dto.ChangePasswordForm;
 import com.isp392.petfood.dto.CustomerProfileDto;
 import com.isp392.petfood.dto.ProfileForm;
 import com.isp392.petfood.entity.Account;
@@ -9,6 +10,7 @@ import com.isp392.petfood.exception.InvalidImageException;
 import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +29,7 @@ public class CustomerProfileService {
     private final CustomerRepository customerRepository;
     private final ProductImageProcessor imageProcessor;
     private final AvatarStorage avatarStorage;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public CustomerProfileDto getProfile(Long customerId) {
@@ -68,6 +71,28 @@ public class CustomerProfileService {
         customer.setFullName(form.getFullName().trim());
         customer.setPhone(form.getPhone());                   // controller đã đổi chuỗi rỗng thành null
         return toDto(customer);
+    }
+
+    // Khách tự đổi mật khẩu (BR-02). Trả về accountId để controller đăng xuất các phiên khác.
+    // Tài khoản chỉ đăng nhập Google chưa có mật khẩu: đặt mật khẩu bằng OTP qua email (mục 9.11).
+    @Transactional
+    public Long changePassword(Long customerId, ChangePasswordForm form) {
+        Account account = find(customerId).getAccount();
+        if (account.getPasswordHash() == null) {
+            throw new BusinessRuleException("Tài khoản đăng nhập bằng Google chưa có mật khẩu. "
+                    + "Hãy dùng \"Quên mật khẩu\" để nhận mã OTP qua email và tạo mật khẩu.");
+        }
+        if (!passwordEncoder.matches(form.getCurrentPassword(), account.getPasswordHash())) {
+            throw new BusinessRuleException("currentPassword", "Mật khẩu hiện tại không đúng");
+        }
+        if (!form.getNewPassword().equals(form.getConfirmPassword())) {
+            throw new BusinessRuleException("confirmPassword", "Mật khẩu nhập lại không khớp");
+        }
+        if (form.getNewPassword().equals(form.getCurrentPassword())) {
+            throw new BusinessRuleException("newPassword", "Mật khẩu mới phải khác mật khẩu hiện tại");
+        }
+        account.setPasswordHash(passwordEncoder.encode(form.getNewPassword()));
+        return account.getId();
     }
 
     private Customer find(Long customerId) {

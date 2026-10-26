@@ -40,6 +40,11 @@ public class ShippingFeeService {
         this.originLng = originLng;
     }
 
+    // Ngưỡng tiền hàng (sau giảm giá hạng) để được miễn phí ship; trang giỏ dùng để hiện thanh tiến độ Freeship
+    public BigDecimal getFreeMinSubtotal() {
+        return freeMinSubtotal;
+    }
+
     // goodsTotal: tiền hàng sau giảm giá hạng, chưa gồm phí ship
     public ShippingQuote quote(String address, BigDecimal goodsTotal) {
         Optional<Location> location = geocoder.locate(address);

@@ -95,7 +95,7 @@ public class FlashSaleService {
     public List<RedLotOption> redLots(Long saleId) {
         return lotRepository.findRedInStock(inventoryPolicy.minFlashSaleExpiry(), inventoryPolicy.minSellableExpiry())
                 .stream()
-                .map(l -> new RedLotOption(l.getId(), l.getProduct().getSku(), l.getProduct().getName(),
+                .map(l -> new RedLotOption(l.getId(), l.getProduct().getFullSku(), l.getProduct().getName(),
                         l.getExpiryDate().format(DATE), inventoryPolicy.daysLeft(l.getExpiryDate()), l.getOnHandQty(),
                         available(l, saleId), l.getProduct().getSellingPrice(),
                         inventoryPolicy.flashSaleDiscountPercent(l.getExpiryDate()),
@@ -304,7 +304,7 @@ public class FlashSaleService {
     private FlashSaleItemRow toRow(FlashSaleItem item) {
         Lot lot = item.getLot();
         Product p = lot.getProduct();
-        return new FlashSaleItemRow(item.getId(), lot.getId(), p.getId(), p.getSku(), p.getName(),
+        return new FlashSaleItemRow(item.getId(), lot.getId(), p.getId(), p.getFullSku(), p.getName(),
                 lot.getExpiryDate().format(DATE), inventoryPolicy.daysLeft(lot.getExpiryDate()),
                 inventoryPolicy.levelOf(lot.getExpiryDate()), p.getSellingPrice(), item.getSalePrice(),
                 item.getAllocatedQty(), item.getSoldQty());
@@ -319,6 +319,11 @@ public class FlashSaleService {
                 item.getFlashSale().getEndTime().format(DATE_TIME), p.getId(), p.getName(), p.getBrand(),
                 p.getImageUrl(), p.getSellingPrice(), item.getSalePrice(), percent,
                 Math.min(item.getRemainingQty(), lot.getOnHandQty()),
-                lot.getExpiryDate().format(DATE), inventoryPolicy.daysLeft(lot.getExpiryDate()));
+                lot.getExpiryDate().format(DATE), inventoryPolicy.daysLeft(lot.getExpiryDate()),
+                p.getSpecies().name(), soldPercent(item), item.getFlashSale().getEndTime().withNano(0).toString());
+    }
+
+    private static int soldPercent(FlashSaleItem item) {
+        return item.getAllocatedQty() <= 0 ? 0 : Math.min(100, item.getSoldQty() * 100 / item.getAllocatedQty());
     }
 }

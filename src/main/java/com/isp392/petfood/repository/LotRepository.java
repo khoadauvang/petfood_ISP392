@@ -67,7 +67,7 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             select l from Lot l join fetch l.product p
             where (:productId is null or p.id = :productId)
               and (:keyword is null
-                   or p.sku like concat('%', :keyword, '%')
+                   or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%')
                    or p.name like concat('%', :keyword, '%'))
               and l.onHandQty >= :minOnHand
               and (:maxOnHand is null or l.onHandQty <= :maxOnHand)
@@ -77,7 +77,7 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             select count(l) from Lot l
             where (:productId is null or l.product.id = :productId)
               and (:keyword is null
-                   or l.product.sku like concat('%', :keyword, '%')
+                   or concat(l.product.sku, '-', l.product.variant) like concat('%', :keyword, '%')
                    or l.product.name like concat('%', :keyword, '%'))
               and l.onHandQty >= :minOnHand
               and (:maxOnHand is null or l.onHandQty <= :maxOnHand)

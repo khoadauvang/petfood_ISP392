@@ -78,13 +78,13 @@ public interface DashboardRepository extends Repository<Order, Long> {
 
     // Sản phẩm bán chạy: số lượng và tiền hàng (sau giảm hạng) trong các đơn giao thành công
     @Query(value = """
-            SELECT TOP 5 p.product_id AS productId, p.name AS name, p.sku AS sku,
+            SELECT TOP 5 p.product_id AS productId, p.name AS name, p.sku + N'-' + p.variant AS sku,
                    SUM(oi.quantity) AS quantity, SUM(oi.unit_price * oi.quantity - oi.discount_amount) AS revenue
             FROM dbo.OrderItem oi
             JOIN dbo.Orders o ON o.order_id = oi.order_id
             JOIN dbo.Product p ON p.product_id = oi.product_id
             WHERE o.order_status = N'COMPLETED' AND o.completed_at >= :from AND o.completed_at < :to
-            GROUP BY p.product_id, p.name, p.sku
+            GROUP BY p.product_id, p.name, p.sku, p.variant
             ORDER BY quantity DESC, revenue DESC
             """, nativeQuery = true)
     List<TopProductRow> topProducts(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);

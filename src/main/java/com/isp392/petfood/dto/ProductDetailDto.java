@@ -52,7 +52,7 @@ public class ProductDetailDto {
     public ProductDetailDto(Product product, List<ProductImage> images, StockSummary stock) {
         Category category = product.getCategory();
         this.id = product.getId();
-        this.sku = product.getSku();
+        this.sku = product.getFullSku();
         this.barcode = product.getBarcode();
         this.name = product.getName();
         this.brand = product.getBrand();

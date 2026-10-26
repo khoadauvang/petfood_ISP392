@@ -11,7 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Trang chủ - PetFood</title>
+        <title>Trang chủ - PetFood Dinh Dưỡng Thú Cưng Cao Cấp</title>
 
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
@@ -23,51 +23,58 @@
     <body>
 
         <%@ include file="/WEB-INF/views/common/_header.jspf" %>
+
         <!-- ================= HERO SLIDER 3 BANNER (FULL MÀN HÌNH) ================= -->
         <div class="hero-slider-container">
             <div class="slider-wrapper">
                 <!-- Slide 1 -->
                 <div class="slide active" style="background-image: url('${ctx}/images/banner1.jpg');">
                     <div class="slide-content">
+                        <div class="slide-badge"><i class="fi fi-rr-sparkles"></i> Dinh Dưỡng Chuẩn Chuyên Gia</div>
                         <h1>Nuôi cún mèo khỏe re,<br>Sen chẳng cần lo nghĩ!</h1>
-                        <p>Hệ thống dinh dưỡng và chăm sóc thú cưng cao cấp hàng đầu Việt Nam.</p>
+                        <p>Hệ thống dinh dưỡng và chăm sóc thú cưng cao cấp hàng đầu Việt Nam. Cam kết date mới FEFO 90+ ngày.</p>
                         <a href="${ctx}/products" class="slide-btn">Khám phá ngay &rarr;</a>
                     </div>
                 </div>
                 <!-- Slide 2 -->
                 <div class="slide" style="background-image: url('${ctx}/images/banner2.jpg');">
                     <div class="slide-content">
+                        <div class="slide-badge"><i class="fi fi-rr-flame"></i> Ưu Đãi Giờ Vàng</div>
                         <h1>Bữa ăn ngon chuẩn vị,<br>Bé mi nhon hết ý!</h1>
-                        <p>Khám phá ngay hàng trăm sản phẩm hạt, pate và ăn vặt.</p>
+                        <p>Khám phá ngay hàng trăm sản phẩm hạt, pate và ăn vặt chính hãng với chính sách đổi trả 3 ngày thảnh thơi.</p>
                         <a href="${ctx}/products" class="slide-btn">Xem ưu đãi ngay &rarr;</a>
                     </div>
                 </div>
                 <!-- Slide 3 -->
                 <div class="slide" style="background-image: url('${ctx}/images/banner3.jpg');">
                     <div class="slide-content">
+                        <div class="slide-badge"><i class="fi fi-rr-heart"></i> Yêu Thương Trọn Vẹn</div>
                         <h1>Boss ăn ngon miệng,<br>Sen nhận ngàn yêu thương!</h1>
-                        <p>Chăm sóc thú cưng từ những điều nhỏ nhất cùng các thương hiệu uy tín.</p>
+                        <p>Chăm sóc thú cưng từ những điều nhỏ nhất cùng các thương hiệu uy tín hàng đầu quốc tế.</p>
                         <a href="${ctx}/products?species=DOG" class="slide-btn">Xem sản phẩm cho Chó &amp; Mèo &rarr;</a>
                     </div>
                 </div>
             </div>
             <!-- Nút chuyển slide qua lại -->
-            <button class="slider-btn prev" onclick="moveSlide(-1)">&#10094;</button>
-            <button class="slider-btn next" onclick="moveSlide(1)">&#10095;</button>
+            <button class="slider-btn prev" onclick="moveSlide(-1)" aria-label="Slide trước">&#10094;</button>
+            <button class="slider-btn next" onclick="moveSlide(1)" aria-label="Slide sau">&#10095;</button>
         </div>
 
-        <!-- HERO SECTION GỐC -->
+        <!-- HERO SECTION 3D: DOG & CAT -->
         <section class="hero">
             <div class="pet-card dog-card">
                 <div class="pet-card-content">
+                    <div class="pet-3d-badge">
+                        <i class="fi fi-rr-bone"></i> Dành Riêng Cho Cún Cưng
+                    </div>
                     <div class="pet-title">
                         <div class="pet-icon"><i class="fi fi-rr-dog"></i></div>
                         <div>
-                            <span>Dành cho</span>
-                            <h1>Chó</h1>
+                            <span>Khám phá menu</span>
+                            <h1>Chó Cưng</h1>
                         </div>
                     </div>
-                    <p>Thức ăn, pate, chăm sóc cho chú cún khỏe mạnh mỗi ngày.</p>
+                    <p>Hạt dinh dưỡng, pate thượng hạng, snack gặm sạch răng và chăm sóc lông cho chú cún khỏe mạnh toàn diện.</p>
                     <a href="${ctx}/products?species=DOG" class="pet-button">
                         Khám phá ngay <span>&rarr;</span>
                     </a>
@@ -77,14 +84,17 @@
 
             <div class="pet-card cat-card">
                 <div class="pet-card-content">
+                    <div class="pet-3d-badge">
+                        <i class="fi fi-rr-fish"></i> Dành Riêng Cho Hoàng Thượng
+                    </div>
                     <div class="pet-title">
                         <div class="pet-icon"><i class="fi fi-rr-cat"></i></div>
                         <div>
-                            <span>Dành cho</span>
-                            <h1>Mèo</h1>
+                            <span>Khám phá menu</span>
+                            <h1>Mèo Cưng</h1>
                         </div>
                     </div>
-                    <p>Thức ăn, pate, chăm sóc cho bé mèo luôn lanh lợi và khỏe mạnh.</p>
+                    <p>Pate bổ sung nước, hạt ngừa búi lông, thức ăn chuyên dụng cho từng giống mèo luôn lanh lợi và mượt lông.</p>
                     <a href="${ctx}/products?species=CAT" class="pet-button">
                         Khám phá ngay <span>&rarr;</span>
                     </a>
@@ -93,45 +103,45 @@
             </div>
         </section>
 
-        <!-- BENEFITS SECTION GỐC -->
+        <!-- BENEFITS SECTION 3D: CAM KẾT VÀNG -->
         <section class="benefits">
             <div class="benefit-item">
                 <div class="benefit-icon"><i class="fi fi-rr-shipping-fast"></i></div>
                 <div>
-                    <h3>Mua hàng tận nơi</h3>
-                    <p>Giao hàng nhanh chóng</p>
+                    <h3>Giao hỏa tốc 2 giờ</h3>
+                    <p>Nhận ngay khi boss đói</p>
                 </div>
             </div>
             <div class="benefit-item">
                 <div class="benefit-icon"><i class="fi fi-rr-shield-check"></i></div>
                 <div>
-                    <h3>Sản phẩm chất lượng</h3>
-                    <p>Nguồn gốc chính hãng</p>
+                    <h3>100% Chính hãng</h3>
+                    <p>Chuẩn FEFO date mới 90+ ngày</p>
                 </div>
             </div>
             <div class="benefit-item">
                 <div class="benefit-icon"><i class="fi fi-rr-heart"></i></div>
                 <div>
                     <h3>Chăm sóc tận tâm</h3>
-                    <p>Hỗ trợ nhiệt tình</p>
+                    <p>Bác sĩ thú y tư vấn 24/7</p>
                 </div>
             </div>
             <div class="benefit-item">
                 <div class="benefit-icon"><i class="fi fi-rr-tags"></i></div>
                 <div>
                     <h3>Giá cả cạnh tranh</h3>
-                    <p>Nhiều ưu đãi hấp dẫn</p>
+                    <p>Tích điểm đổi quà siêu hời</p>
                 </div>
             </div>
         </section>
 
-        <!-- SẢN PHẨM BÁN CHẠY & MỚI VỀ -->
+        <!-- SẢN PHẨM BÁN CHẠY & MỚI VỀ (3D PRODUCT SHOWCASE) -->
         <section class="product-section">
             <div class="section-header">
                 <div>
-                    <span class="section-label">THƯƠNG HIỆU UY TÍN</span>
+                    <span class="section-label">THƯƠNG HIỆU UY TÍN &bull; DATE MỚI NHẤT</span>
                     <h2>Sản phẩm bán chạy &amp; Mới về</h2>
-                    <p>Khám phá các dòng sản phẩm dinh dưỡng tốt nhất được lựa chọn nhiều nhất.</p>
+                    <p>Các dòng sản phẩm dinh dưỡng cao cấp đạt chuẩn FEFO, được hàng chục ngàn Sen tin chọn.</p>
                 </div>
                 <a href="${ctx}/products" class="view-all">Xem tất cả sản phẩm &rarr;</a>
             </div>
@@ -140,6 +150,7 @@
                 <c:forEach var="p" items="${featuredProducts}">
                     <div class="product-card">
                         <a href="${ctx}/products/${p.id}" class="product-image">
+                            <span class="fefo-product-tag"><i class="fi fi-rr-calendar"></i> FEFO Date Mới</span>
                             <c:choose>
                                 <c:when test="${not empty p.imageUrl}">
                                     <img src="${ctx}${p.imageUrl}" alt="${p.name}">
@@ -153,12 +164,11 @@
 
                             <div class="stock-status ${p.inStock ? '' : 'out-of-stock'}">
                                 <span class="stock-dot"></span>
-                                <span>${p.inStock ? 'Còn hàng' : 'Hết hàng'}</span>
+                                <span>${p.inStock ? 'Còn hàng trong kho' : 'Tạm hết hàng'}</span>
                             </div>
 
-                            <%-- Staff/Admin không có giỏ hàng (/cart/** chỉ cho CUSTOMER); Guest bấm thì được đưa tới trang đăng nhập --%>
                             <c:choose>
-                                <c:when test="${p.inStock and (currentUser == null or currentUser.role == 'CUSTOMER')}">
+                                <c:when test="${p.inStock}">
                                     <form action="${ctx}/cart/add" method="post">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                         <input type="hidden" name="productId" value="${p.id}">
@@ -169,11 +179,11 @@
                                         </button>
                                     </form>
                                 </c:when>
-                                <c:when test="${not p.inStock}">
+                                <c:otherwise>
                                     <button type="button" class="add-cart-btn" disabled style="background: #d5cbc5; cursor: not-allowed;">
                                         Hết hàng
                                     </button>
-                                </c:when>
+                                </c:otherwise>
                             </c:choose>
                         </div>
                     </div>
@@ -181,13 +191,194 @@
             </div>
         </section>
 
-        <!-- CTA SECTION GỐC -->
+        <!-- ================= KHỐI NỐI LIỀN MÀU KEM HỒNG: CHÍNH SÁCH ĐỔI TRẢ 3 NGÀY - AN TÂM MUA HÀNG ================= -->
+        <section class="fefo-return-banner">
+            <div class="fefo-banner-header">
+                <span class="fefo-badge-pill">
+                    <i class="fi fi-rr-badge-check"></i> AN TÂM MUA SẮM TUYỆT ĐỐI
+                </span>
+                <h2>Chính sách đổi trả trong vòng 3 ngày - An tâm mua hàng</h2>
+                <p>Tại PetFood, sự hài lòng và sức khỏe của thú cưng là ưu tiên hàng đầu. Chúng tôi thiết lập tiêu chuẩn dịch vụ khắt khe nhất để Sen hoàn toàn yên tâm trong từng đơn hàng.</p>
+            </div>
+
+            <div class="fefo-cards-grid">
+                <!-- Cột 1: Đổi trả 3 ngày -->
+                <div class="fefo-card">
+                    <div class="fefo-card-icon"><i class="fi fi-rr-rotate-right"></i></div>
+                    <h4>Đổi trả 3 ngày thảnh thơi</h4>
+                    <p>Bé không hợp khẩu vị hoặc bao bì có tì vết? Hỗ trợ đổi mới hoặc hoàn tiền ngay trong 3 ngày, thủ tục tinh gọn 100% online.</p>
+                </div>
+
+                <!-- Cột 2: Chuẩn Date mới FEFO -->
+                <div class="fefo-card">
+                    <div class="fefo-card-icon"><i class="fi fi-rr-calendar-check"></i></div>
+                    <h4>Chuẩn FEFO Date mới</h4>
+                    <p>Kiểm soát kho thông minh First-Expired-First-Out. Luôn cam kết hạn dùng xa trên 90 ngày, đảm bảo dinh dưỡng và mùi vị vẹn nguyên.</p>
+                </div>
+
+                <!-- Cột 3: Giao hỏa tốc 2 giờ -->
+                <div class="fefo-card">
+                    <div class="fefo-card-icon"><i class="fi fi-rr-box-alt"></i></div>
+                    <h4>Đóng gói 3 lớp bảo quản</h4>
+                    <p>Hàng hóa được bọc chống sốc và túi hút ẩm chuyên dụng, giữ hạt giòn tan và pate tươi ngon suốt hành trình vận chuyển.</p>
+                </div>
+
+                <!-- Cột 4: Đồng hành thú y -->
+                <div class="fefo-card">
+                    <div class="fefo-card-icon"><i class="fi fi-rr-stethoscope"></i></div>
+                    <h4>Bác sĩ thú y đồng hành</h4>
+                    <p>Tư vấn chế độ ăn chuẩn thể trạng cho từng giống loài, giải đáp thắc mắc về dị ứng, tăng cân hay kiểm soát búi lông hoàn toàn miễn phí.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MỤC CUỘN MỚI 1: DINH DƯỠNG THEO TỪNG GIAI ĐOẠN PHÁT TRIỂN (3D) ================= -->
+        <section class="life-stage-section">
+            <div class="section-header">
+                <div>
+                    <span class="section-label">CHẾ ĐỘ DINH DƯỠNG KHOA HỌC</span>
+                    <h2>Chọn thức ăn chuẩn theo từng giai đoạn</h2>
+                    <p>Mỗi lứa tuổi của Boss cần một công thức dinh dưỡng chuyên biệt để phát triển thể chất tối ưu.</p>
+                </div>
+            </div>
+
+            <div class="life-stage-grid">
+                <!-- Giai đoạn 1: Puppy & Kitten -->
+                <div class="stage-card">
+                    <div class="stage-top">
+                        <span class="stage-badge"><i class="fi fi-rr-sparkles"></i> Bé Con Khởi Đầu</span>
+                        <span class="stage-age">0 - 12 Tháng</span>
+                    </div>
+                    <h3>Puppy &amp; Kitten Khỏe Mạnh</h3>
+                    <p>Giai đoạn vàng hình thành khung xương, phát triển trí não và thiết lập hệ miễn dịch non nớt.</p>
+                    <ul class="stage-features">
+                        <li><i class="fi fi-rr-check"></i> Hàm lượng Protein cao &gt; 32% từ thịt thật</li>
+                        <li><i class="fi fi-rr-check"></i> Bổ sung DHA phát triển não bộ và thị lực</li>
+                        <li><i class="fi fi-rr-check"></i> Canxi và Phốt-pho cân bằng cho xương răng chắc</li>
+                    </ul>
+                    <a href="${ctx}/products" class="stage-btn">Xem sản phẩm cho thú con &rarr;</a>
+                </div>
+
+                <!-- Giai đoạn 2: Trưởng thành -->
+                <div class="stage-card">
+                    <div class="stage-top">
+                        <span class="stage-badge"><i class="fi fi-rr-bolt"></i> Năng Lượng Đỉnh Cao</span>
+                        <span class="stage-age">1 - 7 Tuổi</span>
+                    </div>
+                    <h3>Thú Cưng Trưởng Thành</h3>
+                    <p>Duy trì cơ bắp săn chắc, giữ bộ lông bóng mượt và hỗ trợ hệ tiêu hóa luôn ổn định tràn đầy năng lượng.</p>
+                    <ul class="stage-features">
+                        <li><i class="fi fi-rr-check"></i> Tỷ lệ năng lượng cân đối, chống béo phì</li>
+                        <li><i class="fi fi-rr-check"></i> Omega 3 &amp; 6 nuôi dưỡng da và lông óng mượt</li>
+                        <li><i class="fi fi-rr-check"></i> Men vi sinh Probiotics bảo vệ đường ruột</li>
+                    </ul>
+                    <a href="${ctx}/products" class="stage-btn">Xem sản phẩm trưởng thành &rarr;</a>
+                </div>
+
+                <!-- Giai đoạn 3: Cao tuổi -->
+                <div class="stage-card">
+                    <div class="stage-top">
+                        <span class="stage-badge"><i class="fi fi-rr-shield-check"></i> Bảo Vệ Tuổi Vàng</span>
+                        <span class="stage-age">7+ Tuổi</span>
+                    </div>
+                    <h3>Chăm Sóc Boss Cao Tuổi</h3>
+                    <p>Công thức dịu nhẹ, hỗ trợ chức năng xương khớp, thận và tim mạch cho thú cưng bước vào độ tuổi xế chiều.</p>
+                    <ul class="stage-features">
+                        <li><i class="fi fi-rr-check"></i> Glucosamine &amp; Chondroitin tái tạo sụn khớp</li>
+                        <li><i class="fi fi-rr-check"></i> Kiểm soát Natri và Phốt-pho bảo vệ thận</li>
+                        <li><i class="fi fi-rr-check"></i> Hạt giòn xốp mềm, dễ nhai và dễ tiêu hóa</li>
+                    </ul>
+                    <a href="${ctx}/products" class="stage-btn">Xem sản phẩm chăm sóc khớp &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MỤC CUỘN MỚI 2: ĐÁNH GIÁ TỪ HỘI SEN (3D TESTIMONIALS) ================= -->
+        <section class="testimonials-section">
+            <div class="section-header">
+                <div>
+                    <span class="section-label">HỘI SEN TIN CHỌN</span>
+                    <h2>Trải nghiệm thực tế từ khách hàng</h2>
+                    <p>Hơn 25.000+ Sen trên khắp cả nước đã tin tưởng và an tâm mua sắm tại PetFood.</p>
+                </div>
+            </div>
+
+            <div class="testimonials-grid">
+                <!-- Review 1 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                    </div>
+                    <p class="testimonial-quote">
+                        "Bé Poodle nhà mình kén ăn hạt kinh khủng. Được bạn tư vấn bên PetFood hướng dẫn trộn hạt với pate theo tỷ lệ chuẩn, giờ bé ăn sạch bát! Giao hàng siêu nhanh, date xa tít tắp đến tận năm sau."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar"><i class="fi fi-rr-dog"></i></div>
+                        <div class="author-info">
+                            <h5>Chị Minh Anh</h5>
+                            <span>Sen của bé Bơ &amp; Miu (Hà Nội)</span>
+                            <div class="verified-tag"><i class="fi fi-rr-badge-check"></i> Đã mua hàng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                    </div>
+                    <p class="testimonial-quote">
+                        "Chính sách đổi trả trong vòng 3 ngày làm mình cực kỳ an tâm. Có đợt đặt nhầm vị cho bé mèo, nhắn tin qua chatbox được các bạn hỗ trợ đổi vị cá hồi ngay trong ngày. Đóng gói rất cẩn thận!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar"><i class="fi fi-rr-cat"></i></div>
+                        <div class="author-info">
+                            <h5>Anh Hoàng Long</h5>
+                            <span>Sen của bé Mèo Mun (Đà Nẵng)</span>
+                            <div class="verified-tag"><i class="fi fi-rr-badge-check"></i> Đã mua hàng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review 3 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                        <i class="fi fi-rr-star"></i>
+                    </div>
+                    <p class="testimonial-quote">
+                        "Biết PetFood áp dụng chuẩn kho FEFO nên mình toàn mua thùng về cho bé Corgi ăn dần. Date thức ăn luôn mới toanh, túi zip chắc chắn thơm phức. 10 điểm cho chất lượng và độ tận tâm!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar"><i class="fi fi-rr-heart"></i></div>
+                        <div class="author-info">
+                            <h5>Bạn Thảo Vy</h5>
+                            <span>Sen của bé Bắp (TP. Hồ Chí Minh)</span>
+                            <div class="verified-tag"><i class="fi fi-rr-badge-check"></i> Đã mua hàng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION 3D: CHĂM SÓC THÚ CƯNG TOÀN DIỆN -->
         <section class="cta">
             <div class="cta-content">
-                <span>PETFOOD</span>
+                <span>PETFOOD &bull; AN TÂM DINH DƯỠNG</span>
                 <h2>Chăm sóc thú cưng bằng những điều tốt nhất</h2>
-                <p>Khám phá ngay hàng trăm sản phẩm dinh dưỡng cao cấp, phụ kiện và thức ăn phù hợp cho từng giai đoạn phát triển của thú cưng.</p>
-                <a href="${ctx}/products" class="cta-button">Khám phá sản phẩm</a>
+                <p>Khám phá ngay hàng trăm sản phẩm dinh dưỡng cao cấp, hạt chuẩn date FEFO và phụ kiện chính hãng giúp Boss phát triển khỏe mạnh mỗi ngày.</p>
+                <a href="${ctx}/products" class="cta-button">Khám phá sản phẩm ngay &rarr;</a>
             </div>
         </section>
 
@@ -217,7 +408,7 @@
                 });
             });
 
-            // 3. Code mới: Chuyển đổi qua lại 3 ảnh Banner tự động
+            // 3. Chuyển đổi qua lại 3 ảnh Banner tự động
             let currentSlide = 0;
             function showSlide(index) {
                 const slides = document.querySelectorAll(".slide");

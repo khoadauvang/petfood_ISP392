@@ -19,8 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 // Đơn hàng của khách. /orders/** chỉ cho CUSTOMER; chỉ thấy đơn của chính mình (đơn người khác -> 404).
-//   GET  /orders                 lịch sử đơn, mới nhất trước
+//   GET  /orders                 lịch sử đơn, mới nhất trước; ?status=PENDING,CONFIRMED lọc theo tab trạng thái
 //   GET  /orders/{id}            chi tiết đơn: dòng hàng, lô + HSD đã giao, các mốc trạng thái
 //   POST /orders/{id}/cancel     huỷ (PENDING / CONFIRMED) hoặc gửi yêu cầu huỷ (PROCESSING), BR-19
 @Controller
@@ -33,14 +38,31 @@ public class OrderController {
 
     @GetMapping
     public String list(@AuthenticationPrincipal AccountPrincipal user,
+                       @RequestParam(name = "status", required = false) String status,
                        @RequestParam(name = "page", defaultValue = "1") int page,
                        Model model) {
-        Page<OrderRow> result = orderService.listForCustomer(user.getCustomerId(), Math.max(page, 1) - 1);
+        Set<OrderStatus> statuses = parseStatuses(status);
+        Page<OrderRow> result = orderService.listForCustomer(user.getCustomerId(), statuses, Math.max(page, 1) - 1);
+        String statusValue = statuses.stream().map(Enum::name).collect(Collectors.joining(","));
         model.addAttribute("orders", result.getContent());
+        model.addAttribute("orderItems", orderService.itemPreviews(result.getContent().stream().map(OrderRow::getId).toList()));
         model.addAttribute("currentPage", result.getNumber() + 1);
         model.addAttribute("totalPages", result.getTotalPages());
         model.addAttribute("totalItems", result.getTotalElements());
+        model.addAttribute("status", statusValue);
+        model.addAttribute("filterQuery", QueryStrings.of("status", statusValue));
         return "customer/orders";
+    }
+
+    // Tab trạng thái gửi lên dạng "PENDING,CONFIRMED"; giá trị lạ thì bỏ qua, rỗng = mọi trạng thái
+    private static Set<OrderStatus> parseStatuses(String status) {
+        Set<OrderStatus> statuses = EnumSet.noneOf(OrderStatus.class);
+        if (status != null) {
+            for (String s : status.split(",")) {
+                Arrays.stream(OrderStatus.values()).filter(v -> v.name().equalsIgnoreCase(s.trim())).forEach(statuses::add);
+            }
+        }
+        return statuses;
     }
 
     @GetMapping("/{id}")

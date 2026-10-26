@@ -108,7 +108,7 @@ public class LotService {
     public Lot receive(Product product, LocalDate expiryDate, int quantity) {
         Map<String, String> errors = new LinkedHashMap<>();
         if (product.getStatus() != ProductStatus.ACTIVE) {
-            errors.put("productId", "Sản phẩm " + product.getSku()
+            errors.put("productId", "Sản phẩm " + product.getFullSku()
                     + " đang ngừng kinh doanh, hãy mở bán lại trước khi nhập lô");
         }
         String expiryProblem = expiryProblemForNewLot(expiryDate);
@@ -215,7 +215,7 @@ public class LotService {
         for (Product p : products) {
             String catName = p.getCategory() != null ? p.getCategory().getName() : "Chưa phân loại";
             ProductLotGroupDto dto = new ProductLotGroupDto(
-                    p.getId(), p.getSku(), p.getName(), p.getImageUrl(), catName, p.getLowStockThreshold());
+                    p.getId(), p.getFullSku(), p.getName(), p.getImageUrl(), catName, p.getLowStockThreshold());
             groupMap.put(p.getId(), dto);
         }
 

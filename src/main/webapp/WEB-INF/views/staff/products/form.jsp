@@ -448,12 +448,39 @@
                         </div>
                     </div>
 
+                    <%-- SKU = mã dòng sản phẩm (chung cho mọi quy cách), biến thể = quy cách. Mã đầy đủ = SKU-BIẾN THỂ,
+                         dùng làm thư mục lưu ảnh. Thêm biến thể cho dòng có sẵn thì SKU đã điền sẵn, chỉ nhập biến thể. --%>
                     <div class="form-group">
                         <label class="form-label" for="sku">Mã SKU <span class="req">*</span></label>
-                        <form:input path="sku" id="sku" maxlength="50" cssClass="form-control" style="font-family:monospace; font-weight:700; text-transform:uppercase;" placeholder="RC-KITTEN36-400G" required="required"/>
-                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Chữ in hoa, số và dấu gạch ngang (Dùng làm thư mục lưu ảnh).</span>
+                        <form:input path="sku" id="sku" maxlength="50" cssClass="form-control" style="font-family:monospace; font-weight:700; text-transform:uppercase;" placeholder="RC-KITTEN36" required="required"/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Mã dòng sản phẩm, chung cho các quy cách: chữ in hoa, số và dấu gạch ngang.</span>
                         <form:errors path="sku" cssClass="err"/>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="variant">Biến thể (quy cách) <span class="req">*</span></label>
+                        <form:input path="variant" id="variant" maxlength="20" cssClass="form-control" style="font-family:monospace; font-weight:700; text-transform:uppercase;" placeholder="400G" required="required"/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">
+                            Chữ in hoa, số và dấu chấm, không có dấu gạch ngang. Mã đầy đủ: <strong id="fullSkuPreview" style="font-family:monospace;"></strong>
+                        </span>
+                        <form:errors path="variant" cssClass="err"/>
+                    </div>
+                    <script>
+                        // Xem trước mã đầy đủ SKU-BIẾN THỂ khi nhân viên gõ
+                        (function () {
+                            const sku = document.getElementById('sku');
+                            const variant = document.getElementById('variant');
+                            const out = document.getElementById('fullSkuPreview');
+                            function render() {
+                                const a = (sku.value || '').trim().toUpperCase();
+                                const b = (variant.value || '').trim().toUpperCase();
+                                out.textContent = a && b ? a + '-' + b : '—';
+                            }
+                            sku.addEventListener('input', render);
+                            variant.addEventListener('input', render);
+                            render();
+                        })();
+                    </script>
 
                     <div class="form-group">
                         <label class="form-label" for="barcode">Mã vạch Barcode</label>

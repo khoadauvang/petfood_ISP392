@@ -27,4 +27,20 @@ public class AccountSessionService {
         }
         return count;
     }
+
+    // Như expireSessions nhưng giữ lại phiên đang dùng (khách tự đổi mật khẩu: các thiết bị khác phải đăng nhập lại)
+    public int expireOtherSessions(Long accountId, String keepSessionId) {
+        int count = 0;
+        for (Object principal : sessionRegistry.getAllPrincipals()) {
+            if (principal instanceof AccountPrincipal p && p.getAccountId().equals(accountId)) {
+                for (SessionInformation session : sessionRegistry.getAllSessions(principal, false)) {
+                    if (!session.getSessionId().equals(keepSessionId)) {
+                        session.expireNow();
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
 }

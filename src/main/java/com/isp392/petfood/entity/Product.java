@@ -23,8 +23,13 @@ public class Product {
     @Column(name = "product_id")
     private Long id;
 
+    // Mã dòng sản phẩm, chung cho mọi quy cách: RC-BRITISHSHORTHAIR (FoodPetShop_FullSetup3_ProductVariant.sql)
     @Column(name = "sku", nullable = false, length = 50)
-    private String sku;                // UQ_Product_sku
+    private String sku;
+
+    // Biến thể / quy cách: 2000G. UNIQUE (sku, variant); không chứa '-', sku + '-' + variant <= 50 ký tự (CK_Product_variant)
+    @Column(name = "variant", nullable = false, length = 20)
+    private String variant;
 
     @Column(name = "barcode", length = 50)
     private String barcode;            // được NULL; UNIQUE có lọc (UX_Product_barcode) nên ô trống phải lưu NULL, không lưu ""
@@ -70,6 +75,11 @@ public class Product {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // Mã đầy đủ để hiển thị / tìm kiếm / đặt tên thư mục ảnh: RC-BRITISHSHORTHAIR-2000G
+    public String getFullSku() {
+        return sku + "-" + variant;
+    }
 
     @PrePersist
     void onCreate() {

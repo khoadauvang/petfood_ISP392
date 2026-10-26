@@ -462,7 +462,7 @@ public class ReturnService {
     private ReturnDetailDto toDetail(ReturnRequest r) {
         List<ReturnLineDto> lines = returnItemRepository.findByReturnId(r.getId()).stream()
                 .map(i -> new ReturnLineDto(i.getId(), i.getOrderItem().getProduct().getId(),
-                        i.getOrderItem().getProduct().getSku(), i.getOrderItem().getProduct().getName(),
+                        i.getOrderItem().getProduct().getFullSku(), i.getOrderItem().getProduct().getName(),
                         i.getOrderItem().getFlashSaleItem() != null, i.getOrderItem().getQuantity(), i.getQuantity(),
                         Boolean.TRUE.equals(i.getOpened()), maxRefund(i), i.getInspectionResult(),
                         i.getInspectionNote(), i.getRefundAmount()))

@@ -37,7 +37,7 @@ public class LotRow {
         Product product = lot.getProduct();
         this.id = lot.getId();
         this.productId = product.getId();
-        this.sku = product.getSku();
+        this.sku = product.getFullSku();
         this.productName = product.getName();
         this.productStatus = product.getStatus();
         this.expiryDate = lot.getExpiryDate();

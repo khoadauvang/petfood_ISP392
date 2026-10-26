@@ -34,14 +34,14 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
             select r from ProductReview r join fetch r.product p join fetch r.customer c
             where (:status is null or r.status = :status)
               and (:unreplied = false or not exists (select 1 from ReviewReply rr where rr.review = r))
-              and (:keyword is null or p.name like concat('%', :keyword, '%') or p.sku like concat('%', :keyword, '%'))
+              and (:keyword is null or p.name like concat('%', :keyword, '%') or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%'))
             """,
             countQuery = """
             select count(r) from ProductReview r
             where (:status is null or r.status = :status)
               and (:unreplied = false or not exists (select 1 from ReviewReply rr where rr.review = r))
               and (:keyword is null or r.product.name like concat('%', :keyword, '%')
-                   or r.product.sku like concat('%', :keyword, '%'))
+                   or concat(r.product.sku, '-', r.product.variant) like concat('%', :keyword, '%'))
             """)
     Page<ProductReview> search(@Param("status") ReviewStatus status,
                                @Param("unreplied") boolean unreplied,

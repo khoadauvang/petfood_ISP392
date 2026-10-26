@@ -36,7 +36,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
               and (:keyword is null
                    or p.name like concat('%', :keyword, '%')
                    or p.brand like concat('%', :keyword, '%')
-                   or p.sku like concat('%', :keyword, '%'))
+                   or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%'))
               and (:categoryId is null or c.id = :categoryId)
               and (:species is null or p.species = :species)
               and (:ageGroup is null or p.ageGroup = :ageGroup
@@ -65,9 +65,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<String> findShopBrands();
 
     // ===== Kiểm tra trùng trước khi lưu (DB vẫn là chốt chặn cuối bằng UNIQUE) =====
-    boolean existsBySku(String sku);
+    // (sku, variant) là UNIQUE: RC-KITTEN36 + 400G
+    boolean existsBySkuAndVariant(String sku, String variant);
 
-    boolean existsBySkuAndIdNot(String sku, Long id);           // khi sửa: bỏ qua chính nó
+    boolean existsBySkuAndVariantAndIdNot(String sku, String variant, Long id);   // khi sửa: bỏ qua chính nó
 
     boolean existsByBarcode(String barcode);
 
@@ -99,7 +100,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select p from Product p join fetch p.category c
             where (:keyword is null
                    or p.name like concat('%', :keyword, '%')
-                   or p.sku like concat('%', :keyword, '%')
+                   or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%')
                    or p.barcode like concat('%', :keyword, '%')
                    or p.brand like concat('%', :keyword, '%'))
               and (:categoryId is null or c.id = :categoryId)
@@ -110,7 +111,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select count(p) from Product p
             where (:keyword is null
                    or p.name like concat('%', :keyword, '%')
-                   or p.sku like concat('%', :keyword, '%')
+                   or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%')
                    or p.barcode like concat('%', :keyword, '%')
                    or p.brand like concat('%', :keyword, '%'))
               and (:categoryId is null or p.category.id = :categoryId)
@@ -127,7 +128,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findWithCategoryById(@Param("id") Long id);
 
     // Danh sách chọn sản phẩm ở form nhập lô
-    List<Product> findAllByOrderBySkuAsc();
+    List<Product> findAllByOrderBySkuAscVariantAsc();
 
     // ===== Cảnh báo tồn thấp (BR-62) =====
     // Tồn bán thường = tổng on_hand các lô còn hạn >= minExpiry (cùng cách tính với trang chủ, BR-54).
@@ -144,13 +145,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     }
 
     @Query("""
-            select p.id as productId, p.sku as sku, p.name as name, p.imageUrl as imageUrl,
+            select p.id as productId, concat(p.sku, '-', p.variant) as sku, p.name as name, p.imageUrl as imageUrl,
                    p.lowStockThreshold as threshold,
                    coalesce(sum(case when l.expiryDate >= :minExpiry then l.onHandQty else 0 end), 0) as sellableQty,
                    coalesce(sum(l.onHandQty), 0) as onHandQty
             from Product p left join Lot l on l.product = p
             where p.status = :status
-            group by p.id, p.sku, p.name, p.imageUrl, p.lowStockThreshold
+            group by p.id, p.sku, p.variant, p.name, p.imageUrl, p.lowStockThreshold
             having coalesce(sum(case when l.expiryDate >= :minExpiry then l.onHandQty else 0 end), 0)
                    <= p.lowStockThreshold
             """)

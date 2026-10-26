@@ -1,0 +1,183 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<style>
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.user-card-mini {
+    background: var(--bg-card, #fefbf4);
+    padding: 24px 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border-card, #f4e3c9);
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(61, 48, 40, 0.04);
+}
+
+.avatar-mini {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    margin: 0 auto 12px;
+    border: 3px solid var(--primary-orange, #f47721);
+    display: block;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.user-mini-info h4 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-primary, #3d3028);
+    margin: 0 0 4px;
+}
+
+.user-mini-info .email-sub {
+    font-size: 12px;
+    color: var(--text-secondary, #817872);
+    margin-bottom: 10px;
+    display: block;
+    word-break: break-all;
+}
+
+.badge-tier-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sidebar-menu {
+    background: var(--bg-card, #fefbf4);
+    border-radius: 20px;
+    border: 1px solid var(--border-card, #f4e3c9);
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(61, 48, 40, 0.04);
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    text-decoration: none;
+    color: var(--text-primary, #3d3028);
+    font-size: 13.5px;
+    font-weight: 600;
+    border-bottom: 1px solid #f6eee3;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    background: transparent;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.menu-item span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item.active {
+    background: var(--primary-orange, #f47721) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+.menu-item.active span {
+    color: #ffffff !important;
+}
+
+.menu-item:hover:not(.active) {
+    background: #fdf5ea;
+    color: var(--primary-orange, #f47721);
+}
+
+.logout-btn {
+    border: none;
+    font: inherit;
+    color: #ef4444 !important;
+}
+
+.logout-btn:hover {
+    background: #fff5f5 !important;
+    color: #dc2626 !important;
+}
+
+</style>
+<aside class="sidebar">
+    <!-- THÔNG TIN USER MINI -->
+    <div class="user-card-mini">
+        <c:choose>
+            <c:when test="${not empty profile && not empty profile.avatarUrl}">
+                <img class="avatar-mini" src="${ctx}<c:out value='${profile.avatarUrl}'/>" alt="Avatar">
+            </c:when>
+            <c:otherwise>
+                <img class="avatar-mini" src="https://ui-avatars.com/api/?name=${not empty currentUser.fullName ? currentUser.fullName : 'Customer'}&background=F47721&color=fff" alt="Avatar">
+            </c:otherwise>
+        </c:choose>
+
+        <div class="user-mini-info">
+            <h4><c:out value="${not empty currentUser.fullName ? currentUser.fullName : 'Khách hàng'}"/></h4>
+            <span class="email-sub"><c:out value="${currentUser.username}"/></span>
+
+            <c:if test="${not empty profile && not empty profile.tierLabel}">
+                <div class="badge-tier-pill">
+                    <i class="fi fi-rr-crown"></i> Hội viên <c:out value="${profile.tierLabel}"/>
+                </div>
+            </c:if>
+        </div>
+    </div>
+
+    <!-- MENU ĐIỀU HƯỚNG -->
+    <nav class="sidebar-menu">
+        <c:choose>
+            <c:when test="${onProfilePage}">
+                <div id="btn-side-info" class="menu-item ${activeMenu == 'profile' ? 'active' : ''}" onclick="switchTab('info')">
+                    <span><i class="fi fi-rr-user"></i> Hồ sơ của tôi</span>
+                </div>
+                <div id="btn-side-tier" class="menu-item ${activeMenu == 'tier' ? 'active' : ''}" onclick="switchTab('tier')">
+                    <span><i class="fi fi-rr-crown"></i> Hạng hội viên</span>
+                    <i class="fi fi-rr-angle-small-right"></i>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <a href="${ctx}/profile" class="menu-item ${activeMenu == 'profile' ? 'active' : ''}">
+                    <span><i class="fi fi-rr-user"></i> Hồ sơ của tôi</span>
+                </a>
+                <a href="${ctx}/profile?tab=tier" class="menu-item ${activeMenu == 'tier' ? 'active' : ''}">
+                    <span><i class="fi fi-rr-crown"></i> Hạng hội viên</span>
+                    <i class="fi fi-rr-angle-small-right"></i>
+                </a>
+            </c:otherwise>
+        </c:choose>
+
+        <a href="${ctx}/orders" class="menu-item ${activeMenu == 'orders' || activeMenu == 'returns' ? 'active' : ''}">
+            <span><i class="fi fi-rr-box"></i> Đơn hàng của tôi</span>
+            <i class="fi fi-rr-angle-small-right"></i>
+        </a>
+
+        <form action="${ctx}/logout" method="post" style="margin:0;">
+            <c:if test="${not empty _csrf}">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+            </c:if>
+            <button type="submit" class="menu-item logout-btn">
+                <span><i class="fi fi-rr-sign-out-alt"></i> Đăng xuất</span>
+            </button>
+        </form>
+    </nav>
+</aside>

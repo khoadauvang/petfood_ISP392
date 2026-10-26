@@ -1,6 +1,7 @@
 package com.isp392.petfood.service;
 
 import com.isp392.petfood.dto.OrderDetailDto;
+import com.isp392.petfood.dto.OrderItemPreview;
 import com.isp392.petfood.dto.OrderLineDto;
 import com.isp392.petfood.dto.OrderRow;
 import com.isp392.petfood.entity.Customer;
@@ -37,7 +38,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,12 +77,26 @@ public class OrderService {
 
     // ===== Phía khách =====
 
-    // Lịch sử đơn, mới nhất trước. pageNumber tính từ 0.
+    // Lịch sử đơn, mới nhất trước. pageNumber tính từ 0. statuses rỗng: mọi trạng thái.
     @Transactional(readOnly = true)
-    public Page<OrderRow> listForCustomer(Long customerId, int pageNumber) {
-        Page<Order> orders = orderRepository.findByCustomer_Id(customerId,
-                PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id")));
+    public Page<OrderRow> listForCustomer(Long customerId, Collection<OrderStatus> statuses, int pageNumber) {
+        PageRequest pageable = PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+        Page<Order> orders = statuses.isEmpty()
+                ? orderRepository.findByCustomer_Id(customerId, pageable)
+                : orderRepository.findByCustomer_IdAndStatusIn(customerId, statuses, pageable);
         return toRows(orders);
+    }
+
+    // Sản phẩm rút gọn của các đơn trên một trang lịch sử đơn: orderId -> các dòng
+    @Transactional(readOnly = true)
+    public Map<Long, List<OrderItemPreview>> itemPreviews(Collection<Long> orderIds) {
+        if (orderIds.isEmpty()) {
+            return Map.of();
+        }
+        return orderItemRepository.findWithProductByOrderIds(orderIds).stream()
+                .collect(Collectors.groupingBy(i -> i.getOrder().getId(), LinkedHashMap::new,
+                        Collectors.mapping(i -> new OrderItemPreview(i.getProduct().getName(),
+                                i.getProduct().getImageUrl(), i.getQuantity(), i.getLineTotal()), Collectors.toList())));
     }
 
     @Transactional(readOnly = true)
@@ -345,7 +362,7 @@ public class OrderService {
             BigDecimal gross = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
             subtotal = subtotal.add(gross);
             discountTotal = discountTotal.add(item.getDiscountAmount());
-            lines.add(new OrderLineDto(item.getId(), item.getProduct().getId(), item.getProduct().getSku(), item.getProduct().getName(),
+            lines.add(new OrderLineDto(item.getId(), item.getProduct().getId(), item.getProduct().getFullSku(), item.getProduct().getName(),
                     item.getProduct().getImageUrl(), item.getFlashSaleItem() != null,
                     item.getFlashSaleItem() == null ? null : item.getFlashSaleItem().getFlashSale().getName(),
                     item.getQuantity(), item.getUnitPrice(), item.getDiscountAmount(), item.getLineTotal(),

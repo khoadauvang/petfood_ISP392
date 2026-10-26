@@ -22,4 +22,7 @@ public class FlashSaleOffer {
     private final int remainingQty;
     private final String expiryText;
     private final long daysLeft;
+    private final String species;     // DOG / CAT, để trang Flash Sale lọc theo loài
+    private final int soldPercent;    // sold_qty / allocated_qty của suất (thanh "Đã bán")
+    private final String endAt;       // giờ kết thúc dạng ISO (yyyy-MM-ddTHH:mm:ss) cho đồng hồ đếm ngược
 }

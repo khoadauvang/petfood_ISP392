@@ -56,9 +56,6 @@ public class ProductAdminService {
     private static final Pattern SPEC_PATTERN = Pattern.compile(
             "(?i)(?:[\\s–-]+(?:vị\\s+[^\\d]+)?[\\s(]*(\\d+(?:[.,]\\d+)?\\s*(?:kg|g|gr|ml|l|hộp|gói|lon|bao|túi|can|viên|miếng|thùng|pcs))[)]?\\s*)$"
     );
-    private static final Pattern SKU_VARIANT_PATTERN = Pattern.compile(
-            "(?i)-(?:\\d+(?:[.,]\\d+)?[A-Z]*)$"
-    );
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -101,20 +98,14 @@ public class ProductAdminService {
             StockSummary ss = stock.getOrDefault(p.getId(), StockSummary.EMPTY);
             ProductAdminRow row = new ProductAdminRow(p, ss);
 
-            // Tách tên gốc và quy cách
+            // Tên gốc (bỏ quy cách ở cuối tên) để đặt tên nhóm; quy cách lấy thẳng từ cột variant
             String fullName = p.getName() != null ? p.getName().trim() : "";
             String baseName = baseName(fullName);
-            String spec = "Tiêu chuẩn";
+            String spec = p.getVariant();
 
-            Matcher matcher = SPEC_PATTERN.matcher(fullName);
-            if (matcher.find()) {
-                spec = matcher.group(1).trim();
-            }
-
-            // Tách SKU gốc
-            String baseSku = baseSku(p.getSku());
-
-            String groupKey = !baseSku.isEmpty() ? baseSku.toLowerCase() : baseName.toLowerCase();
+            // Các quy cách của cùng một dòng sản phẩm có chung sku (RC-KITTEN36 -> 400G, 2000G)
+            String baseSku = p.getSku();
+            String groupKey = baseSku.toLowerCase(Locale.ROOT);
 
             ProductGroupDto group = groupMap.get(groupKey);
             if (group == null) {
@@ -132,7 +123,7 @@ public class ProductAdminService {
 
             ProductVariantDto variant = ProductVariantDto.builder()
                     .id(p.getId())
-                    .sku(p.getSku())
+                    .sku(p.getFullSku())
                     .barcode(p.getBarcode())
                     .name(p.getName())
                     .spec(spec)
@@ -197,16 +188,16 @@ public class ProductAdminService {
     }
 
     // Form "Thêm biến thể" (/staff/products/new?variantOf=..): điền sẵn thông tin chung của sản phẩm gốc,
-    // tên / SKU chỉ còn phần gốc để nhân viên gõ thêm quy cách. Ảnh để trống thì lấy ảnh sản phẩm gốc (xem create).
+    // giữ nguyên SKU dòng sản phẩm, tên bỏ phần quy cách, nhân viên chỉ nhập biến thể mới.
+    // Ảnh để trống thì lấy ảnh sản phẩm gốc (xem create).
     @Transactional(readOnly = true)
     public ProductForm buildVariantForm(Long parentId) {
         Product parent = findOrThrow(parentId);
         ProductForm form = new ProductForm();
         form.setVariantOf(parentId);
         String baseName = baseName(parent.getName());
-        String baseSku = baseSku(parent.getSku());
         form.setName(baseName.isEmpty() ? "" : baseName + " ");
-        form.setSku(baseSku.isEmpty() ? "" : baseSku + "-");
+        form.setSku(parent.getSku());
         form.setCategoryId(parent.getCategory() != null ? parent.getCategory().getId() : null);
         form.setBrand(parent.getBrand());
         form.setSpecies(parent.getSpecies());
@@ -220,7 +211,7 @@ public class ProductAdminService {
 
     @Transactional(readOnly = true)
     public List<ProductOption> listOptions() {
-        return productRepository.findAllByOrderBySkuAsc().stream().map(ProductOption::new).toList();
+        return productRepository.findAllByOrderBySkuAscVariantAsc().stream().map(ProductOption::new).toList();
     }
 
     // =====================================================================
@@ -254,7 +245,7 @@ public class ProductAdminService {
         //    và ProductImageStorage tự xoá các file vừa ghi.
         List<ProductImage> rows = new ArrayList<>();
         for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
-            String url = imageStorage.save(product.getSku(), slot, images.get(slot));
+            String url = imageStorage.save(product.getFullSku(), slot, images.get(slot));
             rows.add(new ProductImage(product, slot, url));
         }
         productImageRepository.saveAll(rows);
@@ -299,7 +290,7 @@ public class ProductAdminService {
 
         for (Map.Entry<Integer, byte[]> entry : newImages.entrySet()) {
             int slot = entry.getKey();
-            String url = imageStorage.save(product.getSku(), slot, entry.getValue());
+            String url = imageStorage.save(product.getFullSku(), slot, entry.getValue());
             ProductImage row = currentBySlot.get(slot);
             if (row == null) {
                 currentBySlot.put(slot, productImageRepository.save(new ProductImage(product, slot, url)));
@@ -328,7 +319,7 @@ public class ProductAdminService {
     public String delete(Long id) {
         Product product = findOrThrow(id);
         if (lotRepository.existsByProduct_Id(id)) {
-            throw new BusinessRuleException("Sản phẩm " + product.getSku()
+            throw new BusinessRuleException("Sản phẩm " + product.getFullSku()
                     + " đã có lô hàng nên không xoá được (BR-11). Hãy chuyển sang Ngừng kinh doanh.");
         }
         List<ProductImage> images = productImageRepository.findByProduct_IdOrderBySortOrderAsc(id);
@@ -338,12 +329,12 @@ public class ProductAdminService {
             productRepository.flush();
         } catch (DataIntegrityViolationException e) {
             // CartItem / OrderItem / ProductReview... còn trỏ tới sản phẩm (khoá ngoại NO ACTION)
-            throw new BusinessRuleException("Sản phẩm " + product.getSku()
+            throw new BusinessRuleException("Sản phẩm " + product.getFullSku()
                     + " đã phát sinh dữ liệu khác (giỏ hàng, đơn hàng, đánh giá...) nên không xoá được. "
                     + "Hãy chuyển sang Ngừng kinh doanh.");
         }
         images.forEach(image -> imageStorage.deleteAfterCommit(image.getImageUrl()));
-        return product.getSku();
+        return product.getFullSku();
     }
 
     // =====================================================================
@@ -365,13 +356,22 @@ public class ProductAdminService {
         return category;
     }
 
-    // SKU duy nhất; mã vạch duy nhất nếu có nhập (BR-08). excludeId = id sản phẩm đang sửa.
+    // (SKU, biến thể) duy nhất; mã vạch duy nhất nếu có nhập (BR-08). excludeId = id sản phẩm đang sửa.
     private void checkUnique(ProductForm form, Long excludeId, Map<String, String> errors) {
+        if (form.getSku() == null || form.getVariant() == null) {
+            return;                                             // @Valid đã báo thiếu
+        }
+        // mã đầy đủ dùng làm tên thư mục ảnh, DB chặn > 50 ký tự (CK_Product_variant)
+        if (form.getFullSku().length() > 50) {
+            errors.put("variant", "SKU + biến thể (" + form.getFullSku() + ") dài quá 50 ký tự");
+            return;
+        }
         boolean skuTaken = (excludeId == null)
-                ? productRepository.existsBySku(form.getSku())
-                : productRepository.existsBySkuAndIdNot(form.getSku(), excludeId);
+                ? productRepository.existsBySkuAndVariant(form.getSku(), form.getVariant())
+                : productRepository.existsBySkuAndVariantAndIdNot(form.getSku(), form.getVariant(), excludeId);
         if (skuTaken) {
-            errors.put("sku", "SKU " + form.getSku() + " đã được dùng cho sản phẩm khác");
+            errors.put("variant", "SKU " + form.getSku() + " đã có biến thể " + form.getVariant()
+                    + " (" + form.getFullSku() + ")");
         }
         if (form.getBarcode() != null) {
             boolean barcodeTaken = (excludeId == null)
@@ -464,15 +464,6 @@ public class ProductAdminService {
         return matcher.find() ? name.substring(0, matcher.start()).trim() : name;
     }
 
-    // SKU gốc của dòng sản phẩm: bỏ đuôi quy cách (vd "-400G")
-    private static String baseSku(String sku) {
-        if (sku == null || sku.isBlank()) {
-            return "";
-        }
-        String baseSku = SKU_VARIANT_PATTERN.matcher(sku.trim()).replaceAll("").trim();
-        return baseSku.isEmpty() ? sku.trim() : baseSku;
-    }
-
     // =====================================================================
     // HỖ TRỢ
     // =====================================================================
@@ -493,6 +484,7 @@ public class ProductAdminService {
 
     private static void copy(ProductForm form, Category category, Product product) {
         product.setSku(form.getSku());
+        product.setVariant(form.getVariant());
         product.setBarcode(form.getBarcode());          // null nếu bỏ trống (UNIQUE có lọc chỉ xét dòng khác NULL)
         product.setName(form.getName());
         product.setBrand(form.getBrand());

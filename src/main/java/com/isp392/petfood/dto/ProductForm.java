@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Locale;
 
 // Form thêm / sửa sản phẩm (multipart/form-data vì có file ảnh).
-// name của các input trên JSP trùng tên field: sku, barcode, name, brand, description, categoryId, species,
+// name của các input trên JSP trùng tên field: sku, variant, barcode, name, brand, description, categoryId, species,
 // ageGroup, sellingPrice, lowStockThreshold, status, image1..image5, firstLotExpiryDate, firstLotQty.
 // Controller đã gắn StringTrimmerEditor: chuỗi được cắt khoảng trắng, ô bỏ trống thành null.
 @Getter
@@ -36,12 +36,20 @@ public class ProductForm {
     // Id sản phẩm gốc khi thêm biến thể mới cho dòng sản phẩm (null = thêm sản phẩm bình thường)
     private Long variantOf;
 
-    // SKU dùng làm tên thư mục ảnh nên chỉ cho chữ in hoa, số và dấu gạch ngang (setter tự đổi sang chữ in hoa)
+    // SKU = mã dòng sản phẩm, chung cho các quy cách (RC-KITTEN36); variant = quy cách (400G).
+    // Mã đầy đủ sku-variant dùng làm tên thư mục ảnh nên chỉ cho chữ in hoa, số (setter tự đổi sang chữ in hoa).
     @NotBlank(message = "Vui lòng nhập SKU")
     @Size(max = 50, message = "SKU tối đa 50 ký tự")
     @Pattern(regexp = "^[A-Z0-9]+(-[A-Z0-9]+)*$",
-            message = "SKU chỉ gồm chữ A-Z, số 0-9 và dấu gạch ngang, ví dụ RC-KITTEN36-400G")
+            message = "SKU chỉ gồm chữ A-Z, số 0-9 và dấu gạch ngang, ví dụ RC-KITTEN36")
     private String sku;
+
+    // Không có dấu gạch ngang: phần sau dấu '-' cuối của mã đầy đủ luôn là biến thể
+    @NotBlank(message = "Vui lòng nhập biến thể (quy cách)")
+    @Size(max = 20, message = "Biến thể tối đa 20 ký tự")
+    @Pattern(regexp = "^[A-Z0-9.]+$",
+            message = "Biến thể chỉ gồm chữ A-Z, số 0-9 và dấu chấm, ví dụ 400G, 1.5KG")
+    private String variant;
 
     @Size(max = 50, message = "Mã vạch tối đa 50 ký tự")
     @Pattern(regexp = "^[0-9A-Za-z-]*$", message = "Mã vạch chỉ gồm chữ, số và dấu gạch ngang")
@@ -100,6 +108,15 @@ public class ProductForm {
         this.sku = (sku == null) ? null : sku.toUpperCase(Locale.ROOT);
     }
 
+    public void setVariant(String variant) {
+        this.variant = (variant == null) ? null : variant.toUpperCase(Locale.ROOT);
+    }
+
+    // Mã đầy đủ để báo lỗi / hiện lại cho nhân viên: RC-KITTEN36-400G
+    public String getFullSku() {
+        return sku + "-" + variant;
+    }
+
     // Ảnh theo vị trí: phần tử 0 là image1 ... phần tử 4 là image5 (có thể null hoặc file rỗng)
     public List<MultipartFile> imagesBySlot() {
         return Arrays.asList(image1, image2, image3, image4, image5);
@@ -113,6 +130,7 @@ public class ProductForm {
     public static ProductForm from(Product product) {
         ProductForm form = new ProductForm();
         form.setSku(product.getSku());
+        form.setVariant(product.getVariant());
         form.setBarcode(product.getBarcode());
         form.setName(product.getName());
         form.setBrand(product.getBrand());

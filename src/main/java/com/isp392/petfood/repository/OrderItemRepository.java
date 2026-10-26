@@ -22,6 +22,15 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             """)
     List<OrderItem> findDetailedByOrderId(@Param("orderId") Long orderId);
 
+    // Các dòng (kèm sản phẩm) của nhiều đơn, 1 câu cho cả trang lịch sử đơn
+    @Query("""
+            select i from OrderItem i
+            join fetch i.product
+            where i.order.id in :orderIds
+            order by i.order.id, i.id
+            """)
+    List<OrderItem> findWithProductByOrderIds(@Param("orderIds") Collection<Long> orderIds);
+
     // Số dòng + tổng số lượng của nhiều đơn (trang danh sách đơn), 1 câu cho cả trang
     interface OrderCountRow {
         Long getOrderId();

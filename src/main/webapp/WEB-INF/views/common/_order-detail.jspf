@@ -1,98 +1,611 @@
 <%@ page pageEncoding="UTF-8" %>
-<%-- Thân trang chi tiết đơn, dùng chung cho khách (customer/order-detail.jsp) và Staff (staff/orders/detail.jsp).
-     Trang include phải khai báo taglib c, fmt, biến ctx; model có "order" (OrderDetailDto). --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
 <style>
-    .od-grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin-bottom: 12px; }
-    .od-grid dt { color: #666; }
-    .od-table-wrap { overflow-x: auto; }
-    .od-table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; }
-    .od-table th, .od-table td { border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; vertical-align: top; }
-    .od-table th { background: #f6f6f6; }
-    .od-table .num { text-align: right; white-space: nowrap; }
-    .od-lots { font-size: 12px; color: #555; }
-    .od-fs { display: inline-block; background: #c62828; color: #fff; font-size: 11px; padding: 0 5px; border-radius: 3px; }
-    .od-status { display: inline-block; padding: 2px 10px; border-radius: 10px; background: #eee; font-weight: bold; }
-    .od-status.COMPLETED { background: #e7f6ec; color: #0a5c26; }
-    .od-status.CANCELLED, .od-status.RETURNED { background: #fdecea; color: #8a1c13; }
-    .od-timeline { list-style: none; padding: 0; margin: 0; }
-    .od-timeline li { margin: 2px 0; }
+    .od-status-pill {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .od-status-pill.COMPLETED, .od-status-pill.DELIVERED {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .od-status-pill.PENDING, .od-status-pill.CONFIRMED {
+        background: #fef3c7;
+        color: #b45309;
+    }
+    .od-status-pill.SHIPPED, .od-status-pill.PROCESSING {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+    .od-status-pill.CANCELLED, .od-status-pill.RETURNED {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+    .product-item-row {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:14px 0;
+        border-bottom:1px dashed var(--border-search, #eadfd7);
+        gap:16px;
+    }
+    .product-item-row {
+        border-bottom: none;
+    }
+
+    .product-item-row + .product-item-row {
+        border-top: 1px dashed var(--border-search, #eadfd7);
+    }
+    .product-thumb-img {
+        width:64px;
+        height:64px;
+        object-fit:cover;
+        border-radius:12px;
+        border:1px solid var(--border-card, #f4e3c9);
+        background:#fff;
+        flex-shrink:0;
+    }
+    .product-info-group {
+        display:flex;
+        align-items:center;
+        gap:14px;
+        flex:1;
+        min-width:0;
+    }
+    .product-title-link {
+        font-size:14px;
+        font-weight:700;
+        color:var(--text-primary, #3d3028);
+        text-decoration:none;
+        transition:color .2s;
+    }
+    .product-title-link:hover {
+        color:var(--primary-orange, #f47721);
+    }
+    .fefo-lot-tag {
+        display:inline-block;
+        background:#ecfdf5;
+        color:#059669;
+        border:1px solid #a7f3d0;
+        font-size:11px;
+        font-weight:600;
+        padding:2px 8px;
+        border-radius:6px;
+        margin-top:4px;
+    }
+    .order-items-payment-card {
+        background:#fff !important;
+        border:1px solid #f4e3c9 !important;
+        border-top:3px solid #f47721 !important;
+        border-radius:20px;
+    }
+    .od-products-heading, .od-payment-heading {
+        font-size:17px;
+        font-weight:800;
+        color:var(--text-primary, #3d3028);
+        display:flex;
+        align-items:center;
+        gap:9px;
+        margin-bottom:14px;
+    }
+    .od-products-heading i, .od-payment-heading i {
+        color:var(--primary-orange, #f47721);
+    }
+    .od-payment-area {
+        border-top:1px solid #f4e3c9;
+        margin-top:22px;
+        padding-top:22px;
+    }
+    .od-payment-layout {
+        display:grid;
+        grid-template-columns:minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap:24px;
+    }
+    .od-payment-method {
+        padding-right:24px;
+        border-right:1px solid #f4e3c9;
+    }
+    .od-payment-row {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:16px;
+        padding:12px 0;
+        border-bottom:1px solid #f3ece5;
+        font-size:14px;
+    }
+    .od-payment-label {
+        color:var(--text-muted, #817872);
+    }
+    .od-payment-value {
+        text-align:right;
+        font-weight:700;
+    }
+    .od-payment-text {
+        color:#c2410c;
+    }
+    .od-membership-box {
+        margin-top:16px;
+        padding:12px 14px;
+        border:1px solid #fde68a;
+        border-radius:14px;
+        background:#fffdf0;
+        color:#b45309;
+        font-size:13px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .od-membership-box i {
+        font-size:22px;
+        flex-shrink:0;
+    }
+    .od-payment-breakdown {
+        padding-left:0;
+    }
+    .od-breakdown-title {
+        font-size:15px;
+        font-weight:800;
+        color:var(--text-primary, #3d3028);
+        display:flex;
+        align-items:center;
+        gap:9px;
+        margin-bottom:10px;
+    }
+    .od-breakdown-title i {
+        color:var(--primary-orange, #f47721);
+    }
+    .od-breakdown-row {
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:16px;
+        padding:10px 0;
+        font-size:14px;
+    }
+    .od-breakdown-row > span:first-child {
+        color:var(--text-muted, #817872);
+    }
+    .od-breakdown-row strong {
+        text-align:right;
+    }
+    .od-discount {
+        color:#ef4444;
+    }
+    .od-free-shipping {
+        color:#059669;
+    }
+    .od-payment-total {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:16px;
+        border-top:1px dashed #eadfd7;
+        margin-top:8px;
+        padding-top:14px;
+        color:#f47721;
+        font-size:17px;
+        font-weight:800;
+    }
+
+    /* NÚT & HUY HIỆU ĐÁNH GIÁ SẢN PHẨM */
+    .btn-review-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--primary-orange, #f47721);
+        color: #fff !important;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        border: 1px solid var(--primary-orange, #f47721);
+        transition: 0.2s;
+        box-shadow: 0 2px 6px rgba(244, 119, 33, 0.2);
+    }
+    .btn-review-cta:hover {
+        background: #e96816;
+        border-color: #e96816;
+        transform: translateY(-1px);
+    }
+    .btn-review-link {
+        font-size: 12px;
+        color: var(--primary-orange, #f47721);
+        text-decoration: underline;
+        font-weight: 600;
+    }
+    .badge-reviewed {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+
+    /* MODAL ĐÁNH GIÁ */
+    .review-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
+    .review-modal-dialog {
+        background: #fff;
+        width: 92%;
+        max-width: 480px;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        animation: modalScaleIn .2s ease;
+    }
+    @keyframes modalScaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .review-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f3ece5;
+    }
+    .review-modal-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text-primary, #3d3028);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .review-modal-title i {
+        color: var(--primary-orange, #f47721);
+    }
+    .btn-close-modal {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #817872;
+        cursor: pointer;
+        padding: 4px;
+    }
+    .review-product-preview {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        background: #fdfaf6;
+        border: 1px solid #f4e3c9;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    .modal-product-thumb {
+        width: 46px;
+        height: 46px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #ebdccb;
+        background: #fff;
+    }
+    .modal-product-name {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--text-primary, #3d3028);
+        line-height: 1.4;
+    }
+    .review-form-field {
+        margin-bottom: 14px;
+    }
+    .modal-field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary, #3d3028);
+        margin-bottom: 6px;
+    }
+    .star-rating-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .stars-row {
+        display: flex;
+        gap: 4px;
+        font-size: 26px;
+        color: #e2d9d2;
+        cursor: pointer;
+    }
+    .star-item {
+        transition: color .15s;
+    }
+    .star-item.active {
+        color: #f59e0b;
+    }
+    .star-text-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #d97706;
+    }
+    .modal-input, .modal-textarea {
+        width: 100%;
+        border: 1px solid #e3d5c8;
+        border-radius: 6px;
+        padding: 9px 12px;
+        font-size: 13px;
+        color: #3d3028;
+        background: #fff;
+        outline: none;
+        box-sizing: border-box;
+    }
+    .modal-input:focus, .modal-textarea:focus {
+        border-color: var(--primary-orange, #f47721);
+        box-shadow: 0 0 0 3px rgba(244,119,33,0.12);
+    }
+    .review-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid #f3ece5;
+    }
+    .btn-modal-cancel {
+        padding: 8px 18px;
+        border-radius: 6px;
+        border: 1px solid #d8c7b8;
+        background: #fff;
+        color: #57483a;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-modal-submit {
+        padding: 8px 22px;
+        border-radius: 6px;
+        border: none;
+        background: var(--primary-orange, #f47721);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(244,119,33,0.2);
+    }
+
+    @media (max-width: 700px) {
+        .od-payment-layout {
+            grid-template-columns:1fr;
+        }
+        .od-payment-method {
+            padding-right:0;
+            padding-bottom:18px;
+            border-right:0;
+            border-bottom:1px solid #f4e3c9;
+        }
+        .product-item-row {
+            align-items:flex-start;
+        }
+        .product-info-group {
+            gap:10px;
+        }
+        .product-thumb-img {
+            width:54px;
+            height:54px;
+        }
+    }
 </style>
 
-<p>
-    <span class="od-status ${order.status}">${order.status.label}</span>
-    · ${order.paymentMethod.label} · ${order.paymentStatus.label}
-</p>
-<c:if test="${order.cancelRequested}">
-    <p class="msg warn">Khách đã yêu cầu huỷ đơn khi đang đóng gói. Lý do: <c:out value="${order.cancelReason}"/></p>
-</c:if>
-<c:if test="${order.status == 'CANCELLED'}">
-    <p class="msg err">Đã huỷ lúc ${order.cancelledAtText}. Lý do: <c:out value="${order.cancelReason}"/></p>
-</c:if>
-<c:if test="${order.needsRefund}">
-    <p class="msg warn">Đơn đã thanh toán VNPay nhưng bị huỷ: cửa hàng sẽ hoàn tiền cho khách.</p>
-</c:if>
-
-<dl class="od-grid">
-    <dt>Người nhận</dt><dd><c:out value="${order.customerName}"/></dd>
-    <dt>Số điện thoại</dt><dd><c:out value="${empty order.customerPhone ? '—' : order.customerPhone}"/></dd>
-    <dt>Email</dt><dd><c:out value="${order.customerEmail}"/></dd>
-    <dt>Giao đến</dt><dd><c:out value="${order.shippingAddress}"/></dd>
-</dl>
-
-<div class="od-table-wrap">
-<table class="od-table">
-    <thead>
-    <tr><th>Sản phẩm</th><th class="num">Đơn giá</th><th class="num">SL</th><th class="num">Giảm hạng</th><th class="num">Thành tiền</th></tr>
-    </thead>
-    <tbody>
-    <c:forEach var="line" items="${order.lines}">
-        <tr>
-            <td>
-                <a href="${ctx}/products/${line.productId}"><c:out value="${line.name}"/></a>
-                <c:if test="${line.flashSale}"><span class="od-fs">Flash Sale</span> <c:out value="${line.flashSaleName}"/></c:if>
-                <%-- Lô đã xuất cho dòng này và HSD (BR-12, BR-56) --%>
-                <c:forEach var="lot" items="${line.lots}"><div class="od-lots"><c:out value="${lot}"/></div></c:forEach>
-                <%-- Đánh giá (module 8): chỉ trang của khách, đơn đã hoàn tất --%>
-                <c:if test="${customerView and order.status == 'COMPLETED'}">
-                    <div><a href="${ctx}/orders/${order.id}/items/${line.orderItemId}/review">${line.reviewed ? 'Sửa đánh giá' : 'Đánh giá sản phẩm'}</a></div>
-                </c:if>
-            </td>
-            <td class="num"><fmt:formatNumber value="${line.unitPrice}" type="number"/> ₫</td>
-            <td class="num">${line.quantity}</td>
-            <td class="num"><c:if test="${line.discountAmount > 0}">−<fmt:formatNumber value="${line.discountAmount}" type="number"/> ₫</c:if></td>
-            <td class="num"><fmt:formatNumber value="${line.lineTotal}" type="number"/> ₫</td>
-        </tr>
-    </c:forEach>
-    </tbody>
-    <tfoot>
-    <tr><td colspan="4" class="num">Tạm tính</td><td class="num"><fmt:formatNumber value="${order.subtotal}" type="number"/> ₫</td></tr>
-    <tr><td colspan="4" class="num">Giảm giá hạng thành viên (${order.tierDiscountRate}%, không áp cho Flash Sale)</td>
-        <td class="num">−<fmt:formatNumber value="${order.discountTotal}" type="number"/> ₫</td></tr>
-    <tr><td colspan="4" class="num">Phí giao hàng</td>
-        <td class="num"><c:choose><c:when test="${order.shippingFee == 0}">Miễn phí</c:when>
-            <c:otherwise><fmt:formatNumber value="${order.shippingFee}" type="number"/> ₫</c:otherwise></c:choose></td></tr>
-    <tr><td colspan="4" class="num"><strong>Tổng cộng</strong></td>
-        <td class="num"><strong><fmt:formatNumber value="${order.totalAmount}" type="number"/> ₫</strong></td></tr>
-    </tfoot>
-</table>
+<!-- DANH SÁCH SẢN PHẨM -->
+<div class="od-products-heading">
+    <i class="fi fi-rr-box-alt"></i> Danh sách sản phẩm
 </div>
 
-<h3>Các mốc của đơn</h3>
-<ul class="od-timeline">
-    <li>Đặt hàng: ${order.createdAtText}</li>
-    <c:if test="${not empty order.confirmedAtText}">
-        <li>Xác nhận: ${order.confirmedAtText}<c:if test="${not empty order.confirmedByName}"> (<c:out value="${order.confirmedByName}"/>)</c:if></li>
-    </c:if>
-    <c:if test="${not empty order.packedByName}"><li>Đóng gói: <c:out value="${order.packedByName}"/></li></c:if>
-    <c:if test="${not empty order.shippedAtText}"><li>Bắt đầu giao: ${order.shippedAtText}</li></c:if>
-    <c:if test="${not empty order.completedAtText}"><li>Giao thành công: ${order.completedAtText}</li></c:if>
-    <c:if test="${not empty order.returnedAtText}"><li>Khách không nhận hàng: ${order.returnedAtText}</li></c:if>
-    <c:if test="${not empty order.cancelledAtText}"><li>Huỷ: ${order.cancelledAtText}</li></c:if>
-</ul>
-
-<c:if test="${not empty order.payments}">
-    <h3>Thanh toán</h3>
-    <ul class="od-timeline">
-        <c:forEach var="p" items="${order.payments}"><li><c:out value="${p}"/></li></c:forEach>
-    </ul>
+<c:if test="${order.cancelRequested}">
+    <div style="background:#fffbe0; border:1px solid #ffe0b2; padding:12px 16px; border-radius:12px; color:#b45309; font-size:13px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+        <i class="fi fi-rr-info" style="font-size:16px;"></i>
+        <span>Khách đã yêu cầu huỷ đơn khi đang đóng gói. Lý do: <strong><c:out value="${order.cancelReason}"/></strong></span>
+    </div>
 </c:if>
+<c:if test="${order.status == 'CANCELLED'}">
+    <div style="background:#fee2e2; border:1px solid #fca5a5; padding:12px 16px; border-radius:12px; color:#b91c1c; font-size:13px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+        <i class="fi fi-rr-ban" style="font-size:16px;"></i>
+        <span>Đã huỷ lúc ${order.cancelledAtText}. Lý do: <strong><c:out value="${order.cancelReason}"/></strong></span>
+    </div>
+</c:if>
+
+<c:forEach var="line" items="${order.lines}">
+    <div class="product-item-row">
+        <div class="product-info-group">
+            <c:choose>
+                <c:when test="${not empty line.imageUrl}">
+                    <img src="${ctx}<c:out value='${line.imageUrl}'/>" class="product-thumb-img" alt="${line.name}" onerror="this.src='https://via.placeholder.com/64?text=PetFood'">
+                </c:when>
+                <c:otherwise>
+                    <img src="https://via.placeholder.com/64?text=PetFood" class="product-thumb-img" alt="Product Image">
+                </c:otherwise>
+            </c:choose>
+            <div>
+                <a href="${ctx}/products/${line.productId}" class="product-title-link"><c:out value="${line.name}"/></a>
+                <c:if test="${line.flashSale}">
+                    <span style="background:#fee2e2; color:#b91c1c; font-size:11px; padding:2px 8px; border-radius:6px; font-weight:700; margin-left:6px; display:inline-flex; align-items:center; gap:4px;">
+                        <i class="fi fi-rr-bolt" style="font-size:10px;"></i> Flash Sale
+                    </span>
+                </c:if>
+                <div><c:forEach var="lot" items="${line.lots}"><span class="fefo-lot-tag"><i class="fi fi-rr-check"></i> Lô: <c:out value="${lot}"/></span></c:forEach></div>
+            </div>
+        </div>
+        <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <div>
+                <div style="font-size:12px; color:var(--text-secondary, #817872);"><fmt:formatNumber value="${line.unitPrice != null ? line.unitPrice : 0}" type="number"/> ₫ × <strong>${line.quantity}</strong></div>
+                <div style="font-size:15px; font-weight:800; color:var(--text-primary, #3d3028); margin-top:2px;"><fmt:formatNumber value="${line.lineTotal != null ? line.lineTotal : 0}" type="number"/> ₫</div>
+            </div>
+
+            <!-- NÚT ĐÁNH GIÁ SẢN PHẨM KHI ĐƠN HOÀN TẤT -->
+            <c:if test="${order.status == 'COMPLETED'}">
+                <c:choose>
+                    <c:when test="${line.reviewed}">
+                        <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+                            <span class="badge-reviewed"><i class="fi fi-rr-check"></i> Đã đánh giá</span>
+                            <a href="${ctx}/orders/${order.id}/items/${line.orderItemId}/review" class="btn-review-link" onclick="openReviewModal(event, '${order.id}', '${line.orderItemId}', '<c:out value="${line.name}"/>', '${not empty line.imageUrl ? ctx.concat(line.imageUrl) : ''}')">Sửa</a>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${ctx}/orders/${order.id}/items/${line.orderItemId}/review" class="btn-review-cta" onclick="openReviewModal(event, '${order.id}', '${line.orderItemId}', '<c:out value="${line.name}"/>', '${not empty line.imageUrl ? ctx.concat(line.imageUrl) : ''}')">
+                            <i class="fi fi-rr-star"></i> Đánh giá
+                        </a>
+                    </c:otherwise>
+                </c:choose>
+            </c:if>
+        </div>
+    </div>
+</c:forEach>
+
+<!-- TRẠNG THÁI & THANH TOÁN: cùng nằm trong JSPF và cùng một card -->
+<section class="od-payment-area">
+    <div class="od-payment-heading"><i class="fi fi-rr-wallet"></i> Trạng thái & thanh toán</div>
+    <div class="od-payment-layout">
+        <section class="od-payment-method">
+            <div class="od-payment-row">
+                <span class="od-payment-label">Trạng thái đơn hàng</span>
+                <span class="od-status-pill ${order.status}">${not empty order.status.label ? order.status.label : order.status}</span>
+            </div>
+            <div class="od-payment-row">
+                <span class="od-payment-label">Phương thức thanh toán</span>
+                <strong class="od-payment-value">${order.paymentMethod.label}</strong>
+            </div>
+            <div class="od-payment-row">
+                <span class="od-payment-label">Trạng thái thanh toán</span>
+                <strong class="od-payment-value od-payment-text">${order.paymentStatus.label}</strong>
+            </div>
+            <div class="od-membership-box">
+                <i class="fi fi-rr-crown"></i>
+                <div><strong>Tích lũy chi tiêu nâng hạng:</strong><br/>+<fmt:formatNumber value="${order.totalAmount}" type="number"/> ₫ được cộng tự động sau khi giao thành công.</div>
+            </div>
+        </section>
+        <section class="od-payment-breakdown">
+            <div class="od-breakdown-title"><i class="fi fi-rr-receipt"></i> Chi tiết thanh toán</div>
+            <div class="od-breakdown-row"><span>Tổng tạm tính tiền hàng:</span><strong><fmt:formatNumber value="${order.subtotal != null ? order.subtotal : 0}" type="number"/> ₫</strong></div>
+            <div class="od-breakdown-row"><span>Giảm giá hạng hội viên (${order.tierDiscountRate}%):</span><strong class="od-discount">−<fmt:formatNumber value="${order.discountTotal != null ? order.discountTotal : 0}" type="number"/> ₫</strong></div>
+            <div class="od-breakdown-row"><span>Phí vận chuyển:</span><strong><c:choose><c:when test="${order.shippingFee == 0}"><span class="od-free-shipping">Miễn phí</span></c:when><c:otherwise><fmt:formatNumber value="${order.shippingFee != null ? order.shippingFee : 0}" type="number"/> ₫</c:otherwise></c:choose></strong></div>
+            <div class="od-payment-total"><span>TỔNG TIỀN THANH TOÁN:</span><span><fmt:formatNumber value="${order.totalAmount != null ? order.totalAmount : 0}" type="number"/> ₫</span></div>
+        </section>
+    </div>
+</section>
+
+<!-- KHUNG POPUP MODAL ĐÁNH GIÁ SẢN PHẨM -->
+<div id="reviewModalOverlay" class="review-modal-overlay" style="display:none;" onclick="if(event.target===this) closeReviewModal()">
+    <div class="review-modal-dialog">
+        <div class="review-modal-header">
+            <div class="review-modal-title">
+                <i class="fi fi-rr-star"></i> Đánh giá sản phẩm
+            </div>
+            <button type="button" class="btn-close-modal" onclick="closeReviewModal()">✕</button>
+        </div>
+
+        <form id="reviewModalForm" method="post" action="">
+            <c:if test="${not empty _csrf}">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+            </c:if>
+
+            <div class="review-product-preview">
+                <img id="modalProductImg" src="https://via.placeholder.com/46?text=PetFood" alt="Product" class="modal-product-thumb">
+                <div class="modal-product-name" id="modalProductName">Tên sản phẩm</div>
+            </div>
+
+            <div class="review-form-field">
+                <label class="modal-field-label">Chất lượng sản phẩm <span style="color:#d9381e;">*</span></label>
+                <div class="star-rating-box">
+                    <input type="hidden" name="rating" id="modalRatingInput" value="5">
+                    <div class="stars-row" id="modalStarsRow">
+                        <span class="star-item active" data-val="1" onclick="setRating(1)"><i class="fi fi-sr-star"></i></span>
+                        <span class="star-item active" data-val="2" onclick="setRating(2)"><i class="fi fi-sr-star"></i></span>
+                        <span class="star-item active" data-val="3" onclick="setRating(3)"><i class="fi fi-sr-star"></i></span>
+                        <span class="star-item active" data-val="4" onclick="setRating(4)"><i class="fi fi-sr-star"></i></span>
+                        <span class="star-item active" data-val="5" onclick="setRating(5)"><i class="fi fi-sr-star"></i></span>
+                    </div>
+                    <span class="star-text-label" id="modalRatingText">Tuyệt vời (5/5)</span>
+                </div>
+            </div>
+
+            <div class="review-form-field">
+                <label class="modal-field-label" for="modalReviewTitle">Tiêu đề đánh giá</label>
+                <input type="text" name="title" id="modalReviewTitle" class="modal-input" placeholder="Tóm tắt cảm nhận (VD: Bé mèo nhà mình rất thích)..." maxlength="150">
+            </div>
+
+            <div class="review-form-field">
+                <label class="modal-field-label" for="modalReviewContent">Nội dung nhận xét</label>
+                <textarea name="content" id="modalReviewContent" rows="3" class="modal-textarea" placeholder="Chia sẻ thêm về mùi vị, hạn sử dụng, đóng gói bao bì..." maxlength="2000"></textarea>
+            </div>
+
+            <div class="review-modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="closeReviewModal()">Để sau</button>
+                <button type="submit" class="btn-modal-submit">Gửi đánh giá</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const ratingLabels = {
+        1: 'Rất tệ (1/5)',
+        2: 'Không hài lòng (2/5)',
+        3: 'Bình thường (3/5)',
+        4: 'Hài lòng (4/5)',
+        5: 'Tuyệt vời (5/5)'
+    };
+
+    function openReviewModal(e, orderId, itemId, productName, imgUrl) {
+        if (e) e.preventDefault();
+        const overlay = document.getElementById('reviewModalOverlay');
+        const form = document.getElementById('reviewModalForm');
+        const nameEl = document.getElementById('modalProductName');
+        const imgEl = document.getElementById('modalProductImg');
+
+        if (form) form.action = '${ctx}/orders/' + orderId + '/items/' + itemId + '/review';
+        if (nameEl) nameEl.innerText = productName || 'Sản phẩm';
+        if (imgEl) {
+            imgEl.src = imgUrl || 'https://via.placeholder.com/46?text=PetFood';
+        }
+
+        setRating(5);
+        document.getElementById('modalReviewTitle').value = '';
+        document.getElementById('modalReviewContent').value = '';
+
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    function closeReviewModal() {
+        const overlay = document.getElementById('reviewModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    function setRating(val) {
+        const input = document.getElementById('modalRatingInput');
+        if (input) input.value = val;
+        const text = document.getElementById('modalRatingText');
+        if (text) text.innerText = ratingLabels[val] || (val + '/5');
+
+        const stars = document.querySelectorAll('#modalStarsRow .star-item');
+        stars.forEach((star, idx) => {
+            if (idx < val) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+</script>

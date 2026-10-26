@@ -30,6 +30,8 @@
         <%@ include file="/WEB-INF/views/common/_header.jspf" %>
 
         <main class="page-container">
+            <%-- Trang / bộ lọc đang xem, để Guest đăng nhập xong quay lại (đọc bằng JS ở nút "Thêm vào giỏ") --%>
+            <span id="loginRedirectPath" hidden data-path="<c:out value='/products?${filterQuery}&page=${currentPage}'/>"></span>
             <!-- Breadcrumb -->
             <nav class="breadcrumb" aria-label="Breadcrumb">
                 <a href="${ctx}/" class="breadcrumb-home">
@@ -39,16 +41,6 @@
                 <span class="breadcrumb-separator">/</span>
                 <span class="breadcrumb-current">Sản phẩm dinh dưỡng</span>
             </nav>
-
-            <section class="page-heading">
-                <div>
-                    <p class="eyebrow">KHÁM PHÁ PETFOOD</p>
-                    <h1>Tất cả sản phẩm</h1>
-                    <p class="page-subtitle">
-                        Tìm sản phẩm phù hợp cho người bạn nhỏ của bạn.
-                    </p>
-                </div>
-            </section>
 
             <div class="catalog-layout">
 
@@ -192,21 +184,15 @@
                                         </c:choose>
                                     </p>
 
-                                    <c:if test="${p.inStock and not empty p.nearestExpiryText}">
-                                        <p class="product-expiry">
-                                            HSD lô gần nhất: <c:out value="${p.nearestExpiryText}"/>
-                                        </p>
-                                    </c:if>
-
                                     <%-- Staff/Admin không có giỏ hàng; thêm xong quay lại đúng trang / bộ lọc đang xem --%>
                                     <c:choose>
                                         <c:when test="${p.inStock and (currentUser == null or currentUser.role == 'CUSTOMER')}">
-                                            <form action="${ctx}/cart/add" method="post" class="add-cart-form">
+                                            <form class="add-cart-form ajax-add-to-cart-form">
                                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                                 <input type="hidden" name="productId" value="${p.id}">
                                                 <input type="hidden" name="quantity" value="1">
-                                                <input type="hidden" name="returnUrl" value="/products?<c:out value='${filterQuery}'/>&page=${currentPage}">
-                                                <button type="submit" class="add-cart-btn">
+                                                <button type="button" class="add-cart-btn ajax-submit-btn"
+                                                        data-product-image="${not empty p.imageUrl ? ctx.concat(p.imageUrl) : ''}">
                                                     <i class="fi fi-rr-shopping-cart"></i> Thêm vào giỏ hàng
                                                 </button>
                                             </form>
@@ -221,6 +207,7 @@
                             </article>
                         </c:forEach>
                     </div>
+
 
                     <c:if test="${totalPages > 1}">
                         <nav class="pagination" aria-label="Phân trang">
@@ -258,5 +245,89 @@
 
         <%-- Nhúng Nút Chat nổi --%>
         <%@ include file="/WEB-INF/views/common/_chat-widget.jspf" %>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const forms = document.querySelectorAll(".add-cart-form");
+
+                forms.forEach(form => {
+                    const button = form.querySelector(".add-cart-btn");
+
+                    button.addEventListener("click", function (e) {
+                        e.preventDefault(); // Chặn việc submit form truyền thống gây reload trang
+
+                        // 1. Lấy token CSRF và dữ liệu sản phẩm trong form
+                        const csrfTokenInput = form.querySelector('input[name*="csrf"], input[name="_csrf"]');
+                        const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+
+                        const productId = form.querySelector('input[name="productId"]').value;
+                        const quantity = form.querySelector('input[name="quantity"]').value || "1";
+
+                        const formData = new URLSearchParams();
+                        formData.append("productId", productId);
+                        formData.append("quantity", quantity);
+                        if (csrfToken) {
+                            formData.append("_csrf", csrfToken);
+                        }
+
+                        // 2. Gửi request ngầm lên Backend để thêm vào giỏ hàng
+                        fetch('${ctx}/cart/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData.toString()
+                        })
+                                .then(response => {
+                                    // Guest / phiên hết hạn: Spring Security không trả JSON -> sang trang đăng nhập
+                                    const isJson = (response.headers.get('Content-Type') || '').includes('application/json');
+                                    if (!isJson) {
+                                        // đăng nhập xong quay lại đúng trang / bộ lọc đang xem
+                                        const back = document.getElementById('loginRedirectPath').dataset.path;
+                                        window.location.href = '${ctx}/login?redirect=' + encodeURIComponent(back);
+                                        return null;
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (!data)
+                                        return;
+                                    if (data.ok) {
+                                        // 3. Hiệu ứng đổi nút thành công ngay lập tức tại chỗ
+                                        const originalHtml = this.innerHTML;
+                                        this.innerHTML = '<i class="fi fi-rr-check"></i> Đã thêm!';
+                                        this.classList.add("added");
+                                        this.disabled = true;
+
+                                        // 4. Cập nhật số dòng giỏ trên icon ở header (cartItemCount do BE trả về)
+                                        const cartIcon = document.querySelector('.header-cart');
+                                        if (cartIcon) {
+                                            let badge = cartIcon.querySelector('.cart-badge');
+                                            if (!badge) {
+                                                badge = document.createElement('span');
+                                                badge.className = 'cart-badge';
+                                                cartIcon.appendChild(badge);
+                                            }
+                                            badge.textContent = data.cartItemCount;
+                                        }
+
+                                        // Sau 1.2 giây trả lại trạng thái ban đầu cho nút bấm
+                                        setTimeout(() => {
+                                            this.innerHTML = originalHtml;
+                                            this.classList.remove("added");
+                                            this.disabled = false;
+                                        }, 1200);
+
+                                    } else {
+                                        alert(data.message);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("Lỗi:", err);
+                                });
+                    });
+                });
+            });
+        </script>
     </body>
 </html>

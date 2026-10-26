@@ -122,7 +122,7 @@ public class ProductService {
         Category category = product.getCategory();
         return new ShopProductDto(
                 product.getId(),
-                product.getSku(),
+                product.getFullSku(),
                 product.getName(),
                 product.getBrand(),
                 product.getDescription(),
@@ -163,7 +163,7 @@ public class ProductService {
         boolean inStock = stock != null && stock.getQuantity() > 0;
         return new ProductCardDto(
                 p.getId(),
-                p.getSku(),
+                p.getFullSku(),
                 p.getName(),
                 p.getBrand(),
                 p.getSellingPrice(),

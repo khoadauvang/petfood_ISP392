@@ -120,8 +120,8 @@ public class StaffProductController {
         try {
             Product saved = productAdminService.create(form);
             String added = form.getVariantOf() != null
-                    ? "Đã thêm biến thể " + saved.getSku()
-                    : "Đã thêm sản phẩm " + saved.getSku();
+                    ? "Đã thêm biến thể " + saved.getFullSku()
+                    : "Đã thêm sản phẩm " + saved.getFullSku();
             redirect.addFlashAttribute("successMessage", added + " kèm 5 ảnh"
                     + (form.hasFirstLot() ? " và lô đầu tiên (" + form.getFirstLotQty() + " sản phẩm)" : ""));
             return "redirect:/staff/products/" + saved.getId();
@@ -156,7 +156,7 @@ public class StaffProductController {
         }
         try {
             Product saved = productAdminService.update(id, form);
-            redirect.addFlashAttribute("successMessage", "Đã lưu sản phẩm " + saved.getSku());
+            redirect.addFlashAttribute("successMessage", "Đã lưu sản phẩm " + saved.getFullSku());
             return "redirect:/staff/products/" + id;
         } catch (BusinessRuleException e) {
             FormErrors.apply(e, result, model);
@@ -171,8 +171,8 @@ public class StaffProductController {
                                RedirectAttributes redirect) {
         Product product = productAdminService.toggleStatus(id);
         redirect.addFlashAttribute("successMessage", product.getStatus() == ProductStatus.ACTIVE
-                ? "Đã mở bán lại " + product.getSku()
-                : "Đã ẩn " + product.getSku() + " (ngừng kinh doanh): không còn hiện ở trang khách");
+                ? "Đã mở bán lại " + product.getFullSku()
+                : "Đã ẩn " + product.getFullSku() + " (ngừng kinh doanh): không còn hiện ở trang khách");
         return "list".equals(from) ? "redirect:/staff/products" : "redirect:/staff/products/" + id;
     }
 

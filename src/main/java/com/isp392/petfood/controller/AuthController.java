@@ -3,7 +3,10 @@ package com.isp392.petfood.controller;
 import com.isp392.petfood.dto.RegisterForm;
 import com.isp392.petfood.exception.EmailAlreadyExistsException;
 import com.isp392.petfood.security.AccountPrincipal;
+import com.isp392.petfood.security.LocalPaths;
+import com.isp392.petfood.security.RoleBasedLoginSuccessHandler;
 import com.isp392.petfood.service.RegistrationService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
@@ -15,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
@@ -24,8 +28,14 @@ public class AuthController {
     private final ObjectProvider<ClientRegistrationRepository> clientRegistrations;
 
     @GetMapping("/login")
-    public String loginPage(@AuthenticationPrincipal AccountPrincipal user, Model model) {
+    public String loginPage(@AuthenticationPrincipal AccountPrincipal user,
+                            @RequestParam(name = "redirect", required = false) String redirect,
+                            HttpSession session, Model model) {
         if (user != null) return "redirect:/";
+        // ?redirect=/products/12: đăng nhập xong (form hoặc Google) quay lại trang đó (RoleBasedLoginSuccessHandler)
+        if (LocalPaths.isLocalPath(redirect)) {
+            session.setAttribute(RoleBasedLoginSuccessHandler.SESSION_REDIRECT, redirect);
+        }
         // Nút "Đăng nhập bằng Google" chỉ hiện khi .env có client-id/secret (xem application.properties)
         model.addAttribute("googleLoginEnabled", clientRegistrations.getIfAvailable() != null);
         return "auth/login";

@@ -31,7 +31,7 @@ public class ProductAdminRow {
     // product phải đã có category (query dùng join fetch)
     public ProductAdminRow(Product product, StockSummary stock) {
         this.id = product.getId();
-        this.sku = product.getSku();
+        this.sku = product.getFullSku();
         this.barcode = product.getBarcode();
         this.name = product.getName();
         this.brand = product.getBrand();

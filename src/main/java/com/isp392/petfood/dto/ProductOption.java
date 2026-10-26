@@ -15,7 +15,7 @@ public class ProductOption {
 
     public ProductOption(Product product) {
         this.id = product.getId();
-        this.sku = product.getSku();
+        this.sku = product.getFullSku();
         this.name = product.getName();
         this.status = product.getStatus();
     }

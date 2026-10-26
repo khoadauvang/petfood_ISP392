@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     // Lịch sử đơn của khách, mới nhất trước (IX_Orders_customer_created)
     Page<Order> findByCustomer_Id(Long customerId, Pageable pageable);
+
+    // Lịch sử đơn của khách lọc theo nhóm trạng thái (tab "Chờ xác nhận", "Đang giao", ...)
+    Page<Order> findByCustomer_IdAndStatusIn(Long customerId, Collection<OrderStatus> statuses, Pageable pageable);
 
     // Đơn của đúng khách đang đăng nhập (khách không xem được đơn người khác)
     Optional<Order> findByIdAndCustomer_Id(Long id, Long customerId);
