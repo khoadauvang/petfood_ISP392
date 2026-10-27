@@ -491,10 +491,13 @@
                 <span class="od-payment-label">Trạng thái thanh toán</span>
                 <strong class="od-payment-value od-payment-text">${order.paymentStatus.label}</strong>
             </div>
+            <%-- Đơn huỷ / khách không nhận hàng không được tích luỹ. Hạng chỉ tính tiền hàng, không tính phí ship (BR-40) --%>
+            <c:if test="${order.status != 'CANCELLED' && order.status != 'RETURNED'}">
             <div class="od-membership-box">
                 <i class="fi fi-rr-crown"></i>
-                <div><strong>Tích lũy chi tiêu nâng hạng:</strong><br/>+<fmt:formatNumber value="${order.totalAmount}" type="number"/> ₫ được cộng tự động sau khi giao thành công.</div>
+                <div><strong>Tích lũy chi tiêu nâng hạng:</strong><br/>+<fmt:formatNumber value="${order.totalAmount - (order.shippingFee != null ? order.shippingFee : 0)}" type="number"/> ₫ được cộng tự động sau khi giao thành công.</div>
             </div>
+            </c:if>
         </section>
         <section class="od-payment-breakdown">
             <div class="od-breakdown-title"><i class="fi fi-rr-receipt"></i> Chi tiết thanh toán</div>

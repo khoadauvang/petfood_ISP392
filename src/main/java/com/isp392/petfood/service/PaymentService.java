@@ -26,7 +26,7 @@ import java.util.Set;
 
 // Thanh toán (module 5).
 // VNPay: đặt hàng xong tạo một Payment PENDING rồi chuyển khách sang VNPay. Hàng đã trừ kho được giữ 15 phút (BR-23).
-//   Kết quả đến qua return URL (trình duyệt quay về) hoặc IPN (VNPay gọi server; không tới được localhost):
+//   Kết quả đến qua return URL (trình duyệt quay về) hoặc IPN (VNPay gọi server; cần URL public như ngrok):
 //     thành công + chữ ký đúng (BR-24) -> Payment SUCCESS, đơn PAID
 //     thất bại                         -> Payment FAILED, đơn FAILED + tự huỷ, trả kho (BR-23)
 //   Quá 15 phút chưa có kết quả: job hỏi lại VNPay (querydr) trước khi huỷ, không huỷ nhầm đơn đã trả tiền (cách A).
