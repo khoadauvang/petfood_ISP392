@@ -24,7 +24,8 @@ import java.util.Map;
 //   GET  /payment/vnpay-ipn       VNPay gọi thẳng server báo kết quả, trả JSON RspCode (permitAll).
 //                                 Cần URL public (ngrok) khai báo ở merchant VNPay; chạy localhost không có
 //                                 ngrok thì job tra cứu querydr thay thế (cách A)
-//   POST /orders/{id}/pay         khách quay lại trang VNPay trong 15 phút giữ hàng (CUSTOMER)
+//   POST /orders/{id}/pay         khách quay lại trang VNPay trong 15 phút giữ hàng, kể cả sau khi lần trước
+//                                 thất bại / bị huỷ (CUSTOMER)
 @Controller
 @RequiredArgsConstructor
 public class PaymentController {
@@ -36,7 +37,8 @@ public class PaymentController {
     @GetMapping("/payment/vnpay-return")
     public String vnpayReturn(@RequestParam Map<String, String> params, RedirectAttributes redirect) {
         CallbackResult result = paymentService.handleVnpayCallback(params);
-        redirect.addFlashAttribute(result.paid() ? "successMessage" : "errorMessage", result.message());
+        redirect.addFlashAttribute(result.paid() ? "successMessage" : result.held() ? "warningMessage" : "errorMessage",
+                result.message());
         return result.orderId() == null ? "redirect:/orders" : "redirect:/orders/" + result.orderId();
     }
 

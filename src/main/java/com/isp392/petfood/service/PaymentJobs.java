@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 // Job định kỳ của module thanh toán (Scheduler trong actor "Bên ngoài"):
-//   - mỗi phút: đơn VNPay quá thời gian giữ hàng -> hỏi VNPay (querydr) rồi PAID hoặc huỷ (BR-23, cách A)
+//   - mỗi phút: đơn VNPay quá thời gian giữ hàng -> hỏi VNPay (querydr) lần đang chờ rồi PAID hoặc huỷ (BR-23,
+//     cách A); không còn lần nào đang chờ (khách huỷ / thất bại rồi không thử lại) thì huỷ luôn
 //   - mỗi 10 phút: đơn COD chưa xác nhận quá 24 giờ -> huỷ (BR-27)
 // Mỗi đơn xử lý trong transaction riêng: một đơn lỗi không làm hỏng các đơn khác.
 @Component
@@ -44,6 +45,7 @@ public class PaymentJobs {
             try {
                 Optional<Payment> pending = paymentService.findPendingVnpay(orderId);
                 if (pending.isEmpty()) {
+                    paymentService.cancelExpiredVnpay(orderId);
                     continue;
                 }
                 QueryResult result = paymentService.queryVnpay(pending.get());   // gọi VNPay ngoài transaction

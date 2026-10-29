@@ -369,6 +369,13 @@ public class OrderService {
                     lotsByItem.getOrDefault(item.getId(), List.of()), reviewed.contains(item.getId())));
         }
 
+        // Hạn giữ hàng VNPay (tính từ lần thanh toán đầu), chỉ khi đơn còn chờ thanh toán
+        LocalDateTime holdUntil = order.getPaymentMethod() == PaymentMethod.VNPAY
+                && order.getStatus() == OrderStatus.PENDING && order.getPaymentStatus() == PaymentStatus.UNPAID
+                ? paymentRepository.findFirstByOrder_IdAndMethodOrderByCreatedAtAscIdAsc(order.getId(), PaymentMethod.VNPAY)
+                        .map(p -> vnpayClient.holdUntil(p.getCreatedAt())).orElse(null)
+                : null;
+
         Customer customer = order.getCustomer();
         return OrderDetailDto.builder()
                 .id(order.getId())
@@ -396,10 +403,8 @@ public class OrderService {
                 .cancelReason(order.getCancelReason())
                 .cancelRequested(order.isCancelRequested())
                 .needsRefund(needsRefund(order))
-                .vnpayHoldUntil(paymentRepository.findFirstByOrder_IdAndMethodAndStatus(order.getId(),
-                                PaymentMethod.VNPAY, PaymentRecordStatus.PENDING)
-                        .map(p -> p.getCreatedAt().plusMinutes(vnpayClient.getHoldMinutes()).format(DATE_TIME))
-                        .orElse(null))
+                .vnpayHoldUntil(holdUntil == null ? null : holdUntil.format(DATE_TIME))
+                .vnpayHoldUntilMillis(holdUntil == null ? null : VnpayClient.toEpochMillis(holdUntil))
                 .payments(paymentRepository.findByOrder_IdOrderByCreatedAtAscIdAsc(order.getId()).stream()
                         .map(p -> p.getMethod().name() + " · " + p.getStatus().getLabel()
                                 + (p.getVnpTransactionNo() == null ? "" : " · mã VNPay " + p.getVnpTransactionNo())

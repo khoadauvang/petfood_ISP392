@@ -14,6 +14,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByOrder_IdOrderByCreatedAtAscIdAsc(Long orderId);
 
-    // Lần thanh toán VNPay đang chờ của một đơn (mỗi đơn VNPay chỉ có một lần, BR-23: thất bại thì huỷ đơn)
+    // Lần thanh toán VNPay đang chờ của một đơn (mỗi lúc tối đa một lần PENDING; thất bại trong hạn giữ hàng
+    // thì khách thử lại bằng một lần mới, chốt 29/10)
     Optional<Payment> findFirstByOrder_IdAndMethodAndStatus(Long orderId, PaymentMethod method, PaymentRecordStatus status);
+
+    // Lần VNPay đầu tiên của đơn: hạn giữ hàng 15 phút tính từ lần này, các lần thử lại không gia hạn (BR-23)
+    Optional<Payment> findFirstByOrder_IdAndMethodOrderByCreatedAtAscIdAsc(Long orderId, PaymentMethod method);
 }

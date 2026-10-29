@@ -40,6 +40,7 @@ public class OrderDetailDto {
     private final boolean needsRefund;        // đơn VNPay đã trả tiền nhưng bị huỷ: staff phải hoàn tiền
     private final List<String> payments;      // các lần thanh toán (bảng Payment)
     private final String vnpayHoldUntil;      // đơn VNPay chờ thanh toán: hạn giữ hàng; null nếu không áp dụng
+    private final Long vnpayHoldUntilMillis;  // cùng hạn trên, dạng epoch millis cho đồng hồ đếm ngược
 
     // BR-19: khách tự huỷ khi PENDING / CONFIRMED; khi PROCESSING chỉ gửi yêu cầu cho staff duyệt
     public boolean isCustomerCanCancel() {

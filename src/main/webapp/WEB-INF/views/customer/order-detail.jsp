@@ -50,17 +50,42 @@
                             <i class="fi fi-rr-info" style="font-size: 20px;"></i>
                             <div>
                                 <strong>Đơn đang chờ thanh toán VNPay:</strong> Hàng được giữ đến <strong>${order.vnpayHoldUntil}</strong>, quá hạn đơn sẽ tự hủy.
+                                <div id="vnpay-countdown" data-deadline="${order.vnpayHoldUntilMillis}">
+                                    Thời gian còn lại: <strong class="vnpay-countdown-value">--:--</strong>
+                                </div>
                             </div>
                         </div>
                         <form method="post" action="${ctx}/orders/${order.id}/pay" style="margin:0;">
                             <c:if test="${not empty _csrf}">
                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                             </c:if>
-                            <button type="submit" class="btn-action-primary">
+                            <button type="submit" class="btn-action-primary" id="vnpay-pay-button">
                                 <i class="fi fi-rr-credit-card"></i> Tiếp tục thanh toán VNPay
                             </button>
                         </form>
                     </div>
+                    <script>
+                        // Đếm ngược thời gian giữ hàng VNPay (BR-23); hết giờ thì khoá nút thanh toán lại
+                        (function () {
+                            var box = document.getElementById('vnpay-countdown');
+                            var deadline = Number(box.dataset.deadline);
+                            var value = box.querySelector('.vnpay-countdown-value');
+                            var button = document.getElementById('vnpay-pay-button');
+                            function tick() {
+                                var left = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+                                if (left === 0) {
+                                    box.innerHTML = '<strong>Đã hết thời gian giữ hàng, đơn sẽ tự hủy.</strong>';
+                                    button.disabled = true;
+                                    clearInterval(timer);
+                                    return;
+                                }
+                                var m = Math.floor(left / 60), s = left % 60;
+                                value.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                            }
+                            var timer = setInterval(tick, 1000);
+                            tick();
+                        })();
+                    </script>
                 </c:if>
 
                 <!-- CARD TOP: TIẾN TRÌNH XỬ LÝ ĐƠN HÀNG -->

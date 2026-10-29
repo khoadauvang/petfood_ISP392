@@ -90,9 +90,19 @@ public class VnpayClient {
         return LocalDateTime.now(VN).withNano(0);
     }
 
-    // Link sang trang thanh toán. Tạo lại bao nhiêu lần cũng ra cùng một link (cùng mã, cùng hạn), nên nút
-    // "Tiếp tục thanh toán" dùng lại được trong thời gian giữ hàng.
-    public String paymentUrl(Payment payment, String clientIp) {
+    // Hạn giữ hàng của đơn VNPay, tính từ lần thanh toán đầu tiên (giờ VN)
+    public LocalDateTime holdUntil(LocalDateTime firstAttemptAt) {
+        return firstAttemptAt.plusMinutes(holdMinutes);
+    }
+
+    // Đổi giờ VN sang epoch millis cho đồng hồ đếm ngược trên trình duyệt
+    public static long toEpochMillis(LocalDateTime vnTime) {
+        return vnTime.atZone(VN).toInstant().toEpochMilli();
+    }
+
+    // Link sang trang thanh toán. Cùng một lần thanh toán thì tạo lại bao nhiêu lần cũng ra cùng một link (cùng mã,
+    // cùng hạn), nên nút "Tiếp tục thanh toán" dùng lại được. expireAt = hạn giữ hàng của đơn, không phải của lần này.
+    public String paymentUrl(Payment payment, LocalDateTime expireAt, String clientIp) {
         Map<String, String> params = new TreeMap<>();
         params.put("vnp_Version", VERSION);
         params.put("vnp_Command", "pay");
@@ -106,7 +116,7 @@ public class VnpayClient {
         params.put("vnp_ReturnUrl", returnUrl);
         params.put("vnp_IpAddr", clientIp);
         params.put("vnp_CreateDate", payment.getCreatedAt().format(VNP_DATE));
-        params.put("vnp_ExpireDate", payment.getCreatedAt().plusMinutes(holdMinutes).format(VNP_DATE));
+        params.put("vnp_ExpireDate", expireAt.format(VNP_DATE));
 
         String query = encode(params);
         return payUrl + "?" + query + "&vnp_SecureHash=" + hmac(query);
