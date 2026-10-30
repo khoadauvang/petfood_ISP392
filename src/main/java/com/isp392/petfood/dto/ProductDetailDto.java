@@ -78,6 +78,15 @@ public class ProductDetailDto {
                 count++;
             }
         }
+        String fallbackUrl = (slots.get(0) != null && !slots.get(0).isBlank()) ? slots.get(0) : this.imageUrl;
+        if (fallbackUrl != null && !fallbackUrl.isBlank()) {
+            for (int i = 0; i < ProductForm.IMAGE_COUNT; i++) {
+                if (slots.get(i) == null || slots.get(i).isBlank()) {
+                    slots.set(i, fallbackUrl);
+                    count++;
+                }
+            }
+        }
         this.imageSlots = Collections.unmodifiableList(slots);
         this.imageCount = count;
 

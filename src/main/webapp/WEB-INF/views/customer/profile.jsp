@@ -46,20 +46,6 @@
                         </div>
                     </div>
 
-                    <!-- THÔNG BÁO FLASH MESSAGE -->
-                    <c:if test="${not empty successMessage}">
-                        <div class="profile-alert alert-success">
-                            <i class="fi fi-rr-check-circle"></i>
-                            <span><c:out value="${successMessage}"/></span>
-                        </div>
-                    </c:if>
-                    <c:if test="${not empty errorMessage}">
-                        <div class="profile-alert alert-error">
-                            <i class="fi fi-rr-exclamation"></i>
-                            <span><c:out value="${errorMessage}"/></span>
-                        </div>
-                    </c:if>
-
                     <!-- KHỐI 1: THÔNG TIN CÁ NHÂN -->
                     <div id="subtab-info">
                         <form:form method="post" action="${ctx}/profile" modelAttribute="profileForm" enctype="multipart/form-data">
@@ -120,12 +106,10 @@
 
                     <!-- KHỐI 2: ĐỔI MẬT KHẨU (GỌN GÀNG CHUẨN SHOPEE) -->
                     <div id="subtab-password" style="display: none;">
-                        <c:choose>
-                            <c:when test="${profile.hasPassword}">
-                                <%-- Đổi mật khẩu: mật khẩu hiện tại + mật khẩu mới 2 lần (BR-02). Quên mật khẩu hiện tại thì
-                                     dùng luồng OTP như ở trang đăng nhập. --%>
-                                <form:form method="post" action="${ctx}/profile/change-password" modelAttribute="changePasswordForm">
-                                    <div class="pwd-form-table">
+                        <form:form method="post" action="${ctx}/profile/change-password" modelAttribute="changePasswordForm">
+                            <div class="pwd-form-table">
+                                <c:choose>
+                                    <c:when test="${profile.hasPassword}">
                                         <div class="pwd-form-row">
                                             <label class="pwd-form-label" for="currentPassword">Mật khẩu hiện tại <span style="color:#d9381e;">*</span></label>
                                             <div class="pwd-form-input-col">
@@ -134,53 +118,45 @@
                                                     <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('currentPassword')" tabindex="-1"><i class="fi fi-rr-eye"></i></button>
                                                 </div>
                                                 <form:errors path="currentPassword" cssClass="error" />
-                                                <a href="${ctx}/forgot-password" style="display:inline-block; margin-top:6px; font-size:13px; color:#F47721; font-weight:600;">Quên mật khẩu hiện tại?</a>
                                             </div>
                                         </div>
-
-                                        <div class="pwd-form-row">
-                                            <label class="pwd-form-label" for="newPassword">Mật khẩu mới <span style="color:#d9381e;">*</span></label>
-                                            <div class="pwd-form-input-col">
-                                                <div class="password-input-wrap">
-                                                    <form:password path="newPassword" id="newPassword" class="form-control" placeholder="8–64 ký tự, gồm cả chữ và số" autocomplete="new-password" />
-                                                    <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('newPassword')" tabindex="-1"><i class="fi fi-rr-eye"></i></button>
-                                                </div>
-                                                <form:errors path="newPassword" cssClass="error" />
-                                            </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="password-notice-box" style="margin-bottom: 8px;">
+                                            <i class="fi fi-rr-info"></i>
+                                            <div>Tài khoản đăng nhập qua Google chưa thiết lập mật khẩu riêng. Bạn có thể tạo mật khẩu mới dưới đây để đăng nhập bằng email & mật khẩu.</div>
                                         </div>
+                                    </c:otherwise>
+                                </c:choose>
 
-                                        <div class="pwd-form-row">
-                                            <label class="pwd-form-label" for="confirmPassword">Xác nhận mật khẩu <span style="color:#d9381e;">*</span></label>
-                                            <div class="pwd-form-input-col">
-                                                <div class="password-input-wrap">
-                                                    <form:password path="confirmPassword" id="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" />
-                                                    <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('confirmPassword')" tabindex="-1"><i class="fi fi-rr-eye"></i></button>
-                                                </div>
-                                                <form:errors path="confirmPassword" cssClass="error" />
-                                            </div>
+                                <div class="pwd-form-row">
+                                    <label class="pwd-form-label" for="newPassword">Mật khẩu mới <span style="color:#d9381e;">*</span></label>
+                                    <div class="pwd-form-input-col">
+                                        <div class="password-input-wrap">
+                                            <form:password path="newPassword" id="newPassword" class="form-control" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" />
+                                            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('newPassword')" tabindex="-1"><i class="fi fi-rr-eye"></i></button>
                                         </div>
-
-                                        <div class="pwd-form-actions">
-                                            <button type="submit" class="btn-save">Xác nhận</button>
-                                            <button type="button" class="btn-cancel" onclick="switchSubTab('info')">Quay lại</button>
-                                        </div>
-                                    </div>
-                                </form:form>
-                            </c:when>
-                            <c:otherwise>
-                                <%-- Tài khoản chỉ đăng nhập Google chưa có mật khẩu: tạo mật khẩu bằng OTP qua email (mục 9.11) --%>
-                                <div class="pwd-form-table">
-                                    <div class="password-notice-box" style="margin-bottom: 8px;">
-                                        <i class="fi fi-rr-info"></i>
-                                        <div>Tài khoản đăng nhập qua Google chưa thiết lập mật khẩu riêng. Bạn có thể tạo mật khẩu bằng mã OTP gửi tới email <strong><c:out value="${profile.email}"/></strong> để đăng nhập bằng email &amp; mật khẩu.</div>
-                                    </div>
-                                    <div class="pwd-form-actions">
-                                        <a href="${ctx}/forgot-password" class="btn-save" style="text-decoration:none; display:inline-block;">Nhận mã OTP</a>
-                                        <button type="button" class="btn-cancel" onclick="switchSubTab('info')">Quay lại</button>
+                                        <form:errors path="newPassword" cssClass="error" />
                                     </div>
                                 </div>
-                            </c:otherwise>
-                        </c:choose>
+
+                                <div class="pwd-form-row">
+                                    <label class="pwd-form-label" for="confirmPassword">Xác nhận mật khẩu <span style="color:#d9381e;">*</span></label>
+                                    <div class="pwd-form-input-col">
+                                        <div class="password-input-wrap">
+                                            <form:password path="confirmPassword" id="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password" />
+                                            <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility('confirmPassword')" tabindex="-1"><i class="fi fi-rr-eye"></i></button>
+                                        </div>
+                                        <form:errors path="confirmPassword" cssClass="error" />
+                                    </div>
+                                </div>
+
+                                <div class="pwd-form-actions">
+                                    <button type="submit" class="btn-save">Xác nhận</button>
+                                    <button type="button" class="btn-cancel" onclick="switchSubTab('info')">Quay lại</button>
+                                </div>
+                            </div>
+                        </form:form>
                     </div>
                 </div>
 
@@ -207,12 +183,27 @@
                                     <span>HẠNG HIỆN TẠI</span>
                                     <span>${profile.tierLabel}</span>
                                 </div>
-                                <div style="background:rgba(255,255,255,0.3);height:10px;border-radius:5px;margin:12px 0;overflow:hidden;">
-                                    <div style="background:#fff;height:100%;width:75%;border-radius:5px;"></div>
+                                <div style="margin-top: 10px; font-size: 13px;">
+                                    <c:choose>
+                                        <c:when test="${profile.tierLabel == 'Kim Cương' or profile.tierLabel == 'Kim cương'}">
+                                            <span>Đã tích lũy: <strong><fmt:formatNumber value="${profile.spentAmount}" type="number"/> ₫</strong> (Hạng cao nhất)</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span>Tiến độ lên hạng: <strong><fmt:formatNumber value="${profile.spentAmount}" type="number"/> ₫</strong> / <strong><fmt:formatNumber value="${profile.nextTierSpend}" type="number"/> ₫</strong></span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
+                                <div style="background:rgba(255,255,255,0.3);height:10px;border-radius:5px;margin:10px 0;overflow:hidden;">
+                                    <div style="background:#fff;height:100%;width:${profile.spendProgressPct}%;border-radius:5px;transition:width 0.4s ease;"></div>
+                                </div>
+                                <c:if test="${profile.tierLabel != 'Kim Cương' and profile.tierLabel != 'Kim cương'}">
+                                    <div style="font-size: 12px; opacity: 0.95;">
+                                        Cần tích luỹ thêm <strong><fmt:formatNumber value="${profile.nextTierSpend - profile.spentAmount > 0 ? profile.nextTierSpend - profile.spentAmount : 0}" type="number"/> ₫</strong> để đạt hạng <strong>${profile.nextTierLabel}</strong>.
+                                    </div>
+                                </c:if>
                             </div>
-                            <div style="font-size:12px;line-height:1.5;background:rgba(0,0,0,0.15);padding:10px;border-radius:8px;">
-                                <i class="fi fi-rr-bulb"></i> Hệ thống tự động tính lại hạng vào 00:05 mỗi ngày dựa trên đơn đã hoàn tất.
+                            <div style="font-size:12px;line-height:1.5;background:rgba(0,0,0,0.15);padding:10px;border-radius:8px;margin-top:12px;">
+                                <i class="fi fi-rr-bulb"></i> Chi tiêu tích lũy được tự động cập nhật sau 3 ngày hoàn thành đơn hàng (khi hết thời hạn đổi trả).
                             </div>
                         </div>
                     </div>
@@ -250,6 +241,29 @@
                     </div>
                 </div>
             </main>
+        </div>
+
+        <!-- POPUP CẢNH BÁO NHẬP SAI MẬT KHẨU NHIỀU LẦN -->
+        <div id="pwdFailModal" class="pwd-fail-modal-overlay" style="display: none;">
+            <div class="pwd-fail-modal-box">
+                <div class="pwd-fail-modal-header">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #b91c1c; font-weight: 800; font-size: 15px;">
+                        <i class="fi fi-rr-shield-exclamation"></i> Cảnh báo bảo mật
+                    </div>
+                    <button type="button" class="pwd-fail-close-btn" onclick="closePwdFailModal()">✕</button>
+                </div>
+                <div class="pwd-fail-modal-body">
+                    <p style="font-size: 14px; color: #3d3028; line-height: 1.5; margin: 0 0 16px;">
+                        Bạn đã nhập sai mật khẩu nhiều lần, bạn có muốn tạo lại mật khẩu?
+                    </p>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn-cancel" onclick="closePwdFailModal()" style="min-height: 38px; padding: 8px 16px;">Đóng</button>
+                        <a href="${ctx}/forgot-password" class="btn-save" style="min-height: 38px; padding: 8px 18px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fi fi-rr-refresh"></i> Đặt lại mật khẩu
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <%@ include file="/WEB-INF/views/common/_footer.jspf" %>
@@ -313,6 +327,16 @@
                 input.type = input.type === 'password' ? 'text' : 'password';
             }
 
+            function closePwdFailModal() {
+                const modal = document.getElementById('pwdFailModal');
+                if (modal) modal.style.display = 'none';
+            }
+
+            function showPwdFailModal() {
+                const modal = document.getElementById('pwdFailModal');
+                if (modal) modal.style.display = 'flex';
+            }
+
             window.addEventListener('DOMContentLoaded', () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('tab') === 'tier' || window.location.hash === '#tab-tier') {
@@ -321,6 +345,21 @@
                 const activeSubTab = '${activeSubTab}';
                 if (activeSubTab === 'password' || window.location.hash === '#password') {
                     switchSubTab('password');
+                }
+
+                <c:if test="${not empty successMessage}">
+                    sessionStorage.removeItem('changePwdFailCount');
+                </c:if>
+
+                const currentPwdInput = document.getElementById('currentPassword');
+                const pwdErrorEl = currentPwdInput ? currentPwdInput.closest('.pwd-form-input-col')?.querySelector('.error') : null;
+                if (pwdErrorEl && pwdErrorEl.textContent.trim().length > 0) {
+                    let failCount = parseInt(sessionStorage.getItem('changePwdFailCount') || '0', 10);
+                    failCount++;
+                    sessionStorage.setItem('changePwdFailCount', failCount);
+                    if (failCount >= 5) {
+                        showPwdFailModal();
+                    }
                 }
             });
         </script>

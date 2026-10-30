@@ -8,12 +8,14 @@ import com.isp392.petfood.dto.ReturnLineDto;
 import com.isp392.petfood.dto.ReturnRow;
 import com.isp392.petfood.dto.ReturnableLine;
 import com.isp392.petfood.entity.Customer;
+import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Order;
 import com.isp392.petfood.entity.OrderItem;
 import com.isp392.petfood.entity.OrderItemLot;
 import com.isp392.petfood.entity.ReturnItem;
 import com.isp392.petfood.entity.ReturnMedia;
 import com.isp392.petfood.entity.ReturnRequest;
+import com.isp392.petfood.enums.ExpiryLevel;
 import com.isp392.petfood.enums.InspectionResult;
 import com.isp392.petfood.enums.MediaType;
 import com.isp392.petfood.enums.OrderStatus;
@@ -21,9 +23,11 @@ import com.isp392.petfood.enums.PaymentMethod;
 import com.isp392.petfood.enums.PaymentStatus;
 import com.isp392.petfood.enums.ReturnReason;
 import com.isp392.petfood.enums.ReturnStatus;
+import com.isp392.petfood.enums.SaleType;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.repository.EmployeeRepository;
+import com.isp392.petfood.repository.FlashSaleItemRepository;
 import com.isp392.petfood.repository.LotRepository;
 import com.isp392.petfood.repository.OrderItemLotRepository;
 import com.isp392.petfood.repository.OrderItemRepository;
@@ -74,7 +78,7 @@ public class ReturnService {
     private static final Logger log = LoggerFactory.getLogger(ReturnService.class);
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final int MAX_MEDIA = 5;
-    private static final int PAGE_SIZE = 15;
+    private static final int PAGE_SIZE = 10;
 
     private final ReturnRequestRepository returnRequestRepository;
     private final ReturnItemRepository returnItemRepository;
@@ -83,8 +87,11 @@ public class ReturnService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemLotRepository orderItemLotRepository;
     private final LotRepository lotRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final EmployeeRepository employeeRepository;
+    private final InventoryPolicy inventoryPolicy;
     private final MembershipPolicy membershipPolicy;
+    private final MembershipService membershipService;
     private final ReturnMediaStorage mediaStorage;
 
     // ===== Phía khách =====
@@ -124,7 +131,7 @@ public class ReturnService {
             errors.put("reason", "Vui lòng chọn lý do trả hàng");
         }
 
-        // Dòng trả: thuộc đơn này, chưa trả lần nào, số lượng 1..số đã mua
+        // Dòng trả: thuộc đơn này, chưa trả lần nào (trừ yêu cầu đã REJECTED), số lượng 1..số đã mua
         Map<Long, OrderItem> orderItems = orderItemRepository.findDetailedByOrderId(orderId).stream()
                 .collect(Collectors.toMap(OrderItem::getId, Function.identity()));
         Set<Long> alreadyReturned = new HashSet<>(returnItemRepository.findReturnedOrderItemIds(orderId));
@@ -142,9 +149,16 @@ public class ReturnService {
                 errors.put("lines", item.getProduct().getName() + ": số lượng trả từ 1 đến " + item.getQuantity());
             }
             // BR-35: hàng Flash Sale không trả với lý do hạn ngắn (khách đã biết hạn khi mua)
-            if (item.getFlashSaleItem() != null && form.getReason() == ReturnReason.EXPIRY_ISSUE) {
+            if (item.getFlashSaleItem() != null
+                    && item.getFlashSaleItem().getFlashSale().getSaleType() == SaleType.FLASH_SALE
+                    && form.getReason() == ReturnReason.EXPIRY_ISSUE) {
                 errors.put("reason", item.getProduct().getName()
                         + " mua qua Flash Sale nên không trả được với lý do hạn sử dụng");
+            }
+            // BR-34: hàng đã mở bao bì chỉ được trả khi bị lỗi chất lượng / hư hỏng hoặc cận hạn / hết hạn
+            if (line.isOpened() && form.getReason() == ReturnReason.WRONG_OR_MISSING) {
+                errors.put("lines", item.getProduct().getName()
+                        + ": sản phẩm giao sai/thiếu không được trả nếu đã mở bao bì (BR-34)");
             }
         }
 
@@ -176,6 +190,12 @@ public class ReturnService {
                 throw new BusinessRuleException("media", "Không đọc được file số " + (i + 1));
             }
         }
+
+        // Dọn các dòng ReturnItem cũ thuộc yêu cầu đã bị REJECTED để không vướng UQ_ReturnItem_order_item_id
+        for (ReturnForm.Line line : chosen) {
+            returnItemRepository.deleteRejectedByOrderItemId(line.getOrderItemId());
+        }
+        returnItemRepository.flush();
 
         ReturnRequest request = new ReturnRequest();
         request.setOrder(order);
@@ -232,6 +252,12 @@ public class ReturnService {
     @Transactional(readOnly = true)
     public Page<ReturnRow> search(ReturnStatus status, ReturnReason reason, LocalDate from, LocalDate to,
                                   String keyword, int pageNumber) {
+        return search(status, reason, from, to, keyword, pageNumber, PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReturnRow> search(ReturnStatus status, ReturnReason reason, LocalDate from, LocalDate to,
+                                  String keyword, int pageNumber, int pageSize) {
         String text = keyword == null || keyword.isBlank() ? null : keyword.trim();
         Long numericId = null;
         if (text != null) {
@@ -240,11 +266,12 @@ public class ReturnService {
                 numericId = Long.parseLong(digits);
             }
         }
+        int effectiveSize = pageSize > 0 ? pageSize : PAGE_SIZE;
         return returnRequestRepository.search(status, reason,
                         from == null ? null : from.atStartOfDay(),
                         to == null ? null : to.plusDays(1).atStartOfDay(),
                         numericId, text,
-                        PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id")))
+                        PageRequest.of(pageNumber, effectiveSize, Sort.by(Sort.Direction.DESC, "createdAt", "id")))
                 .map(this::toRow);
     }
 
@@ -279,7 +306,7 @@ public class ReturnService {
         requireStatus(r, ReturnStatus.REQUESTED, "duyệt");
         r.setStatus(ReturnStatus.APPROVED);
         r.setReviewedBy(employeeRepository.getReferenceById(employeeId));
-        r.setReviewedAt(LocalDateTime.now());
+        r.setReviewedAt(VnpayClient.nowVn());
         return r;
     }
 
@@ -293,7 +320,9 @@ public class ReturnService {
         r.setStatus(ReturnStatus.REJECTED);
         r.setRejectReason(reason.trim().length() > 255 ? reason.trim().substring(0, 255) : reason.trim());
         r.setReviewedBy(employeeRepository.getReferenceById(employeeId));
-        r.setReviewedAt(LocalDateTime.now());
+        r.setReviewedAt(VnpayClient.nowVn());
+        returnRequestRepository.flush();
+        membershipService.recalculateAll();
         return r;
     }
 
@@ -303,7 +332,7 @@ public class ReturnService {
         ReturnRequest r = lock(returnId);
         requireStatus(r, ReturnStatus.APPROVED, "xác nhận nhận hàng");
         r.setStatus(ReturnStatus.RECEIVED);
-        r.setReceivedAt(LocalDateTime.now());
+        r.setReceivedAt(VnpayClient.nowVn());
         return r;
     }
 
@@ -316,10 +345,30 @@ public class ReturnService {
                 .filter(l -> l.getReturnItemId() != null)
                 .collect(Collectors.toMap(InspectForm.Line::getReturnItemId, Function.identity(), (a, b) -> a));
         List<ReturnItem> items = returnItemRepository.findByReturnId(returnId);
+        List<OrderItemLot> allOrderLots = orderItemLotRepository.findByOrderId(r.getOrder().getId());
+
         for (ReturnItem item : items) {
             InspectForm.Line line = byItem.get(item.getId());
             if (line == null || line.getResult() == null) {
                 throw new BusinessRuleException("Vui lòng chọn kết quả thẩm định cho mọi sản phẩm (tái nhập hoặc tiêu huỷ)");
+            }
+            if (line.getResult() == InspectionResult.RESTOCKED) {
+                String productName = item.getOrderItem().getProduct().getName();
+                if (Boolean.TRUE.equals(item.getOpened())) {
+                    throw new BusinessRuleException(productName + " đã mở bao bì nên không được phép tái nhập kho (BR-34/BR-38). Vui lòng chọn Tiêu huỷ.");
+                }
+                if (r.getReason() == ReturnReason.DAMAGED) {
+                    throw new BusinessRuleException(productName + " trả về do lỗi chất lượng / hư hỏng nên không được tái nhập kho (BR-38). Vui lòng chọn Tiêu huỷ.");
+                }
+                boolean hasValidLot = allOrderLots.stream()
+                        .filter(x -> x.getOrderItem().getId().equals(item.getOrderItem().getId()))
+                        .map(OrderItemLot::getLot)
+                        .anyMatch(lot -> !LotService.isDisposed(lot.getId())
+                                && inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.BLOCKED
+                                && inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.EXPIRED);
+                if (!hasValidLot) {
+                    throw new BusinessRuleException(productName + ": lô gốc đã quá cận hạn (< 21 ngày), hết hạn hoặc đã tiêu huỷ nên không thể tái nhập kho (BR-51). Vui lòng chọn Tiêu huỷ.");
+                }
             }
         }
 
@@ -335,11 +384,15 @@ public class ReturnService {
             item.setRefundAmount(refund);
             total = total.add(refund);
             if (line.getResult() == InspectionResult.RESTOCKED) {
-                restock(item);
+                restock(item, allOrderLots);
             }
         }
         r.setInspectedBy(employeeRepository.getReferenceById(employeeId));
         r.setStatus(total.signum() > 0 ? ReturnStatus.INSPECTED : ReturnStatus.CLOSED);
+        if (r.getStatus() == ReturnStatus.CLOSED) {
+            returnRequestRepository.flush();
+            membershipService.recalculateAll();
+        }
         return r;
     }
 
@@ -349,7 +402,7 @@ public class ReturnService {
         ReturnRequest r = lock(returnId);
         requireStatus(r, ReturnStatus.INSPECTED, "ghi nhận hoàn tiền");
         r.setStatus(ReturnStatus.REFUNDED);
-        r.setRefundedAt(LocalDateTime.now());
+        r.setRefundedAt(VnpayClient.nowVn());
         returnItemRepository.flush();
 
         // Hoàn đủ toàn bộ tiền hàng của đơn thì đơn chuyển REFUNDED (BR-18)
@@ -358,23 +411,35 @@ public class ReturnService {
         if (returnItemRepository.sumRefundedOfOrder(order.getId()).compareTo(goods) >= 0) {
             order.setPaymentStatus(PaymentStatus.REFUNDED);
         }
+        // Cập nhật lại hạng hội viên sau khi hoàn tiền (BR-40)
+        membershipService.recalculateAll();
         return r;
     }
 
-    // Đơn RETURNED (khách không nhận hàng): tạo sẵn yêu cầu, hàng đã về kho nên ở RECEIVED chờ thẩm định
+    // Đơn RETURNED (khách không nhận hàng): tạo sẵn yêu cầu ở trạng thái APPROVED (chờ nhận hàng trả về kho)
+    // để kho xác nhận khi thực tế nhận lại kiện hàng từ shipper trước khi thẩm định.
     @Transactional
-    public ReturnRequest createForRefusedDelivery(Order order) {
+    public ReturnRequest createForRefusedDelivery(Order order, Long employeeId) {
         ReturnRequest request = new ReturnRequest();
         request.setOrder(order);
         request.setReason(ReturnReason.REFUSED_DELIVERY);
-        request.setDescription("Khách không nhận hàng, hệ thống tạo yêu cầu để thẩm định");
-        request.setStatus(ReturnStatus.RECEIVED);
-        request.setReceivedAt(LocalDateTime.now());
+        request.setDescription("Khách không nhận hàng, kiện hàng chuyển hoàn về kho");
+        request.setStatus(ReturnStatus.APPROVED);
+        request.setReviewedAt(VnpayClient.nowVn());
+        if (employeeId != null) {
+            request.setReviewedBy(employeeRepository.getReferenceById(employeeId));
+        }
+        request.setReceivedAt(null);
         returnRequestRepository.save(request);
         for (OrderItem item : orderItemRepository.findDetailedByOrderId(order.getId())) {
             returnItemRepository.save(new ReturnItem(request, item, item.getQuantity(), false));
         }
         return request;
+    }
+
+    @Transactional
+    public ReturnRequest createForRefusedDelivery(Order order) {
+        return createForRefusedDelivery(order, null);
     }
 
     // ===== Phụ trợ =====
@@ -386,29 +451,41 @@ public class ReturnService {
                 .divide(BigDecimal.valueOf(oi.getQuantity()), 0, RoundingMode.HALF_UP);
     }
 
-    // Tái nhập về đúng lô đã xuất cho dòng đơn này (BR-38)
-    private void restock(ReturnItem item) {
+    // Tái nhập về đúng lô đã xuất cho dòng đơn này (BR-38) và hoàn trả suất Flash Sale / Promotion nếu có
+    private void restock(ReturnItem item, List<OrderItemLot> allOrderLots) {
         int remaining = item.getQuantity();
-        for (OrderItemLot taken : orderItemLotRepository.findByOrderId(item.getOrderItem().getOrder().getId())) {
+        int restockedTotal = 0;
+        for (OrderItemLot taken : allOrderLots) {
             if (remaining == 0) {
                 break;
             }
             if (!taken.getOrderItem().getId().equals(item.getOrderItem().getId())) {
                 continue;
             }
+            Lot lot = taken.getLot();
+            ExpiryLevel level = inventoryPolicy.levelOf(lot.getExpiryDate());
+            if (LotService.isDisposed(lot.getId()) || level == ExpiryLevel.BLOCKED || level == ExpiryLevel.EXPIRED) {
+                log.info("Trả hàng #{}: bỏ qua tái nhập vào lô #{} vì lô đã tiêu huỷ hoặc quá cận hạn/hết hạn",
+                        item.getReturnRequest().getId(), lot.getId());
+                continue;
+            }
             int qty = Math.min(remaining, taken.getQuantity());
-            if (lotRepository.putBack(taken.getLot().getId(), qty) == 1) {
+            if (lotRepository.putBack(lot.getId(), qty) == 1) {
                 remaining -= qty;
+                restockedTotal += qty;
             } else {
                 log.warn("Trả hàng #{}: không tái nhập được {} sp vào lô #{}", item.getReturnRequest().getId(),
-                        qty, taken.getLot().getId());
+                        qty, lot.getId());
             }
+        }
+        if (restockedTotal > 0 && item.getOrderItem().getFlashSaleItem() != null) {
+            flashSaleItemRepository.unsell(item.getOrderItem().getFlashSaleItem().getId(), restockedTotal);
         }
     }
 
     private boolean withinWindow(Order order) {
         return order.getStatus() == OrderStatus.COMPLETED && order.getCompletedAt() != null
-                && !LocalDateTime.now().isAfter(order.getCompletedAt().plusDays(membershipPolicy.getReturnWindowDays()));
+                && !VnpayClient.nowVn().isAfter(order.getCompletedAt().plusDays(membershipPolicy.getReturnWindowDays()));
     }
 
     private void requireWindow(Order order) {
@@ -422,8 +499,14 @@ public class ReturnService {
         Set<Long> returned = new HashSet<>(returnItemRepository.findReturnedOrderItemIds(order.getId()));
         return orderItemRepository.findDetailedByOrderId(order.getId()).stream()
                 .filter(i -> !returned.contains(i.getId()))
-                .map(i -> new ReturnableLine(i.getId(), i.getProduct().getName(), i.getFlashSaleItem() != null,
-                        i.getQuantity(), i.getLineTotal()))
+                .map(i -> {
+                    boolean isFlash = i.getFlashSaleItem() != null
+                            && i.getFlashSaleItem().getFlashSale().getSaleType() == SaleType.FLASH_SALE;
+                    boolean isPromo = i.getFlashSaleItem() != null
+                            && i.getFlashSaleItem().getFlashSale().getSaleType() == SaleType.PROMOTION;
+                    return new ReturnableLine(i.getId(), i.getProduct().getName(), isFlash, isPromo,
+                            i.getQuantity(), i.getLineTotal());
+                })
                 .toList();
     }
 
@@ -461,11 +544,17 @@ public class ReturnService {
 
     private ReturnDetailDto toDetail(ReturnRequest r) {
         List<ReturnLineDto> lines = returnItemRepository.findByReturnId(r.getId()).stream()
-                .map(i -> new ReturnLineDto(i.getId(), i.getOrderItem().getProduct().getId(),
-                        i.getOrderItem().getProduct().getFullSku(), i.getOrderItem().getProduct().getName(),
-                        i.getOrderItem().getFlashSaleItem() != null, i.getOrderItem().getQuantity(), i.getQuantity(),
-                        Boolean.TRUE.equals(i.getOpened()), maxRefund(i), i.getInspectionResult(),
-                        i.getInspectionNote(), i.getRefundAmount()))
+                .map(i -> {
+                    boolean isFlash = i.getOrderItem().getFlashSaleItem() != null
+                            && i.getOrderItem().getFlashSaleItem().getFlashSale().getSaleType() == SaleType.FLASH_SALE;
+                    boolean isPromo = i.getOrderItem().getFlashSaleItem() != null
+                            && i.getOrderItem().getFlashSaleItem().getFlashSale().getSaleType() == SaleType.PROMOTION;
+                    return new ReturnLineDto(i.getId(), i.getOrderItem().getProduct().getId(),
+                            i.getOrderItem().getProduct().getFullSku(), i.getOrderItem().getProduct().getName(),
+                            isFlash, isPromo, i.getOrderItem().getQuantity(), i.getQuantity(),
+                            Boolean.TRUE.equals(i.getOpened()), maxRefund(i), i.getInspectionResult(),
+                            i.getInspectionNote(), i.getRefundAmount());
+                })
                 .toList();
         BigDecimal refundTotal = lines.stream().map(ReturnLineDto::getRefundAmount)
                 .filter(a -> a != null).reduce(BigDecimal.ZERO, BigDecimal::add);

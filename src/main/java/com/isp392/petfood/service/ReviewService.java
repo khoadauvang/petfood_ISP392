@@ -13,6 +13,7 @@ import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.repository.EmployeeRepository;
 import com.isp392.petfood.repository.OrderItemRepository;
 import com.isp392.petfood.repository.ProductReviewRepository;
+import com.isp392.petfood.repository.ReturnItemRepository;
 import com.isp392.petfood.repository.ReviewReplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 
 // Đánh giá sản phẩm (module 8, requirements 7.9):
 //   - khách chỉ đánh giá dòng hàng thuộc đơn COMPLETED của chính mình; mỗi order_item một đánh giá (sửa lại được)
+//   - dòng hàng đã được trả hàng đủ số lượng và hoàn tiền (REFUNDED) thì không được đánh giá
 //   - product_id / customer_id lấy từ dòng đơn, không nhận từ form (ghi chú 4 trong script SQL)
 //   - staff phản hồi tối đa một lần mỗi đánh giá; đánh giá vi phạm thì ẩn (HIDDEN), không xoá
 @Service
@@ -46,6 +48,7 @@ public class ReviewService {
     private final ProductReviewRepository reviewRepository;
     private final ReviewReplyRepository replyRepository;
     private final OrderItemRepository orderItemRepository;
+    private final ReturnItemRepository returnItemRepository;
     private final EmployeeRepository employeeRepository;
 
     // ===== Phía khách =====
@@ -79,7 +82,7 @@ public class ReviewService {
             review.setProduct(item.getProduct());                    // khớp dòng đơn (ghi chú 4)
             review.setCustomer(item.getOrder().getCustomer());
         } else {
-            review.setUpdatedAt(LocalDateTime.now());                // đánh giá đã ẩn thì sửa xong vẫn ẩn
+            review.setUpdatedAt(VnpayClient.nowVn());                // đánh giá đã ẩn thì sửa xong vẫn ẩn
         }
         review.setRating(form.getRating());
         review.setTitle(blankToNull(form.getTitle()));
@@ -143,7 +146,7 @@ public class ReviewService {
 
     // ===== Phụ trợ =====
 
-    // Dòng đơn thuộc đơn COMPLETED của đúng khách này
+    // Dòng đơn thuộc đơn COMPLETED của đúng khách này và chưa bị trả hàng hoàn tiền toàn bộ
     private OrderItem reviewableItem(Long customerId, Long orderId, Long orderItemId) {
         OrderItem item = orderItemRepository.findById(orderItemId)
                 .filter(i -> i.getOrder().getId().equals(orderId)
@@ -151,6 +154,9 @@ public class ReviewService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm #" + orderItemId + " trong đơn của bạn"));
         if (item.getOrder().getStatus() != OrderStatus.COMPLETED) {
             throw new BusinessRuleException("Chỉ đánh giá được sản phẩm của đơn đã giao thành công.");
+        }
+        if (returnItemRepository.existsRefundedFullItem(orderItemId)) {
+            throw new BusinessRuleException("Sản phẩm này đã được trả hàng và hoàn tiền nên không thể đánh giá.");
         }
         item.getProduct().getName();
         return item;

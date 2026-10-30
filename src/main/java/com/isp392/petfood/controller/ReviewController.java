@@ -52,13 +52,22 @@ public class ReviewController {
                        @PathVariable("itemId") Long itemId, @Valid @ModelAttribute("reviewForm") ReviewForm form,
                        BindingResult result, Model model, RedirectAttributes redirect) {
         if (result.hasErrors()) {
-            return show(user, orderId, itemId, model);
+            try {
+                return show(user, orderId, itemId, model);
+            } catch (BusinessRuleException e) {
+                redirect.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/orders/" + orderId;
+            }
         }
         try {
             reviewService.save(user.getCustomerId(), orderId, itemId, form);
             redirect.addFlashAttribute("successMessage", "Cảm ơn bạn đã đánh giá sản phẩm!");
             return "redirect:/orders/" + orderId;
         } catch (BusinessRuleException e) {
+            if (e.getFieldErrors().isEmpty()) {
+                redirect.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/orders/" + orderId;
+            }
             FormErrors.apply(e, result, model);
             return show(user, orderId, itemId, model);
         }

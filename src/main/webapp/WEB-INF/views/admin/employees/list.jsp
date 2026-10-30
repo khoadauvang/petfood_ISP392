@@ -14,10 +14,10 @@
 
     <main class="admin-main">
         <!-- Breadcrumb Bar -->
-        <div class="breadcrumb-bar" style="margin-bottom: 0.5rem; font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
-            <span>CÀI ĐẶT HỆ THỐNG</span>
-            <span style="margin: 0 4px;">&gt;</span>
-            <span style="color: #ea580c;">QUẢN LÝ TÀI KHOẢN NHÂN VIÊN</span>
+        <div class="screen-bc">
+            <span>QUẢN TRỊ HỆ THỐNG</span>
+            <span class="sep">&gt;</span>
+            <span class="current">QUẢN LÝ TÀI KHOẢN NHÂN VIÊN</span>
         </div>
 
         <!-- Page Header -->

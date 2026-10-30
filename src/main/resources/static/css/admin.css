@@ -265,7 +265,9 @@ body .pager a:hover { border-color: var(--color-primary); color: var(--color-pri
     padding: 6px; border-radius: 16px;
     background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card);
 }
-.range .ti { color: var(--color-primary); font-size: 18px; margin-left: 6px; }
+.range > .ti { color: var(--color-primary); font-size: 18px; margin-left: 6px; }
+#range-submit { display: inline-flex; align-items: center; gap: 6px; }
+#range-submit .ti { color: #ffffff !important; font-size: 16px; margin: 0; }
 .range input[type=date] { border: 0; padding: 6px 8px; background: transparent; font-weight: 700; font-size: 14px; }
 .range input[type=date]:focus { box-shadow: none; }
 .range .sep { color: var(--text-placeholder); }
@@ -632,7 +634,8 @@ body .panel table { box-shadow: none; margin: 0; border-radius: 12px; }
     color: var(--color-primary-dark) !important;
 }
 /* ---------- Pill Badges ---------- */
-.pill-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; }
+.pill-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.pill-badge i, .pill-badge .ti { font-size: 13px; line-height: 1; }
 .pill-badge.green { background: #e6f9ed; color: #166534; }
 .pill-badge.orange { background: #ffedd5; color: #c2410c; }
 .pill-badge.red { background: #fee2e2; color: #991b1b; }
@@ -677,33 +680,86 @@ body .panel table { box-shadow: none; margin: 0; border-radius: 12px; }
 
 /* ---------- Stepper tiến trình (5 Steps) ---------- */
 .order-stepper {
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 16px 0 20px; position: relative;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    margin: 16px 0 20px !important;
+    position: relative !important;
+    width: 100% !important;
 }
 .order-stepper::before {
-    content: ""; position: absolute; left: 18px; right: 18px; top: 16px; height: 2px;
-    background: var(--line); z-index: 1;
+    content: "" !important;
+    position: absolute !important;
+    left: 10% !important;
+    right: 10% !important;
+    top: 16px !important;
+    height: 2px !important;
+    background: #fed7aa !important;
+    z-index: 1 !important;
 }
 .stepper-step {
-    position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;
-    text-align: center; gap: 6px;
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 4px !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 0 4px !important;
 }
 .stepper-circle {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--surface); border: 2px solid var(--line);
-    display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--text-muted);
-    transition: all var(--transition);
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    border: 2px solid #fed7aa !important;
+    display: grid !important;
+    place-items: center !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: #9a3412 !important;
+    transition: all var(--transition) !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 2px !important;
 }
 .stepper-step.completed .stepper-circle {
-    background: #10b981; border-color: #10b981; color: #fff;
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
 }
 .stepper-step.active .stepper-circle {
-    background: #ea580c; border-color: #ea580c; color: #fff;
-    box-shadow: 0 0 0 4px #ffedd5;
+    background: #ea580c !important;
+    border-color: #ea580c !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 4px #ffedd5 !important;
 }
-.stepper-label { font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
-.stepper-step.active .stepper-label { color: #ea580c; font-weight: 800; }
-.stepper-time { font-size: 11px; color: var(--text-placeholder); }
+.stepper-label {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+}
+.stepper-step.active .stepper-label {
+    color: #ea580c !important;
+    font-weight: 800 !important;
+}
+.stepper-time {
+    font-size: 10.5px !important;
+    color: var(--text-placeholder) !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+    display: block !important;
+}
 
 /* ---------- Thẻ thông tin khách & địa chỉ ---------- */
 .info-box-grid {
@@ -906,14 +962,26 @@ body .panel table { box-shadow: none; margin: 0; border-radius: 12px; }
 .screen-tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
 
 /* ---------- Action icon buttons in table ---------- */
-.action-icons { display: inline-flex; align-items: center; gap: 6px; }
+.action-icons { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .act-icon {
-    width: 32px; height: 32px; border-radius: 8px; display: inline-grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; margin: 0; box-sizing: border-box; line-height: 1;
     border: 1px solid var(--line); background: var(--surface); color: var(--text-muted);
     font-size: 16px; text-decoration: none; cursor: pointer; transition: all var(--transition);
 }
+.act-icon i, .act-icon .ti {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; font-size: 16px; line-height: 1;
+    margin: 0; padding: 0; text-align: center;
+}
 .act-icon:hover { border-color: var(--color-primary); color: var(--color-primary); background: #fffaf5; }
+.act-icon.danger { color: #dc2626; border-color: #fecaca; background: #fff; }
 .act-icon.danger:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+.act-icon.warning { color: #d97706; border-color: #fed7aa; background: #fffbeb; }
+.act-icon.warning:hover { border-color: #f59e0b; color: #b45309; background: #fef3c7; }
+.act-icon.success { color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; }
+.act-icon.success:hover { border-color: #22c55e; color: #15803d; background: #dcfce7; }
 
 @keyframes spin {
     from { transform: rotate(0deg); }

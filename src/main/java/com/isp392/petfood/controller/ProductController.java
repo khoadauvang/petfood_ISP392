@@ -1,5 +1,6 @@
 package com.isp392.petfood.controller;
 
+import com.isp392.petfood.dto.FlashSaleOffer;
 import com.isp392.petfood.dto.ProductCardDto;
 import com.isp392.petfood.dto.ProductFilter;
 import com.isp392.petfood.enums.AgeGroup;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 // Trang sản phẩm phía khách. Guest xem được (SecurityConfig permitAll "/" và "/products/**", BR-07).
 //   GET /                     trang chủ (product/list.jsp của nhóm FE): banner + sản phẩm bán chạy & mới về
@@ -46,6 +49,7 @@ public class ProductController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("featuredProducts", productService.featuredProducts(FEATURED_COUNT));
+        model.addAttribute("flashSaleOffers", flashSaleService.runningOffers(null));
         return "product/list";   // -> /WEB-INF/views/product/list.jsp
     }
 
@@ -81,10 +85,37 @@ public class ProductController {
 
     @GetMapping("/products/{id}")
     public String detail(@PathVariable("id") Long id, Model model) {
-        model.addAttribute("product", productService.getDetail(id));   // không bán / không có -> 404
+        var product = productService.getDetail(id);
+        model.addAttribute("product", product);   // không bán / không có -> 404
+        model.addAttribute("variants", productService.getVariants(id));
         model.addAttribute("reviewSummary", reviewService.productReviews(id));
         model.addAttribute("flashSaleOffers", flashSaleService.runningOffers(id));
         model.addAttribute("shelfLifeDays", productService.getShelfLifeCommitmentDays());
+
+        // Đề xuất sản phẩm cùng danh mục (khoảng 3 dòng = 12 sản phẩm)
+        ProductFilter filter = new ProductFilter();
+        filter.setCategoryId(product.getCategoryId());
+        List<ProductCardDto> related = productService.search(filter, 0).getContent().stream()
+                .filter(p -> !p.getId().equals(id))
+                .limit(12)
+                .toList();
+        if (related.size() < 4) {
+            var existingIds = related.stream()
+                    .map(ProductCardDto::getId)
+                    .collect(java.util.stream.Collectors.toSet());
+            existingIds.add(id);
+
+            List<ProductCardDto> featured = productService.featuredProducts(12).stream()
+                    .filter(p -> !existingIds.contains(p.getId()))
+                    .toList();
+            related = java.util.stream.Stream.concat(related.stream(), featured.stream()).limit(12).toList();
+        }
+        // Đưa sản phẩm hết hàng xuống cuối
+        related = related.stream()
+                .sorted(java.util.Comparator.comparing(ProductCardDto::isInStock).reversed())
+                .toList();
+        model.addAttribute("relatedProducts", related);
+
         return "product/detail";
     }
 }

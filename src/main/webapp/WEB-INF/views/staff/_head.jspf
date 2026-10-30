@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
+<link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/theme.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin.css">
 <style>
@@ -95,6 +97,87 @@
     background: var(--orange-50) !important;
     border-color: var(--color-primary) !important;
     color: var(--color-primary-dark) !important;
+/* Chuẩn hóa nút icon bảng (.act-icon) căn chính giữa tuyệt đối trên tất cả màn hình */
+button.act-icon, a.act-icon, .act-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--line) !important;
+    background: #ffffff !important;
+    color: var(--text-muted) !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    flex-shrink: 0 !important;
+}
+button.act-icon i, button.act-icon .ti,
+a.act-icon i, a.act-icon .ti,
+.act-icon i, .act-icon .ti {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 16px !important;
+    height: 16px !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+}
+.act-icon:hover {
+    border-color: var(--color-primary) !important;
+    color: var(--color-primary) !important;
+    background: #fffaf5 !important;
+}
+.act-icon.warning, button.act-icon.warning {
+    color: #d97706 !important;
+    background: #fffbeb !important;
+    border-color: #fed7aa !important;
+}
+.act-icon.warning:hover, button.act-icon.warning:hover {
+    color: #b45309 !important;
+    background: #fef3c7 !important;
+    border-color: #f59e0b !important;
+}
+.act-icon.danger, button.act-icon.danger {
+    color: #dc2626 !important;
+    background: #ffffff !important;
+    border-color: #fecaca !important;
+}
+.act-icon.danger:hover, button.act-icon.danger:hover {
+    color: #ef4444 !important;
+    background: #fef2f2 !important;
+    border-color: #ef4444 !important;
+}
+.act-icon.success, button.act-icon.success {
+    color: #16a34a !important;
+    background: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+}
+.act-icon.success:hover, button.act-icon.success:hover {
+    color: #15803d !important;
+    background: #dcfce7 !important;
+    border-color: #22c55e !important;
+}
+.act-icon.info, button.act-icon.info {
+    color: #0284c7 !important;
+    background: #f0f9ff !important;
+    border-color: #bae6fd !important;
+}
+.act-icon.info:hover, button.act-icon.info:hover {
+    color: #0369a1 !important;
+    background: #e0f2fe !important;
+    border-color: #38bdf8 !important;
 }
 
 /* Nút 3 gạch ẩn hiện sidebar */

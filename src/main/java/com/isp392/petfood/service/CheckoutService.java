@@ -40,7 +40,7 @@ import java.util.Map;
 //   - trừ tồn theo FEFO ngay lúc đặt (Remaining_Features), mỗi lần trừ là một câu UPDATE có điều kiện (BR-20);
 //     lô đã trừ ghi vào OrderItemLot để huỷ đơn cộng trả đúng lô
 //   - lỗi ở bất kỳ dòng nào (hết hàng do người khác vừa mua) -> rollback toàn bộ, giỏ giữ nguyên
-//   - khách tick chọn dòng ở trang giỏ (itemIds): chỉ đặt các dòng đó, dòng không chọn ở lại giỏ; không chọn gì = cả giỏ
+//   - khách tick chọn dòng ở trang giỏ (itemIds): chỉ đặt các dòng đó, dòng không chọn ở lại giỏ
 @Service
 @RequiredArgsConstructor
 public class CheckoutService {
@@ -87,8 +87,11 @@ public class CheckoutService {
         }
 
         List<Long> itemIds = form.getItemIds();
+        if (itemIds == null || itemIds.isEmpty()) {
+            throw new BusinessRuleException("Vui lòng chọn ít nhất một sản phẩm trong giỏ hàng để đặt hàng.");
+        }
         List<CartItem> items = CartService.onlySelected(cartItemRepository.findDetailedByCustomerId(customerId), itemIds);
-        if (itemIds != null && !itemIds.isEmpty() && items.size() != new HashSet<>(itemIds).size()) {
+        if (items.size() != new HashSet<>(itemIds).size()) {
             // Dòng đã chọn bị xoá / đặt ở tab khác trong lúc đang ở trang đặt hàng
             throw new BusinessRuleException("Một số sản phẩm đã chọn không còn trong giỏ. Vui lòng quay lại giỏ hàng để chọn lại.");
         }
@@ -140,7 +143,8 @@ public class CheckoutService {
 
     // ===== Trừ tồn =====
 
-    // Dòng giá thường: lấy dần từ các lô bán thường theo FEFO (BR-53), chỉ lô còn >= 90 ngày (chốt 15/10)
+    // Dòng giá thường: lấy dần từ các lô bán thường theo FEFO (BR-53), chỉ lô còn >= 90 ngày (chốt 15/10),
+    // ưu tiên phần tồn chưa được giữ chỗ bởi các chương trình khuyến mãi (BR-68).
     private void allocateRegular(OrderItem orderItem) {
         Long productId = orderItem.getProduct().getId();
         LocalDate minExpiry = inventoryPolicy.minSellableExpiry();
@@ -153,7 +157,12 @@ public class CheckoutService {
                 break;
             }
             for (LotStock lot : lots) {
-                int take = Math.min(remaining, lot.getOnHandQty());
+                long reserved = flashSaleItemRepository.reservedByOtherSales(lot.getLotId(), 0L);
+                int unreserved = (int) Math.max(0L, lot.getOnHandQty() - reserved);
+                if (unreserved <= 0) {
+                    continue;
+                }
+                int take = Math.min(remaining, unreserved);
                 // 0 dòng bị sửa = đơn khác vừa lấy hàng của lô này; vòng sau đọc lại số mới
                 if (lotRepository.takeSellable(lot.getLotId(), take, minExpiry) == 1) {
                     taken.merge(lot.getLotId(), take, Integer::sum);
@@ -166,7 +175,7 @@ public class CheckoutService {
         }
         if (remaining > 0) {
             throw new BusinessRuleException(orderItem.getProduct().getName()
-                    + " không còn đủ hàng (vừa có khách khác đặt). Vui lòng quay lại giỏ hàng.");
+                    + " không còn đủ hàng khả dụng (vừa có khách khác đặt hoặc đang giữ suất khuyến mãi). Vui lòng quay lại giỏ hàng.");
         }
         taken.forEach((lotId, qty) ->
                 orderItemLotRepository.save(new OrderItemLot(orderItem, lotRepository.getReferenceById(lotId), qty)));
@@ -176,10 +185,10 @@ public class CheckoutService {
     private void allocateFlashSale(OrderItem orderItem, FlashSaleItem fsItem) {
         int qty = orderItem.getQuantity();
         if (flashSaleItemRepository.sell(fsItem.getId(), qty) == 0) {
-            throw new BusinessRuleException("Suất Flash Sale của " + orderItem.getProduct().getName() + " vừa hết.");
+            throw new BusinessRuleException("Suất ưu đãi của " + orderItem.getProduct().getName() + " vừa hết.");
         }
         if (lotRepository.take(fsItem.getLot().getId(), qty) == 0) {
-            throw new BusinessRuleException("Lô Flash Sale của " + orderItem.getProduct().getName() + " không còn đủ hàng.");
+            throw new BusinessRuleException("Lô hàng của " + orderItem.getProduct().getName() + " không còn đủ hàng.");
         }
         orderItemLotRepository.save(new OrderItemLot(orderItem, fsItem.getLot(), qty));
     }

@@ -775,37 +775,77 @@ button {
 
 .product-card,
 .product-grid .product-card {
-    flex: 0 0 280px !important;
-    width: 280px !important;
-    min-width: 280px !important;
+    flex: 0 0 250px !important;
+    width: 250px !important;
+    min-width: 250px !important;
     display: flex;
     flex-direction: column;
     background: #FFFFFF;
-    border-radius: 22px;
+    border-radius: 20px;
     overflow: hidden;
     border: 1.5px solid #F4E3C9;
-    box-shadow: 0 6px 18px rgba(61, 48, 40, 0.05);
-    transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+    box-shadow: 0 4px 16px rgba(61, 48, 40, 0.05);
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+    position: relative;
 }
 
-.product-card:hover,
-.product-grid .product-card:hover {
-    transform: translateY(-8px) scale(1.015);
-    box-shadow: 0 20px 40px -10px rgba(244, 119, 33, 0.22), 0 4px 12px rgba(61, 48, 40, 0.06);
+.product-card:hover:not(.out-of-stock),
+.product-grid .product-card:hover:not(.out-of-stock) {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 30px rgba(244, 119, 33, 0.16);
     border-color: #F8CBB0;
+}
+
+/* Card bị hết hàng */
+.product-card.out-of-stock {
+    filter: grayscale(1);
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #FAFAFA;
+}
+
+.product-card-disabled {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    cursor: not-allowed;
+    user-select: none;
+}
+
+.badge-out-stock {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(60, 50, 45, 0.85);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    z-index: 3;
+}
+
+.product-card-link {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
 }
 
 .product-image {
     width: 100%;
-    height: 185px;
-    flex: 0 0 185px;
-    background: #F8F3EE;
+    height: 175px;
+    flex: 0 0 175px;
+    background: #FCF9F5;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     color: #AAA29D;
-    font-size: 15px;
+    font-size: 13px;
     position: relative;
 }
 
@@ -816,15 +856,15 @@ button {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 10px;
+    padding: 3px 9px;
     background: rgba(255, 255, 255, 0.94);
     border: 1px solid #F8CBB0;
     backdrop-filter: blur(4px);
     border-radius: 12px;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #E96816;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
     z-index: 2;
 }
 
@@ -838,111 +878,254 @@ button {
     transition: transform 0.35s ease;
 }
 
-.product-card:hover .product-image img {
-    transform: scale(1.08);
+.product-card:hover:not(.out-of-stock) .product-image img {
+    transform: scale(1.06);
 }
 
 .product-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    padding: 16px;
+    padding: 14px 16px 16px;
 }
 
-.product-info h3 {
-    margin: 0;
-    color: #3D3028;
-    font-size: 15.5px;
-    font-weight: 700;
-    line-height: 1.4;
-    min-height: calc(1.4em * 3);
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.product-info h3 a {
-    text-decoration: none;
-    color: inherit;
-    transition: color 0.2s ease;
-}
-
-.product-info h3 a:hover {
-    color: #F47721;
-}
-
-.product-price {
-    margin: auto 0 0 0;
-    color: #F47721;
-    font-size: 19px;
-    font-weight: 800;
+.product-card-brand {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8C8077;
+    margin-bottom: 4px;
+    display: block;
     line-height: 1.3;
 }
 
-.stock-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 4px 0 0;
-    color: #817872;
-    font-size: 13.5px;
-    line-height: 1.4;
-}
-
-.stock-dot {
-    display: inline-block;
-    flex-shrink: 0;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #6C9E75;
-}
-
-.stock-status.out-of-stock .stock-dot {
-    background: #D9534F;
-}
-
-.product-info form {
-    width: 100%;
-    margin: 10px 0 0 0;
-}
-
-.add-cart-btn {
-    width: 100%;
-    min-height: 40px;
-    margin-top: 10px;
-    padding: 0 14px;
-    border: none;
-    border-radius: 22px;
-    background: #F47721;
-    color: #FFFFFF;
-    font-family: inherit;
-    font-size: 13.5px;
+.product-card-title {
+    margin: 0 0 8px 0;
+    color: #2C221A;
+    font-size: 14px;
     font-weight: 700;
-    cursor: pointer;
+    line-height: 1.42;
+    min-height: 40px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.2s ease;
+}
+
+.product-card:hover:not(.out-of-stock) .product-card-title {
+    color: #F47721;
+}
+
+.product-card-price-row {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    box-shadow: 0 4px 14px rgba(244, 119, 33, 0.35);
-    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 6px;
 }
 
-.product-info form .add-cart-btn {
-    margin-top: 0;
+.product-price {
+    margin: 0;
+    color: #F47721;
+    font-size: 17.5px;
+    font-weight: 800;
+    line-height: 1.2;
 }
 
-.add-cart-btn:hover {
-    background: #E96816;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(244, 119, 33, 0.45);
+.product-sold {
+    font-size: 11.5px;
+    color: #8A7E75;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .add-cart-btn i {
     font-size: 14px;
+}
+
+/* =========================================================
+   FLASH SALE PRODUCT CARD (ĐỒNG BỘ CHO TRANG CHỦ & FLASH SALE)
+   ========================================================= */
+.flash-product-card {
+    border-color: #FFCDD2 !important;
+}
+
+.flash-product-card:hover {
+    border-color: #E53935 !important;
+    box-shadow: 0 14px 30px rgba(229, 57, 53, 0.18) !important;
+}
+
+/* Tag giảm giá góc trái ảnh */
+.flash-tag-discount {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #FF3D00 0%, #E53935 100%);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(229, 57, 53, 0.35);
+    z-index: 2;
+}
+
+.flash-tag-discount i {
+    font-size: 11px;
+}
+
+/* Tag HSD góc phải ảnh */
+.flash-tag-expiry {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #FFCDD2;
+    color: #D32F2F;
+    font-size: 10.5px;
+    font-weight: 700;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(4px);
+    z-index: 2;
+    max-width: calc(100% - 75px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.flash-tag-expiry i {
+    font-size: 11px;
+}
+
+/* Meta HSD & chiến dịch */
+.flash-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 4px 0 8px 0;
+    font-size: 11px;
+}
+
+.flash-days-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #FFF3E0;
+    color: #E65100;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.flash-days-pill i {
+    font-size: 11px;
+}
+
+.flash-sale-name {
+    color: #8C8077;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* Cụm giá Flash Sale */
+.flash-price-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.flash-price {
+    color: #D32F2F !important;
+    font-size: 17.5px !important;
+    font-weight: 800 !important;
+    line-height: 1.2;
+}
+
+.product-old-price {
+    color: #A89F97;
+    font-size: 12px;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.flash-stock-tag {
+    background: #FFEBEE;
+    color: #C62828;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    white-space: nowrap;
+    box-shadow: none !important;
+}
+
+/* Khung nút Mua giá Flash Sale */
+.product-card-action {
+    padding: 0 16px 14px 16px;
+    margin-top: 4px;
+}
+
+.product-card-action .add-cart-form {
+    margin: 0;
+    width: 100%;
+}
+
+.flash-btn-buy {
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #FF5722 0%, #E53935 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.flash-btn-buy:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(229, 57, 53, 0.4);
+    background: linear-gradient(135deg, #F4511E 0%, #D32F2F 100%);
+}
+
+.flash-btn-buy:active {
+    transform: translateY(0);
+}
+
+.flash-btn-buy i {
+    font-size: 13px;
+}
+
+.flash-label {
+    color: #E53935 !important;
+}
+
+.flash-view-all {
+    color: #E53935 !important;
+}
+
+.flash-view-all:hover {
+    color: #C62828 !important;
 }
 
 /* =========================================================

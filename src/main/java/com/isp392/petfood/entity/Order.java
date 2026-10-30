@@ -3,6 +3,7 @@ package com.isp392.petfood.entity;
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.enums.PaymentMethod;
 import com.isp392.petfood.enums.PaymentStatus;
+import com.isp392.petfood.service.VnpayClient;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class Order {
+
+    public static final String REJECTED_CANCEL_PREFIX = "[REJECTED] ";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -76,7 +79,7 @@ public class Order {
     private LocalDateTime completedAt;
 
     // Có giá trị khi đơn CANCELLED (lý do huỷ), hoặc khi đơn còn PROCESSING nghĩa là khách đang yêu cầu huỷ
-    // chờ staff duyệt (BR-19: đang đóng gói thì không tự huỷ được)
+    // chờ staff duyệt (BR-19: đang đóng gói thì không tự huỷ được). Nếu bắt đầu bằng "[REJECTED] " nghĩa là staff đã từ chối.
     @Column(name = "cancel_reason", length = 255)
     private String cancelReason;
 
@@ -89,11 +92,19 @@ public class Order {
     @PrePersist
     void onCreate() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = VnpayClient.nowVn();
         }
     }
 
     public boolean isCancelRequested() {
-        return status == OrderStatus.PROCESSING && cancelReason != null;
+        return status == OrderStatus.PROCESSING
+                && cancelReason != null
+                && !cancelReason.startsWith(REJECTED_CANCEL_PREFIX);
+    }
+
+    public boolean isCancelRejected() {
+        return status == OrderStatus.PROCESSING
+                && cancelReason != null
+                && cancelReason.startsWith(REJECTED_CANCEL_PREFIX);
     }
 }

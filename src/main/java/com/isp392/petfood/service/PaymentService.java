@@ -10,7 +10,6 @@ import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.repository.OrderRepository;
 import com.isp392.petfood.repository.PaymentRepository;
-import com.isp392.petfood.service.VnpayClient.QueryOutcome;
 import com.isp392.petfood.service.VnpayClient.QueryResult;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -190,7 +189,7 @@ public class PaymentService {
         payment.setStatus(PaymentRecordStatus.SUCCESS);
         payment.setVnpResponseCode(responseCode);
         payment.setVnpTransactionNo(transactionNo);
-        payment.setPaidAt(LocalDateTime.now());
+        payment.setPaidAt(VnpayClient.nowVn());
         order.setPaymentStatus(PaymentStatus.PAID);
         // Đơn đã bị huỷ trước đó mà tiền vẫn về: giữ CANCELLED + PAID, staff thấy "cần hoàn tiền"
     }

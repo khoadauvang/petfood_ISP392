@@ -600,6 +600,29 @@ a {
     color: #A3968C !important;
 }
 
+.toggle-password-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #A3968C !important;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    transition: color 0.2s ease;
+    z-index: 2;
+    outline: none;
+}
+
+.toggle-password-btn:hover {
+    color: #F47721 !important;
+}
+
 .remember-label {
     color: #57483A !important;
 }
@@ -660,6 +683,8 @@ a {
 }
 
 .input-underline-group.has-error .input-right-icon i,
+.input-underline-group.has-error .toggle-password-btn,
+.input-underline-group.has-error .toggle-password-btn i,
 .input-underline-group.has-error label {
     color: #E53E3E !important;
 }

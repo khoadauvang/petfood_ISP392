@@ -33,7 +33,7 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
             """)
     int sell(@Param("id") Long id, @Param("qty") int qty);
 
-    // Huỷ đơn: trả suất lại cho Flash Sale
+    // Huỷ đơn / tái nhập kho: trả suất lại cho Flash Sale
     @Modifying(flushAutomatically = true)
     @Query("update FlashSaleItem f set f.soldQty = f.soldQty - :qty where f.id = :id and f.soldQty >= :qty")
     int unsell(@Param("id") Long id, @Param("qty") int qty);
@@ -50,6 +50,16 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
             """)
     List<FlashSaleItem> findBySaleId(@Param("saleId") Long saleId);
 
+    // Các suất gắn với một lô hàng (để kiểm tra trước khi sửa/xoá/tiêu huỷ lô)
+    @Query("""
+            select fsi from FlashSaleItem fsi
+            join fetch fsi.flashSale fs
+            where fsi.lot.id = :lotId
+            """)
+    List<FlashSaleItem> findByLotId(@Param("lotId") Long lotId);
+
+    boolean existsByLot_Id(Long lotId);
+
     // Một lô chỉ xuất hiện một lần trong một chiến dịch (UQ_FlashSaleItem_sale_lot)
     boolean existsByFlashSale_IdAndLot_Id(Long saleId, Long lotId);
 
@@ -59,6 +69,7 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
             where fsi.lot.id = :lotId
               and fsi.flashSale.id <> :excludeSaleId
               and fsi.flashSale.status <> com.isp392.petfood.enums.FlashSaleStatus.ENDED
+              and fsi.allocatedQty > fsi.soldQty
             """)
     long reservedByOtherSales(@Param("lotId") Long lotId, @Param("excludeSaleId") Long excludeSaleId);
 
@@ -68,19 +79,22 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
 
     long countByFlashSale_Id(Long saleId);
 
-    // ===== Trang Flash Sale cho khách =====
-    // Suất đang mở bán: chiến dịch ACTIVE trong khung giờ, còn suất, lô vẫn ở mức RED (21 đến dưới 90 ngày, BR-63).
-    // productId null = mọi sản phẩm.
+    // ===== Trang Flash Sale & Khuyến mãi cho khách =====
+    // Suất đang mở bán: chiến dịch ACTIVE trong khung giờ, còn suất, sản phẩm/danh mục đang bán, lô chưa vào diện cách ly (< 21 ngày).
+    // Tầng Service sẽ lọc chi tiết theo loại chiến dịch (FLASH_SALE: lô RED 21-89 ngày; PROMOTION: lô OK >= 90 ngày).
     @Query("""
             select fsi from FlashSaleItem fsi
             join fetch fsi.flashSale fs
             join fetch fsi.lot l
             join fetch l.product p
+            join fetch p.category c
             where fs.status = com.isp392.petfood.enums.FlashSaleStatus.ACTIVE
               and fs.startTime <= :now and fs.endTime > :now
               and fsi.soldQty < fsi.allocatedQty
               and l.onHandQty > 0
-              and l.expiryDate >= :minExpiry and l.expiryDate < :maxExpiry
+              and l.expiryDate >= :minExpiry
+              and p.status = com.isp392.petfood.enums.ProductStatus.ACTIVE
+              and c.status = com.isp392.petfood.enums.CategoryStatus.ACTIVE
               and (:productId is null or p.id = :productId)
             order by fs.endTime, l.expiryDate, fsi.id
             """)
@@ -88,4 +102,15 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
                                           @Param("minExpiry") LocalDate minExpiry,
                                           @Param("maxExpiry") LocalDate maxExpiry,
                                           @Param("productId") Long productId);
+
+    // ===== BẢNG 1: Mặt hàng đang Flash Sale (Staff/Admin) =====
+    @Query("""
+            select fsi from FlashSaleItem fsi
+            join fetch fsi.flashSale fs
+            join fetch fsi.lot l
+            join fetch l.product p
+            where fs.status in (com.isp392.petfood.enums.FlashSaleStatus.ACTIVE, com.isp392.petfood.enums.FlashSaleStatus.DRAFT)
+            order by fs.status asc, fs.endTime desc, fsi.id desc
+            """)
+    List<FlashSaleItem> findActiveFlashSaleProducts();
 }

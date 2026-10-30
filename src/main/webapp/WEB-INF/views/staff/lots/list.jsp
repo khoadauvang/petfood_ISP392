@@ -119,7 +119,6 @@
             <button type="button" class="btn-pill-outline" onclick="toggleAllAccordions()" id="btn-toggle-all">
                 <i class="ti ti-arrows-vertical"></i><span id="text-toggle-all">Mở rộng tất cả</span>
             </button>
-            <a href="javascript:void(0)" class="btn-pill-outline" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>Xuất Excel</a>
             <a href="${ctx}/staff/lots/new" class="btn-flashsale">
                 <i class="ti ti-plus"></i>Nhập lô hàng mới
             </a>
@@ -175,25 +174,6 @@
         </div>
     </section>
 
-    <%-- Banner Quy tắc FEFO --%>
-    <div class="urgent-banner" style="background:#fffaf5; border-color:#fed7aa">
-        <div class="urgent-left">
-            <span class="urgent-icon" style="background:#ea580c"><i class="ti ti-route"></i></span>
-            <div>
-                <div style="display:flex; align-items:center; gap:8px">
-                    <b style="color:var(--text-logo); font-size:14px">Quy tắc tự động FEFO trong hệ thống Pick &amp; Pack</b>
-                    <span class="pill-badge green">ĐANG KÍCH HOẠT</span>
-                </div>
-                <div style="font-size:12px; color:var(--text-muted); margin-top:2px">
-                    • Đơn thường tự động lấy lô có HSD gần nhất (cam kết HSD &ge; 90 ngày).<br>
-                    • Lô cận hạn (&lt; 90 ngày) ưu tiên phân bổ vào Flash Sale. Lô nguy cấp (&lt; 21 ngày hoặc hết hạn) bị khóa bán, không bán dưới mọi hình thức (BR-51).
-                </div>
-            </div>
-        </div>
-        <div class="urgent-actions">
-            <a href="javascript:void(0)" class="link-more" style="color:#ea580c">Xem sơ đồ phân bổ FEFO <i class="ti ti-arrow-right"></i></a>
-        </div>
-    </div>
 
     <%-- Tabs chuyển đổi nhanh: Tất cả / Tồn thấp / Hết hàng --%>
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px">
@@ -275,9 +255,8 @@
             <thead>
                 <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:11px; font-weight:800; color:#64748b; text-align:left; letter-spacing:.04em; text-transform:uppercase;">
                     <th style="padding:14px 16px; width:340px;">SẢN PHẨM &amp; SKU</th>
-                    <th style="padding:14px 16px; text-align:right;">TỔNG TỒN THỰC</th>
-                    <th style="padding:14px 16px; text-align:right;">GIỮ CHỖ (ORD)</th>
-                    <th style="padding:14px 16px; text-align:right;">TỒN KHẢ DỤNG</th>
+                    <th style="padding:14px 16px; text-align:right;">TỔNG NHẬP (RECEIVE)</th>
+                    <th style="padding:14px 16px; text-align:right;">TỒN KHO (ON HAND)</th>
                     <th style="padding:14px 16px; text-align:right;">FLASH SALE</th>
                     <th style="padding:14px 16px;">TRẠNG THÁI TỒN</th>
                     <th style="padding:14px 16px;">TÌNH TRẠNG HẠN DÙNG</th>
@@ -314,14 +293,11 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td style="padding:14px 16px; text-align:right; font-weight:700; font-size:14px; color:#475569">
+                                    <fmt:formatNumber value="${g.totalReceived}"/> <small style="font-weight:normal; color:#64748b">sp</small>
+                                </td>
                                 <td style="padding:14px 16px; text-align:right; font-weight:800; font-size:14px; color:${g.totalOnHand == 0 ? '#ef4444' : '#1e293b'}">
                                     <fmt:formatNumber value="${g.totalOnHand}"/> <small style="font-weight:normal; color:#64748b">sp</small>
-                                </td>
-                                <td style="padding:14px 16px; text-align:right; font-weight:700; color:#2563eb">
-                                    <fmt:formatNumber value="${g.reservedQty}"/>
-                                </td>
-                                <td style="padding:14px 16px; text-align:right; font-weight:800; font-size:15px; color:#ea580c">
-                                    <fmt:formatNumber value="${g.sellableQty}"/>
                                 </td>
                                 <td style="padding:14px 16px; text-align:right; font-weight:700; color:${g.flashSaleQty > 0 ? '#dc2626' : '#94a3b8'}">
                                     <fmt:formatNumber value="${g.flashSaleQty}"/>
@@ -364,7 +340,7 @@
 
                             <%-- Dòng Accordion xổ ra danh sách chi tiết các lô hàng FEFO (Detail Row) --%>
                             <tr id="detail-prod-${g.productId}" class="lot-accordion-row" style="display:none; background:#fffcf9;">
-                                <td colspan="8" style="padding:0 20px 20px 20px; border-bottom:2px solid #fed7aa">
+                                <td colspan="7" style="padding:0 20px 20px 20px; border-bottom:2px solid #fed7aa">
                                     <div class="lot-accordion-card">
                                         <div class="lot-accordion-head">
                                             <div style="display:flex; align-items:center; gap:8px">
@@ -389,9 +365,8 @@
                                                     <thead>
                                                         <tr>
                                                             <th>MÃ LÔ</th>
-                                                            <th style="text-align:right">THỰC TẾ</th>
-                                                            <th style="text-align:right">GIỮ CHỖ</th>
-                                                            <th style="text-align:right">KHẢ DỤNG</th>
+                                                            <th style="text-align:right">SL NHẬP (RECEIVE)</th>
+                                                            <th style="text-align:right">TỒN KHO (ON HAND)</th>
                                                             <th>NGÀY NHẬP</th>
                                                             <th>HẠN SỬ DỤNG</th>
                                                             <th>SỐ NGÀY CÒN</th>
@@ -404,11 +379,8 @@
                                                         <c:forEach var="lot" items="${g.lots}" varStatus="lst">
                                                             <tr>
                                                                 <td><code>#LOT-${lot.id}</code></td>
-                                                                <td style="text-align:right; font-weight:700">${lot.onHandQty} sp</td>
-                                                                <td style="text-align:right; color:#2563eb">0</td>
-                                                                <td style="text-align:right; font-weight:800; color:#ea580c">
-                                                                    ${lot.level == 'OK' ? lot.onHandQty : 0} sp
-                                                                </td>
+                                                                <td style="text-align:right; font-weight:700; color:#475569">${lot.receivedQty} sp</td>
+                                                                <td style="text-align:right; font-weight:800; color:${lot.onHandQty == 0 ? '#94a3b8' : '#1e293b'}">${lot.onHandQty} sp</td>
                                                                 <td style="color:#64748b">${lot.receivedAtText}</td>
                                                                 <td style="font-weight:700; color:${lot.daysLeft < quarantineDays ? '#dc2626' : (lot.daysLeft < shelfLifeDays ? '#ea580c' : '#16a34a')}">
                                                                     ${lot.expiryDateText}
@@ -432,7 +404,7 @@
                                                                 <td>
                                                                     <c:choose>
                                                                         <c:when test="${lot.level == 'EXPIRED'}">
-                                                                            <span class="pill-badge red"><i class="ti ti-flame"></i> Quá hạn, khóa bán</span>
+                                                                            <span class="pill-badge red"><i class="ti ti-flame"></i> Quá hạn, chờ tiêu hủy</span>
                                                                         </c:when>
                                                                         <c:when test="${lot.level == 'BLOCKED'}">
                                                                             <span class="pill-badge red"><i class="ti ti-lock"></i> Khóa bán, cấm xuất</span>
@@ -454,7 +426,7 @@
                                                                         </c:when>
                                                                         <c:when test="${lst.first and (lot.level == 'EXPIRED' or lot.level == 'BLOCKED')}">
                                                                             <span class="pill-badge red" style="background:#dc2626; color:#fff; font-weight:800">
-                                                                                #1 (Khóa bán)
+                                                                                #1 (Chờ tiêu hủy)
                                                                             </span>
                                                                         </c:when>
                                                                         <c:when test="${lst.first}">
@@ -566,42 +538,6 @@
         }
     }
 
-    function exportExcel() {
-        let csv = '\uFEFFSản phẩm,SKU,Tổng tồn,Tồn khả dụng,Flash Sale,Trạng thái tồn,Mã lô,Tồn lô,HSD,Ngày nhập\n';
-        document.querySelectorAll('.prod-row').forEach(row => {
-            const prodId = row.id.replace('row-prod-', '');
-            const prodName = (row.querySelector('b') ? row.querySelector('b').innerText : '').replace(/"/g, '""');
-            const skuEl = row.querySelector('td div div small b');
-            const sku = skuEl ? skuEl.innerText : '';
-
-            const detailRow = document.getElementById('detail-prod-' + prodId);
-            if (detailRow) {
-                const subRows = detailRow.querySelectorAll('.lot-subtable tbody tr');
-                if (subRows && subRows.length > 0) {
-                    subRows.forEach(sRow => {
-                        const cols = sRow.querySelectorAll('td');
-                        if (cols.length >= 6) {
-                            const lotCode = cols[0].innerText.trim();
-                            const onHand = cols[1].innerText.trim();
-                            const hsd = cols[5].innerText.trim();
-                            const ngayNhap = cols[4].innerText.trim();
-                            csv += '"' + prodName + '","' + sku + '","","","","","' + lotCode + '","' + onHand + '","' + hsd + '","' + ngayNhap + '"\n';
-                        }
-                    });
-                } else {
-                    csv += '"' + prodName + '","' + sku + '","0","0","0","Hết hàng","","","",""\n';
-                }
-            }
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ton_kho_fefo_' + new Date().toISOString().slice(0, 10) + '.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
 
     // Tự động mở rộng sản phẩm nếu người dùng tìm kiếm theo mã lô (ví dụ #LOT-21 hoặc 21)
     document.addEventListener('DOMContentLoaded', function () {

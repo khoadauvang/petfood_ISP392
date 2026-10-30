@@ -4,13 +4,17 @@ import com.isp392.petfood.dto.LotForm;
 import com.isp392.petfood.dto.LotRow;
 import com.isp392.petfood.dto.LotStats;
 import com.isp392.petfood.dto.ProductLotGroupDto;
+import com.isp392.petfood.entity.FlashSale;
+import com.isp392.petfood.entity.FlashSaleItem;
 import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Product;
 import com.isp392.petfood.enums.ExpiryLevel;
+import com.isp392.petfood.enums.FlashSaleStatus;
 import com.isp392.petfood.enums.LotView;
 import com.isp392.petfood.enums.ProductStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
+import com.isp392.petfood.repository.FlashSaleItemRepository;
 import com.isp392.petfood.repository.LotRepository;
 import com.isp392.petfood.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +26,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 // Quản lý lô (MVP: kho chỉ còn bảng Lot): nhập lô, xem tồn theo lô, sửa/xoá lô nhập nhầm
@@ -37,9 +46,49 @@ public class LotService {
 
     private static final int PAGE_SIZE = 20;
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final Path DISPOSED_FILE = Paths.get("uploads", "disposed-lots.txt");
+    private static final Set<Long> DISPOSED_LOT_IDS = ConcurrentHashMap.newKeySet();
+
+    static {
+        loadDisposedFromDisk();
+    }
+
+    private static synchronized void loadDisposedFromDisk() {
+        if (!Files.exists(DISPOSED_FILE)) {
+            return;
+        }
+        try {
+            for (String line : Files.readAllLines(DISPOSED_FILE)) {
+                String trimmed = line.trim();
+                if (!trimmed.isEmpty()) {
+                    try {
+                        DISPOSED_LOT_IDS.add(Long.parseLong(trimmed));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static synchronized void saveDisposedToDisk() {
+        try {
+            if (DISPOSED_FILE.getParent() != null) {
+                Files.createDirectories(DISPOSED_FILE.getParent());
+            }
+            List<String> lines = DISPOSED_LOT_IDS.stream().map(String::valueOf).toList();
+            Files.write(DISPOSED_FILE, lines);
+        } catch (IOException ignored) {
+        }
+    }
+
+    public static boolean isDisposed(Long lotId) {
+        return lotId != null && DISPOSED_LOT_IDS.contains(lotId);
+    }
 
     private final LotRepository lotRepository;
     private final ProductRepository productRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final InventoryPolicy inventoryPolicy;
 
     public LotRow toRow(Lot lot) {
@@ -139,11 +188,14 @@ public class LotService {
 
     // ---------- Sửa / xoá lô nhập nhầm ----------
     // Chỉ cho khi lô chưa xuất đơn vị nào (on_hand = received): sửa lô đã bán sẽ làm sai số liệu tồn và truy vết.
-    // Khi làm Flash Sale: chặn thêm lô đang nằm trong FlashSaleItem (allocated_qty không được vượt tồn của lô, BR-68).
+    // Khi làm Flash Sale: chặn sửa lô đang nằm trong FlashSaleItem (allocated_qty không được vượt tồn của lô, BR-68).
     @Transactional
     public LotRow update(Long id, LotForm form) {
         Lot lot = findOrThrow(id);
         requireUntouched(lot, "sửa");
+        if (flashSaleItemRepository.existsByLot_Id(id)) {
+            throw new BusinessRuleException("Lô #" + id + " đang nằm trong chương trình Khuyến mãi / Flash Sale nên không sửa được (BR-68). Hãy gỡ lô khỏi chương trình trước.");
+        }
 
         LocalDate receivedDate = lot.getReceivedAt().toLocalDate();
         if (!form.getExpiryDate().isAfter(receivedDate)) {
@@ -160,15 +212,55 @@ public class LotService {
     public LotRow delete(Long id) {
         Lot lot = findOrThrow(id);
         requireUntouched(lot, "xoá");
+        if (flashSaleItemRepository.existsByLot_Id(id)) {
+            throw new BusinessRuleException("Lô #" + id + " đang được dùng ở chương trình Khuyến mãi / Flash Sale nên không xoá được.");
+        }
         LotRow deleted = toRow(lot);
         lotRepository.delete(lot);
         try {
             lotRepository.flush();
         } catch (DataIntegrityViolationException e) {
-            // Còn bảng khác trỏ tới lô (ví dụ FlashSaleItem)
             throw new BusinessRuleException("Lô #" + id + " đang được dùng ở chương trình Flash Sale nên không xoá được.");
         }
+        DISPOSED_LOT_IDS.remove(id);
+        saveDisposedToDisk();
         return deleted;
+    }
+
+    // Tiêu hủy lô hàng quá hạn / cấp bách (< 21 ngày, BR-51): xuất hủy toàn bộ số lượng tồn kho còn lại (onHandQty = 0)
+    @Transactional
+    public LotRow dispose(Long id) {
+        Lot lot = findOrThrow(id);
+        if (lot.getOnHandQty() <= 0) {
+            throw new BusinessRuleException("Lô #" + id + " hiện đã hết tồn kho hoặc đã được tiêu hủy trước đó.");
+        }
+        ExpiryLevel level = inventoryPolicy.levelOf(lot.getExpiryDate());
+        if (level != ExpiryLevel.BLOCKED && level != ExpiryLevel.EXPIRED) {
+            throw new BusinessRuleException("Chỉ được tiêu hủy các lô hàng đã quá hạn hoặc còn dưới "
+                    + inventoryPolicy.getQuarantineDays() + " ngày (BR-51). Lô #" + id + " hiện còn "
+                    + inventoryPolicy.daysLeft(lot.getExpiryDate()) + " ngày hạn sử dụng.");
+        }
+
+        lot.setOnHandQty(0);
+        lotRepository.save(lot);
+
+        // Chốt lại các suất FlashSaleItem gắn với lô này để không còn suất ảo
+        for (FlashSaleItem fsi : flashSaleItemRepository.findByLotId(id)) {
+            FlashSale fs = fsi.getFlashSale();
+            if (fs.getStatus() != FlashSaleStatus.ENDED) {
+                if (fsi.getAllocatedQty() > fsi.getSoldQty()) {
+                    fsi.setAllocatedQty(fsi.getSoldQty());
+                    flashSaleItemRepository.save(fsi);
+                }
+                if (flashSaleItemRepository.remainingOfSale(fs.getId()) == 0) {
+                    fs.setStatus(FlashSaleStatus.ENDED);
+                }
+            }
+        }
+
+        DISPOSED_LOT_IDS.add(id);
+        saveDisposedToDisk();
+        return toRow(lot);
     }
 
     @Transactional(readOnly = true)
@@ -224,6 +316,12 @@ public class LotService {
             ProductLotGroupDto dto = groupMap.get(l.getProduct().getId());
             if (dto != null) {
                 dto.addLot(toRow(l));
+                if (l.getOnHandQty() > 0) {
+                    long reservedInLot = flashSaleItemRepository.reservedByOtherSales(l.getId(), 0L);
+                    if (reservedInLot > 0) {
+                        dto.setReservedQty(dto.getReservedQty() + Math.min(l.getOnHandQty(), reservedInLot));
+                    }
+                }
             }
         }
 

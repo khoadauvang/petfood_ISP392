@@ -26,6 +26,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                                  CategoryStatus categoryStatus,
                                                  Pageable pageable);
 
+    List<Product> findBySkuAndStatusAndCategory_StatusOrderBySellingPriceAsc(String sku,
+                                                                             ProductStatus status,
+                                                                             CategoryStatus categoryStatus);
+
     // ===== Trang sản phẩm của khách (Guest/Customer) =====
     // Chỉ sản phẩm đang bán thuộc danh mục không bị ẩn. Tham số nào null thì bỏ qua điều kiện đó.
     // Lọc độ tuổi YOUNG/ADULT/SENIOR thì lấy luôn sản phẩm ALL_AGES (dùng được cho mọi lứa tuổi).
@@ -130,8 +134,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Danh sách chọn sản phẩm ở form nhập lô
     List<Product> findAllByOrderBySkuAscVariantAsc();
 
+    // Tất cả các biến thể cùng mã SKU gốc (dòng sản phẩm)
+    List<Product> findBySkuOrderByIdAsc(String sku);
+
     // ===== Cảnh báo tồn thấp (BR-62) =====
-    // Tồn bán thường = tổng on_hand các lô còn hạn >= minExpiry (cùng cách tính với trang chủ, BR-54).
+    // Tồn bán thường = tổng on_hand các lô còn hạn >= minExpiry trừ phần đang giữ chỗ khuyến mãi (cùng cách tính với trang chủ, BR-54).
     // left join: sản phẩm chưa có lô nào vẫn được xét (tồn = 0).
     // Chỉ xét sản phẩm đang bán: sản phẩm ngừng kinh doanh không cần nhập thêm.
     interface LowStockView {
@@ -147,12 +154,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
             select p.id as productId, concat(p.sku, '-', p.variant) as sku, p.name as name, p.imageUrl as imageUrl,
                    p.lowStockThreshold as threshold,
-                   coalesce(sum(case when l.expiryDate >= :minExpiry then l.onHandQty else 0 end), 0) as sellableQty,
-                   coalesce(sum(l.onHandQty), 0) as onHandQty
-            from Product p left join Lot l on l.product = p
+                   coalesce(sum(case when l.expiryDate >= :minExpiry and l.onHandQty > coalesce(r.reservedQty, 0L)
+                                     then l.onHandQty - coalesce(r.reservedQty, 0L)
+                                     else 0L end), 0L) as sellableQty,
+                   coalesce(sum(l.onHandQty), 0L) as onHandQty
+            from Product p
+            left join Lot l on l.product = p
+            left join (
+                select fsi.lot.id as lotId, sum(fsi.allocatedQty - fsi.soldQty) as reservedQty
+                from FlashSaleItem fsi
+                where fsi.flashSale.status <> com.isp392.petfood.enums.FlashSaleStatus.ENDED
+                  and fsi.allocatedQty > fsi.soldQty
+                group by fsi.lot.id
+            ) r on r.lotId = l.id
             where p.status = :status
             group by p.id, p.sku, p.variant, p.name, p.imageUrl, p.lowStockThreshold
-            having coalesce(sum(case when l.expiryDate >= :minExpiry then l.onHandQty else 0 end), 0)
+            having coalesce(sum(case when l.expiryDate >= :minExpiry and l.onHandQty > coalesce(r.reservedQty, 0L)
+                                     then l.onHandQty - coalesce(r.reservedQty, 0L)
+                                     else 0L end), 0L)
                    <= p.lowStockThreshold
             """)
     List<LowStockView> findLowStock(@Param("status") ProductStatus status,

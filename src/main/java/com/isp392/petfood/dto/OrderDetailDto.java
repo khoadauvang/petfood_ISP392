@@ -37,6 +37,7 @@ public class OrderDetailDto {
     private final String returnedAtText;
     private final String cancelReason;
     private final boolean cancelRequested;    // đang PROCESSING và khách đã gửi yêu cầu huỷ
+    private final boolean cancelRejected;     // đang PROCESSING và yêu cầu huỷ đã bị cửa hàng từ chối
     private final boolean needsRefund;        // đơn VNPay đã trả tiền nhưng bị huỷ: staff phải hoàn tiền
     private final List<String> payments;      // các lần thanh toán (bảng Payment)
     private final String vnpayHoldUntil;      // đơn VNPay chờ thanh toán: hạn giữ hàng; null nếu không áp dụng
@@ -53,6 +54,6 @@ public class OrderDetailDto {
     }
 
     public boolean isCustomerCanRequestCancel() {
-        return status == OrderStatus.PROCESSING && !cancelRequested;
+        return status == OrderStatus.PROCESSING && !cancelRequested && !cancelRejected;
     }
 }

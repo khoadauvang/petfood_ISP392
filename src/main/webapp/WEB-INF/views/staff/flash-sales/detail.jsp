@@ -4,13 +4,14 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="isPromotion" value="${isPromotion || (sale != null && sale.saleType == 'PROMOTION')}"/>
 <%-- Model: sale, items, redLots, itemForm, saleStartText, saleEndText, shelfLifeDays, quarantineDays,
      deepDiscountDays, discountPercent, deepDiscountPercent --%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title><c:out value="${sale != null ? sale.name : 'Chi tiết Flash Sale'}"/> · PetFood</title>
-    <meta name="description" content="Chi tiết chiến dịch Flash Sale kích cầu xả hàng cận hạn.">
+    <title><c:out value="${sale != null ? sale.name : (isPromotion ? 'Chi tiết Chương trình Khuyến mãi' : 'Chi tiết Flash Sale')}"/> · PetFood</title>
+    <meta name="description" content="Chi tiết chiến dịch ${isPromotion ? 'Khuyến mãi bán lẻ' : 'Flash Sale kích cầu xả hàng cận hạn'}.">
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
     <style>
         .pill-badge {
@@ -169,20 +170,21 @@
 <%-- Staff chỉ xem; mọi nút thay đổi chỉ hiện cho Admin (SecurityConfig chặn POST của Staff) --%>
 <c:set var="isAdmin" value="${currentUser.role == 'ADMIN'}"/>
 <c:set var="draft" value="${isAdmin && sale.status == 'DRAFT'}"/>
+<c:set var="isPromotion" value="${sale != null && sale.saleType == 'PROMOTION'}"/>
 
 <main>
     <%-- Breadcrumb & Page Head --%>
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <a href="${ctx}/staff/flash-sales" style="text-decoration:none; color:inherit;">
-                    ‹ FLASH SALE
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/flash-sales" style="text-decoration:none; color:inherit;">CHƯƠNG TRÌNH</a> <span class="sep">&gt;</span> <span class="current">CHI TIẾT CHIẾN DỊCH</span><!--
+                    ‹ ${isPromotion ? 'CHƯƠNG TRÌNH KHUYẾN MÃI' : 'FLASH SALE'}
                 </a>
                 <span class="sep" style="margin: 0 6px;">&gt;</span>
-                <span class="current" style="color:var(--color-primary)">CHI TIẾT CHIẾN DỊCH</span>
+                <span class="current" style="color:var(--color-primary)">CHI TIẾT CHIẾN DỊCH</span>-->
             </div>
             <h1 style="display:flex; align-items:center; gap:12px; margin-top:4px; flex-wrap:wrap">
-                <c:out value="${sale != null ? sale.name : 'Chi tiết Flash Sale'}"/>
+                <c:out value="${sale != null ? sale.name : (isPromotion ? 'Chi tiết chương trình' : 'Chi tiết Flash Sale')}"/>
                 <c:choose>
                     <c:when test="${sale != null && sale.status == 'ACTIVE'}">
                         <span class="pill-badge green">● Đang diễn ra</span>
@@ -197,9 +199,18 @@
                         <span class="pill-badge gray">● Đã kết thúc</span>
                     </c:when>
                 </c:choose>
-                <span class="pill-badge gray" style="font-size:12px">Mã #FS-${sale.id}</span>
+                <span class="pill-badge gray" style="font-size:12px">Mã ${isPromotion ? '#KM-' : '#FS-'}${sale.id}</span>
             </h1>
-            <p class="page-sub">Chiến dịch kích cầu xả hàng cận hạn theo chuẩn điều phối FEFO &amp; đồng bộ giá bán tự động.</p>
+            <p class="page-sub">
+                <c:choose>
+                    <c:when test="${isPromotion}">
+                        Chương trình ưu đãi giảm giá định kỳ dành cho các sản phẩm &amp; lô hàng bảo đảm hạn sử dụng tiêu chuẩn trên 90 ngày.
+                    </c:when>
+                    <c:otherwise>
+                        Chiến dịch kích cầu xả hàng cận hạn theo chuẩn điều phối FEFO &amp; đồng bộ giá bán tự động.
+                    </c:otherwise>
+                </c:choose>
+            </p>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
@@ -251,20 +262,6 @@
         </div>
     </div>
 
-    <%-- Alert Messages --%>
-    <c:if test="${not empty successMessage}">
-        <div style="margin-bottom:20px; display:flex; align-items:center; gap:10px; background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:12px 18px; border-radius:14px; font-size:13.5px; font-weight:600">
-            <i class="ti ti-circle-check" style="font-size:20px; color:#16a34a"></i>
-            <span><c:out value="${successMessage}"/></span>
-        </div>
-    </c:if>
-    <c:if test="${not empty errorMessage}">
-        <div style="margin-bottom:20px; display:flex; align-items:center; gap:10px; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:12px 18px; border-radius:14px; font-size:13.5px; font-weight:600">
-            <i class="ti ti-alert-triangle" style="font-size:20px; color:#dc2626"></i>
-            <span><c:out value="${errorMessage}"/></span>
-        </div>
-    </c:if>
-
     <%-- KPI Aggregates --%>
     <c:set var="totalAllocated" value="0"/>
     <c:set var="totalSold" value="0"/>
@@ -283,16 +280,32 @@
         <div class="panel" style="background:linear-gradient(135deg, #fffcf9 0%, #fff7ed 100%); border-color:#fed7aa; display:flex; flex-direction:column; justify-content:space-between">
             <div>
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px">
-                    <span class="pill-badge red" style="font-weight:900"><i class="ti ti-bolt"></i> FLASH SALE</span>
+                    <c:choose>
+                        <c:when test="${isPromotion}">
+                            <span class="pill-badge blue" style="font-weight:900"><i class="ti ti-gift"></i> KHUYẾN MÃI</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="pill-badge red" style="font-weight:900"><i class="ti ti-bolt"></i> FLASH SALE</span>
+                        </c:otherwise>
+                    </c:choose>
                     <span class="pill-badge orange">${sale.status.label}</span>
                 </div>
 
                 <h2 style="font-size:22px; font-weight:800; margin:0 0 10px; color:var(--text-logo)">
                     <c:out value="${sale.name}"/>
                 </h2>
-                <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin:0 0 18px">
-                    Chiến dịch kích cầu xả kho các sản phẩm cận hạn theo thuật toán điều phối FEFO, giúp thu hồi vốn lưu động nhanh chóng và tối ưu hóa diện tích kho chứa.
-                </p>
+                <c:choose>
+                    <c:when test="${isPromotion}">
+                        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin:0 0 18px">
+                            <c:out value="${not empty sale.description ? sale.description : 'Chương trình khuyến mãi áp dụng mức ưu đãi giá đặc biệt cho các lô hàng bảo đảm chất lượng hạn sử dụng trên 90 ngày.'}"/>
+                        </p>
+                    </c:when>
+                    <c:otherwise>
+                        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin:0 0 18px">
+                            Chiến dịch kích cầu xả kho các sản phẩm cận hạn theo thuật toán điều phối FEFO, giúp thu hồi vốn lưu động nhanh chóng và tối ưu hóa diện tích kho chứa.
+                        </p>
+                    </c:otherwise>
+                </c:choose>
 
                 <div style="display:inline-flex; align-items:center; gap:10px; font-size:13.5px; font-weight:700; color:#9a3412; background:#ffedd5; padding:8px 14px; border-radius:10px; margin-bottom:18px">
                     <i class="ti ti-calendar" style="color:#ea580c; font-size:18px"></i>
@@ -314,7 +327,7 @@
                 <div class="panel-head" style="margin-bottom:14px">
                     <div>
                         <h3 style="font-size:16px; margin:0">Thông số vận hành chiến dịch</h3>
-                        <p style="margin:2px 0 0">Mã hệ thống: <b>#FS-${sale.id}</b></p>
+                        <p style="margin:2px 0 0">Mã hệ thống: <b>${isPromotion ? '#KM-' : '#FS-'}${sale.id}</b></p>
                     </div>
                     <span class="pill-badge gray">Trạng thái: ${sale.status.label}</span>
                 </div>
@@ -323,7 +336,7 @@
                     <div class="metric-card" style="background:#fffaf5; border-color:#fed7aa">
                         <small style="display:block; font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase">SL Áp Dụng</small>
                         <b style="font-size:24px; color:var(--text-logo); font-family:var(--font-heading)">${totalAllocated}</b> <small style="color:var(--text-muted)">đơn vị</small>
-                        <div style="font-size:11.5px; color:var(--text-muted); margin-top:3px">Cam kết xả kho</div>
+                        <div style="font-size:11.5px; color:var(--text-muted); margin-top:3px">${isPromotion ? 'Sản lượng phân bổ' : 'Cam kết xả kho'}</div>
                     </div>
 
                     <div class="metric-card" style="background:#ecfdf5; border-color:#a7f3d0">
@@ -350,7 +363,7 @@
 
             <div style="font-size:13px; font-weight:700; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between">
                 <span>● Tỷ lệ hấp thụ toàn chiến dịch: <b><fmt:formatNumber value="${totalAllocated > 0 ? (totalSold * 100.0 / totalAllocated) : 0}" maxFractionDigits="1"/>%</b></span>
-                <small style="font-weight:normal; color:#166534">Chuẩn điều phối FEFO</small>
+                <small style="font-weight:normal; color:#166534">${isPromotion ? 'Chuẩn khuyến mãi bán lẻ' : 'Chuẩn điều phối FEFO'}</small>
             </div>
         </div>
     </section>
@@ -360,7 +373,7 @@
         <div style="padding:18px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px">
             <div>
                 <h3 style="margin:0; font-size:16px; display:flex; align-items:center; gap:8px">
-                    Danh sách sản phẩm &amp; Lô hàng áp dụng (&lt; 90 ngày)
+                    Danh sách sản phẩm &amp; Lô hàng áp dụng (${isPromotion ? '&gt; 90 ngày' : '&lt; 90 ngày'})
                     <span class="pill-badge orange">${items != null ? items.size() : 0} suất bán</span>
                 </h3>
                 <small style="color:var(--text-muted); margin-top:2px; display:block">Dữ liệu bán hàng ghi nhận theo thời gian thực từ POS chi nhánh và Online Store.</small>
@@ -373,17 +386,36 @@
                 </div>
                 <a href="javascript:void(0)" class="export-btn" style="padding:7px 12px; font-size:12.5px" onclick="exportItemsTable()"><i class="ti ti-file-spreadsheet"></i>Xuất Excel</a>
                 <c:if test="${draft}">
-                    <button type="button" onclick="openAddModal()" class="btn-flashsale" style="padding:7px 16px; font-size:12.5px">
-                        <i class="ti ti-plus"></i> Thêm sản phẩm / Suất bán
-                    </button>
+                    <c:choose>
+                        <c:when test="${isPromotion}">
+                            <a href="${ctx}/staff/flash-sales/${sale.id}/edit" class="btn-flashsale" style="padding:7px 16px; font-size:12.5px; text-decoration:none">
+                                <i class="ti ti-edit"></i> Chỉnh sửa danh sách lô hàng
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <button type="button" onclick="openAddModal()" class="btn-flashsale" style="padding:7px 16px; font-size:12.5px">
+                                <i class="ti ti-plus"></i> Thêm sản phẩm / Suất bán
+                            </button>
+                        </c:otherwise>
+                    </c:choose>
                 </c:if>
             </div>
         </div>
 
-        <div style="padding:10px 24px; background:#fffcf9; border-bottom:1px solid #fed7aa; font-size:12px; color:#9a3412; display:flex; align-items:center; gap:6px">
-            <i class="ti ti-info-circle" style="color:#ea580c; font-size:16px"></i>
-            <span>Các sản phẩm trong chương trình được chọn lọc nghiêm ngặt từ các lô hàng có hạn sử dụng dưới 90 ngày nhằm tối ưu luân chuyển hàng tồn kho. Giá Flash Sale tự tính theo HSD lô: còn ${deepDiscountDays} ngày trở lên giảm ${discountPercent}%, còn dưới ${deepDiscountDays} ngày giảm ${deepDiscountPercent}%.</span>
-        </div>
+        <c:choose>
+            <c:when test="${isPromotion}">
+                <div style="padding:10px 24px; background:#f0fdf4; border-bottom:1px solid #bbf7d0; font-size:12px; color:#166534; display:flex; align-items:center; gap:6px">
+                    <i class="ti ti-info-circle" style="color:#16a34a; font-size:16px"></i>
+                    <span>Chương trình khuyến mãi áp dụng mức giảm giá ưu đãi do Admin thiết lập cho các lô hàng tiêu chuẩn (hạn dùng trên 90 ngày). Không áp dụng cơ chế giảm giá theo hạn sử dụng cận date.</span>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div style="padding:10px 24px; background:#fffcf9; border-bottom:1px solid #fed7aa; font-size:12px; color:#9a3412; display:flex; align-items:center; gap:6px">
+                    <i class="ti ti-info-circle" style="color:#ea580c; font-size:16px"></i>
+                    <span>Các sản phẩm trong chương trình được chọn lọc nghiêm ngặt từ các lô hàng có hạn sử dụng dưới 90 ngày nhằm tối ưu luân chuyển hàng tồn kho. Giá Flash Sale tự tính theo HSD lô: còn ${deepDiscountDays} ngày trở lên giảm ${discountPercent}%, còn dưới ${deepDiscountDays} ngày giảm ${deepDiscountPercent}%.</span>
+                </div>
+            </c:otherwise>
+        </c:choose>
 
         <div style="overflow-x:auto">
             <table id="flashSaleItemsTable" style="margin:0; border:0; border-radius:0; box-shadow:none; width:100%">
@@ -394,7 +426,7 @@
                     <th>LÔ HÀNG</th>
                     <th>HẠN SỬ DỤNG</th>
                     <th class="num">GIÁ GỐC</th>
-                    <th class="num">GIÁ FLASH SALE</th>
+                    <th class="num">${isPromotion ? 'GIÁ KHUYẾN MÃI' : 'GIÁ FLASH SALE'}</th>
                     <th class="num">MỨC GIẢM</th>
                     <th class="num">SL ÁP DỤNG</th>
                     <th class="num">ĐÃ BÁN</th>
@@ -427,7 +459,7 @@
                                 <td><span class="pill-badge gray">#LOT-${i.lotId}</span></td>
                                 <td>
                                     <div style="font-weight:700; color:var(--text-logo); font-size:12.5px">${i.expiryText}</div>
-                                    <span class="pill-badge red" style="margin-top:2px">còn ${i.daysLeft} ngày</span>
+                                    <span class="pill-badge ${i.daysLeft >= 90 ? 'green' : 'red'}" style="margin-top:2px">còn ${i.daysLeft} ngày</span>
                                 </td>
                                 <td class="num"><s style="color:var(--text-placeholder)"><fmt:formatNumber value="${i.sellingPrice}" type="number"/>₫</s></td>
                                 <td class="num"><b style="color:#ea580c; font-size:14px"><fmt:formatNumber value="${i.salePrice}" type="number"/>₫</b></td>
@@ -462,10 +494,22 @@
                                 <i class="ti ti-package-off" style="font-size:36px; display:block; margin-bottom:10px; color:#ea580c"></i>
                                 <b style="font-size:16px; display:block; margin-bottom:6px; color:var(--text-logo)">Chưa có sản phẩm / suất lô nào trong chiến dịch này</b>
                                 <c:if test="${draft}">
-                                    <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px; max-width:500px; margin-left:auto; margin-right:auto">Chiến dịch đang ở trạng thái bản nháp. Hãy chọn các suất bán từ lô hàng cận hạn (&lt; 90 ngày) trước khi phát hành chiến dịch.</p>
-                                    <button type="button" onclick="openAddModal()" class="btn-flashsale">
-                                        <i class="ti ti-plus"></i> Thêm sản phẩm từ Lô cận hạn
-                                    </button>
+                                    <c:choose>
+                                        <c:when test="${isPromotion}">
+                                            <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px; max-width:500px; margin-left:auto; margin-right:auto">
+                                                Chương trình khuyến mãi đang ở trạng thái bản nháp. Hãy chọn các lô hàng tiêu chuẩn (&gt; 90 ngày) và thiết lập số lượng suất bán trước khi phát hành.
+                                            </p>
+                                            <a href="${ctx}/staff/flash-sales/${sale.id}/edit" class="btn-flashsale" style="text-decoration:none">
+                                                <i class="ti ti-edit"></i> Chỉnh sửa &amp; Chọn lô hàng
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <p style="font-size:13px; color:var(--text-muted); margin:0 0 16px; max-width:500px; margin-left:auto; margin-right:auto">Chiến dịch đang ở trạng thái bản nháp. Hãy chọn các suất bán từ lô hàng cận hạn (&lt; 90 ngày) trước khi phát hành chiến dịch.</p>
+                                            <button type="button" onclick="openAddModal()" class="btn-flashsale">
+                                                <i class="ti ti-plus"></i> Thêm sản phẩm từ Lô cận hạn
+                                            </button>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:if>
                             </td>
                         </tr>

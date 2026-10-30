@@ -22,15 +22,12 @@
 <body>
 
     <%-- 1. HEADER CHUNG (TRONG SUỐT Ở TRÊN) --%>
-    <c:set var="ownFlash" value="true"/>
     <%@ include file="/WEB-INF/views/common/_header.jspf" %>
 
     <%-- 2. KHU VỰC ĐẶT LẠI MẬT KHẨU (FULL MÀN HÌNH, KHUNG TRẮNG NGÀ) --%>
     <main class="login-hero-section" style="background-image: url('${ctx}/images/login.jpg');">
         <div class="login-glass-card">
-            <%-- Đang đăng nhập (đi từ trang hồ sơ) thì quay lại hồ sơ, Guest quay lại đăng nhập --%>
-            <c:set var="backUrl" value="${empty currentUser ? '/login' : (currentUser.role == 'CUSTOMER' ? '/profile#password' : '/')}"/>
-            <a href="${ctx}${backUrl}" class="glass-close-btn" title="Quay lại">
+            <a href="${ctx}/login" class="glass-close-btn" title="Quay lại đăng nhập">
                 <i class="fi fi-br-cross-small"></i>
             </a>
 
@@ -41,8 +38,8 @@
             <h1 class="glass-title">Đặt lại mật khẩu</h1>
             
             <div style="background:#FFF8F0; border:1px solid #F4E3C9; padding:10px 14px; border-radius:10px; margin-bottom:16px; font-size:12.5px; color:#57483A; line-height:1.5;">
-                Mã OTP đã gửi đến <strong><c:out value="${email}"/></strong><c:if test="${empty currentUser}">
-                (<a href="${ctx}/forgot-password" style="color:#F47721; font-weight:600; text-decoration:underline;">Đổi email</a>)</c:if>.<br>
+                Mã OTP đã gửi đến <strong><c:out value="${email}"/></strong> 
+                (<a href="${ctx}/forgot-password" style="color:#F47721; font-weight:600; text-decoration:underline;">Đổi email</a>).<br>
                 Mã có hiệu lực trong <strong>${otpMinutes} phút</strong>.
             </div>
 
@@ -99,7 +96,7 @@
             </form>
 
             <p class="register-prompt" style="margin-top:14px;">
-                <a href="${ctx}${backUrl}"><i class="fi fi-rr-arrow-left"></i> ${empty currentUser ? 'Quay lại đăng nhập' : 'Quay lại'}</a>
+                <a href="${ctx}/login"><i class="fi fi-rr-arrow-left"></i> Quay lại đăng nhập</a>
             </p>
         </div>
     </main>

@@ -95,7 +95,9 @@
                     <div class="input-underline-group" id="passwordGroup">
                         <input type="password" name="password" id="passwordInput" placeholder=" " autocomplete="current-password">
                         <label for="passwordInput">Mật khẩu</label>
-                        <span class="input-right-icon"><i class="fi fi-rr-lock"></i></span>
+                        <button type="button" class="toggle-password-btn" onclick="togglePassword('passwordInput', this)" title="Hiện mật khẩu" tabindex="-1">
+                            <i class="fi fi-rr-eye"></i>
+                        </button>
                     </div>
                     <div class="field-error-msg" id="passwordErrorMsg"></div>
 
@@ -149,6 +151,21 @@
                 window.addEventListener('scroll', handleScroll, {passive: true});
                 handleScroll();
             })();
+
+            function togglePassword(fieldId, btnEl) {
+                const input = document.getElementById(fieldId);
+                if (!input) return;
+                const icon = btnEl.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    if (icon) icon.className = 'fi fi-rr-eye-crossed';
+                    btnEl.setAttribute('title', 'Ẩn mật khẩu');
+                } else {
+                    input.type = 'password';
+                    if (icon) icon.className = 'fi fi-rr-eye';
+                    btnEl.setAttribute('title', 'Hiện mật khẩu');
+                }
+            }
 
             // KIỂM TRA ĐỊNH DẠNG NGAY KHI GÕ (CLIENT-SIDE FORMAT VALIDATION)
             document.addEventListener("DOMContentLoaded", function() {

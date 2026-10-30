@@ -26,7 +26,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <a href="${ctx}/staff/categories">QUẢN LÝ DANH MỤC</a>
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/categories" style="color:inherit; text-decoration:none;">QUẢN LÝ DANH MỤC</a>
                 <span class="sep">&gt;</span>
                 <span class="current">${pageHeading}</span>
             </div>

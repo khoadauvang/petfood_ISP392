@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${status} · <c:out value="${errorTitle}"/> · PetFood</title>
+    <title>${status} · <c:out value="${errorTitle}"/> · Food Pet Shop</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; color: #222; background: #fafafa; }
         main { max-width: 560px; margin: 12vh auto 0; padding: 24px 16px; text-align: center; }

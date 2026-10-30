@@ -9,10 +9,10 @@ import java.math.BigDecimal;
 
 // Ngưỡng và mức giảm của các hạng thành viên, đọc từ application.properties (requirements 7.6):
 //   Đồng từ 0đ giảm 0,1% · Bạc từ 1.200.000đ giảm 3% · Vàng từ 4.000.000đ giảm 5% · Kim cương từ 10.000.000đ giảm 10%
+@Getter
 @Component
 public class MembershipPolicy {
 
-    @Getter
     private final int returnWindowDays;
     private final BigDecimal silverMin;
     private final BigDecimal goldMin;
@@ -52,6 +52,25 @@ public class MembershipPolicy {
             return MembershipTier.SILVER;
         }
         return MembershipTier.BRONZE;
+    }
+
+    // Mốc chi tiêu cần đạt cho hạng kế tiếp
+    public BigDecimal nextTierSpend(MembershipTier tier) {
+        return switch (tier) {
+            case BRONZE -> silverMin;
+            case SILVER -> goldMin;
+            case GOLD, DIAMOND -> diamondMin;
+        };
+    }
+
+    // Tên nhãn hạng kế tiếp
+    public String nextTierLabel(MembershipTier tier) {
+        return switch (tier) {
+            case BRONZE -> "Bạc";
+            case SILVER -> "Vàng";
+            case GOLD -> "Kim cương";
+            case DIAMOND -> "Tối đa";
+        };
     }
 
     // Phần trăm giảm của hạng, đúng đơn vị cột Orders.tier_discount_rate (0.10 = 0,1%)

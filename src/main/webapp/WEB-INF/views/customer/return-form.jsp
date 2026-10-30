@@ -76,20 +76,27 @@
                         <div class="product-item-card ${l.flashSale ? 'flash-sale-disabled' : ''}" id="prodCard_${s.index}">
                             <div class="product-item-left">
                                 <form:hidden path="lines[${s.index}].orderItemId"/>
+                                <input type="hidden" name="lines[${s.index}].quantity" value="${l.quantity}"/>
                                 
                                 <!-- Phân luồng: Khóa checkbox nếu là Flash Sale -->
                                 <c:choose>
                                     <c:when test="${l.flashSale}">
-                                        <form:checkbox path="lines[${s.index}].selected" cssClass="item-checkbox" disabled="true" />
+                                        <form:checkbox path="lines[${s.index}].selected" disabled="true"
+                                                       cssClass="item-checkbox" aria-label="Chọn sản phẩm này để trả"/>
                                     </c:when>
                                     <c:otherwise>
-                                        <form:checkbox path="lines[${s.index}].selected" cssClass="item-checkbox" onchange="toggleCardHighlight(${s.index}, this.checked)"/>
+                                        <form:checkbox path="lines[${s.index}].selected" cssClass="item-checkbox"
+                                                       aria-label="Chọn sản phẩm này để trả"
+                                                       onchange="toggleCardHighlight(${s.index}, this.checked)"/>
                                     </c:otherwise>
                                 </c:choose>
 
                                 <div class="product-item-info">
                                     <h5>
                                         <c:out value="${l.productName}"/>
+                                        <c:if test="${l.promotion}">
+                                            <span class="flash-badge"><i class="fi fi-rr-bolt"></i> Chương trình</span>
+                                        </c:if>
                                         <c:if test="${l.flashSale}">
                                             <span class="flash-badge"><i class="fi fi-rr-bolt"></i> Flash Sale (Không hỗ trợ trả)</span>
                                         </c:if>
@@ -101,15 +108,7 @@
                             <div class="product-item-right">
                                 <div class="qty-control-box">
                                     <span>Số lượng trả:</span>
-                                    <!-- Phân luồng: Khóa ô nhập số lượng nếu là Flash Sale -->
-                                    <c:choose>
-                                        <c:when test="${l.flashSale}">
-                                            <form:input path="lines[${s.index}].quantity" type="number" disabled="true" cssClass="qty-input-box"/>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <form:input path="lines[${s.index}].quantity" type="number" min="1" max="${l.quantity}" cssClass="qty-input-box"/>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <strong>x${l.quantity} (toàn bộ)</strong>
                                 </div>
                                 <label class="opened-pkg-check">
                                     <!-- Phân luồng: Khóa checkbox mở bao bì nếu là Flash Sale -->

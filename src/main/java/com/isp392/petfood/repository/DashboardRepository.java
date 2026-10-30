@@ -104,6 +104,7 @@ public interface DashboardRepository extends Repository<Order, Long> {
         String getStatus();
         String getPay();
         BigDecimal getTotal();
+        BigDecimal getDiscount();
     }
 
     interface OrderCategoryAmountRow {
@@ -114,18 +115,31 @@ public interface DashboardRepository extends Repository<Order, Long> {
 
     interface CustomerAuditRow {
         Long getId();
+        String getFullName();
+        String getEmail();
+        String getPhone();
+        String getAvatarUrl();
         String getTier();
         String getCreatedAt();
     }
 
-    // Mọi đơn kèm hạng hiện tại của khách, mới nhất trước; date = ngày đặt dạng yyyy-MM-dd
+    // Mọi đơn kèm hạng hiện tại của khách, mới nhất trước;
+    // date = ngày hoàn tất (cho đơn COMPLETED để khớp KPI doanh thu) hoặc ngày đặt;
+    // total = tiền hàng thực thu đã trừ tiền hoàn trả hàng REFUNDED (để khớp thống kê chi tiêu và doanh thu thuần).
     @Query(value = """
             SELECT o.order_id AS id, o.customer_id AS customerId, c.membership_tier AS customerTier,
-                   CONVERT(char(10), o.created_at, 23) AS date, o.order_status AS status,
-                   o.payment_method AS pay, o.total_amount AS total
+                   CONVERT(char(10), COALESCE(o.completed_at, o.created_at), 23) AS date, o.order_status AS status,
+                   o.payment_method AS pay,
+                   (o.total_amount - COALESCE((
+                       SELECT SUM(ri.refund_amount)
+                       FROM dbo.ReturnItem ri
+                       JOIN dbo.ReturnRequest rr ON rr.return_id = ri.return_id
+                       WHERE rr.order_id = o.order_id AND rr.status = N'REFUNDED'
+                   ), 0)) AS total,
+                   COALESCE((SELECT SUM(oi.discount_amount) FROM dbo.OrderItem oi WHERE oi.order_id = o.order_id), 0) AS discount
             FROM dbo.Orders o
             JOIN dbo.Customer c ON c.customer_id = o.customer_id
-            ORDER BY o.created_at DESC, o.order_id DESC
+            ORDER BY COALESCE(o.completed_at, o.created_at) DESC, o.order_id DESC
             """, nativeQuery = true)
     List<OrderAuditRow> allOrders();
 
@@ -140,7 +154,8 @@ public interface DashboardRepository extends Repository<Order, Long> {
     List<OrderCategoryAmountRow> orderCategoryAmounts();
 
     @Query(value = """
-            SELECT c.customer_id AS id, c.membership_tier AS tier, CONVERT(char(10), a.created_at, 23) AS createdAt
+            SELECT c.customer_id AS id, c.full_name AS fullName, a.email AS email, c.phone AS phone,
+                   c.avatar_url AS avatarUrl, c.membership_tier AS tier, CONVERT(char(10), a.created_at, 23) AS createdAt
             FROM dbo.Customer c
             JOIN dbo.Account a ON a.account_id = c.account_id
             """, nativeQuery = true)

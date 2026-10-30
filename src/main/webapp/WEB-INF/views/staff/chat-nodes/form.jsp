@@ -23,7 +23,15 @@
 <body>
 <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
 
-<h1>${pageHeading}</h1>
+<main class="reveal">
+    <div class="page-head">
+        <div>
+            <div class="screen-bc">
+                <span>CHĂM SÓC KHÁCH HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/chat-nodes" style="color:inherit; text-decoration:none;">KỊCH BẢN PHẢN HỒI CHAT</a> <span class="sep">&gt;</span> <span class="current">${pageHeading}</span>
+            </div>
+            <h1>${pageHeading}</h1>
+        </div>
+    </div>
 
 <form:form method="post" action="${formAction}" modelAttribute="chatNodeForm">
     <div class="grid-form">
@@ -76,5 +84,6 @@
         <a href="${ctx}/staff/chat-nodes">Huỷ</a>
     </p>
 </form:form>
+</main>
 </body>
 </html>

@@ -150,6 +150,21 @@ public class StaffLotController {
         return "redirect:/staff/products/" + lot.getProductId();
     }
 
+    @PostMapping("/{id}/dispose")
+    public String dispose(@PathVariable("id") Long id,
+                          @RequestParam(value = "redirectUrl", required = false) String redirectUrl,
+                          RedirectAttributes redirect) {
+        LotRow lot = lotService.getRow(id);
+        int onHand = lot.getOnHandQty();
+        lotService.dispose(id);
+        redirect.addFlashAttribute("successMessage",
+                "Đã tiêu hủy lô #" + id + " (" + lot.getSku() + "). Đã xuất hủy " + onHand + " đơn vị quá hạn khỏi kho.");
+        if (redirectUrl != null && !redirectUrl.isBlank()) {
+            return "redirect:" + redirectUrl;
+        }
+        return "redirect:/staff/alerts";
+    }
+
     // Lô vừa nhập/sửa mà đã dưới mốc hạn dùng thì nhắc ngay (BR-51)
     private void addExpiryWarning(LotRow lot, RedirectAttributes redirect) {
         switch (lot.getLevel()) {

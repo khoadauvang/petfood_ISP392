@@ -3,6 +3,7 @@
     --orange-dark: #E96816;
     --orange-soft: #FFF0E6;
     --red-sale: #D9381E;
+    --red: #D9381E;
     --cream: #FFFAF4;
     --cream-dark: #FFF4DF;
     --border: #F4E3C9;
@@ -61,7 +62,7 @@ button {
         align-items: center;
         gap: 24px;
         width: 100%;
-        max-width: 1200px;
+        max-width: 1380px;
         height: 72px;
         margin: 0 auto;
         padding: 0 20px;
@@ -250,7 +251,7 @@ button {
 /* BREADCRUMB - GIỮ NGUYÊN */
 .breadcrumb-bar {
     display: flex; align-items: center; justify-content: space-between;
-    width: 100%; max-width: 1200px; margin: 16px auto 0; padding: 0 20px;
+    width: 100%; max-width: 1380px; margin: 16px auto 0; padding: 0 24px;
     color: var(--text-secondary); font-size: 13px;
 }
 .breadcrumb-bar a { color: var(--text-secondary); text-decoration: none; }
@@ -262,8 +263,8 @@ button {
 
 /* PAGE CONTAINER - GIỮ NGUYÊN */
 .page-container {
-    display: grid; grid-template-columns: 280px 1fr; gap: 24px; flex: 1;
-    width: 100%; max-width: 1200px; margin: 20px auto 40px; padding: 0 20px;
+    display: grid; grid-template-columns: 285px 1fr; gap: 28px; flex: 1;
+    width: 100%; max-width: 1380px; margin: 20px auto 40px; padding: 0 24px;
 }
 
 /* ================= PROFILE CONTENT ================= */
@@ -309,7 +310,7 @@ button {
 .main-card .avatar-edit-box {
     display: flex; align-items: center; gap: 24px; min-width: 0;
     padding: 24px; margin-bottom: 28px; border: 1px solid #F4DFC9;
-    border-radius: 18px; background: linear-gradient(120deg,#FFF8EF,#FFFEFC);
+    border-radius: 18px; background: linear-gradient(120deg,#FFF8EF,#FFFEFC); max-width: 880px;
 }
 .main-card .avatar-preview-lg {
     display: block; width: 104px !important; height: 104px !important;
@@ -334,7 +335,7 @@ button {
 /* Mỗi trường thông tin là một khung riêng */
 .main-card .form-grid {
     display: grid; grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 18px 20px; margin-bottom: 26px;
+    gap: 18px 20px; margin-bottom: 26px; max-width: 880px;
 }
 .main-card .form-group {
     min-width: 0; margin: 0; padding: 17px; border: 1px solid #F1E5D8;
@@ -362,12 +363,12 @@ button {
     min-width: 64px; padding: 10px; border: 1px solid var(--border-input);
     border-radius: 10px; background: #F5EEE7; color: #695648; font-size: 13px; font-weight: 700;
 }
-.main-card .error { display: block; margin-top: 6px; color: var(--red); font-size: 12px; line-height: 1.5; }
+.main-card .error { display: block; margin-top: 6px; color: #D9381E !important; font-size: 12.5px; font-weight: 500; line-height: 1.5; }
 
 /* Nút lưu và hủy */
 .main-card .form-bottom-actions {
     display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap;
-    gap: 12px; padding-top: 22px; margin-top: 8px; border-top: 1px solid #F0E5D9;
+    gap: 12px; padding-top: 22px; margin-top: 8px; border-top: 1px solid #F0E5D9; max-width: 880px;
 }
 .main-card .btn-cancel, .main-card .btn-save {
     display: inline-flex; align-items: center; justify-content: center;
@@ -411,7 +412,7 @@ button {
 
 .main-card .tier-cards-grid {
     display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
-    gap: 15px; margin: 20px 0 28px;
+    gap: 18px; margin: 20px 0 28px;
 }
 .main-card .tier-card {
     position: relative; min-width: 0; padding: 22px 17px;
@@ -699,4 +700,52 @@ button {
     .pwd-form-actions button {
         flex: 1;
     }
+}
+
+/* MODAL CẢNH BÁO NHẬP SAI MẬT KHẨU NHIỀU LẦN */
+.pwd-fail-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.pwd-fail-modal-box {
+    background: #fff;
+    border-radius: 14px;
+    width: 90%;
+    max-width: 440px;
+    padding: 22px 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #fca5a5;
+    animation: modalSlideIn 0.2s ease-out;
+}
+@keyframes modalSlideIn {
+    from { transform: translateY(-15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.pwd-fail-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #fee2e2;
+}
+.pwd-fail-close-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #817872;
+    cursor: pointer;
+    padding: 4px;
+}
+.pwd-fail-close-btn:hover {
+    color: #3d3028;
 }

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 
-// Một suất Flash Sale đang mở bán, hiển thị cho khách kèm ghi chú hạn dùng còn lại (BR-65)
+// Một suất Flash Sale / Khuyến mãi đang mở bán, hiển thị cho khách kèm ghi chú hạn dùng còn lại (BR-65)
 @Getter
 @AllArgsConstructor
 public class FlashSaleOffer {
@@ -25,4 +25,5 @@ public class FlashSaleOffer {
     private final String species;     // DOG / CAT, để trang Flash Sale lọc theo loài
     private final int soldPercent;    // sold_qty / allocated_qty của suất (thanh "Đã bán")
     private final String endAt;       // giờ kết thúc dạng ISO (yyyy-MM-ddTHH:mm:ss) cho đồng hồ đếm ngược
+    private final boolean promotion;  // true = Khuyến mãi dịp lễ (HSD >= 90 ngày), false = Flash Sale xả kho cận date
 }

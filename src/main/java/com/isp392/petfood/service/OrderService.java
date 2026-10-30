@@ -6,10 +6,12 @@ import com.isp392.petfood.dto.OrderLineDto;
 import com.isp392.petfood.dto.OrderRow;
 import com.isp392.petfood.entity.Customer;
 import com.isp392.petfood.entity.Employee;
+import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Order;
 import com.isp392.petfood.entity.OrderItem;
 import com.isp392.petfood.entity.OrderItemLot;
 import com.isp392.petfood.entity.Payment;
+import com.isp392.petfood.enums.ExpiryLevel;
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.enums.PaymentMethod;
 import com.isp392.petfood.enums.PaymentRecordStatus;
@@ -24,7 +26,9 @@ import com.isp392.petfood.repository.OrderItemRepository;
 import com.isp392.petfood.repository.OrderItemRepository.OrderCountRow;
 import com.isp392.petfood.repository.OrderRepository;
 import com.isp392.petfood.repository.PaymentRepository;
+import com.isp392.petfood.entity.ReturnRequest;
 import com.isp392.petfood.repository.ProductReviewRepository;
+import com.isp392.petfood.repository.ReturnRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +78,9 @@ public class OrderService {
     private final VnpayClient vnpayClient;
     private final ReturnService returnService;
     private final ProductReviewRepository productReviewRepository;
+    private final InventoryPolicy inventoryPolicy;
+    private final MembershipService membershipService;
+    private final ReturnRequestRepository returnRequestRepository;
 
     // ===== Phía khách =====
 
@@ -118,6 +125,9 @@ public class OrderService {
                 if (order.isCancelRequested()) {
                     throw new BusinessRuleException("Bạn đã gửi yêu cầu huỷ đơn này, vui lòng chờ cửa hàng xử lý.");
                 }
+                if (order.isCancelRejected()) {
+                    throw new BusinessRuleException("Yêu cầu huỷ đơn trước đó đã bị cửa hàng từ chối vì đơn hàng đã đóng gói hoàn tất và sẵn sàng bàn giao.");
+                }
                 order.setCancelReason(reason.trim());    // yêu cầu huỷ, chờ staff duyệt
             }
             default -> throw new BusinessRuleException("Đơn " + order.getStatus().getLabel().toLowerCase()
@@ -132,9 +142,16 @@ public class OrderService {
     public Page<OrderRow> search(OrderStatus status, boolean cancelRequested, String keyword, int pageNumber) {
         Long orderId = null;
         String text = keyword == null || keyword.isBlank() ? null : keyword.trim();
-        if (text != null && text.replace("#", "").matches("\\d{1,18}")) {
-            orderId = Long.parseLong(text.replace("#", ""));    // gõ mã đơn, ví dụ "#12" hoặc "12"
-            text = null;
+        if (text != null) {
+            String rawNumber = text.replace("#", "").toUpperCase().replace("ORD-", "").trim();
+            // Nếu là số điện thoại VN (bắt đầu bằng 0, 84 hoặc +84 và có 9-11 chữ số): tìm theo keyword SĐT
+            boolean isPhone = text.matches("^(\\+?84|0)[0-9]{8,10}$");
+            if (!isPhone && rawNumber.matches("\\d{1,18}")) {
+                try {
+                    orderId = Long.parseLong(rawNumber);
+                } catch (NumberFormatException ignored) {
+                }
+            }
         }
         Page<Order> orders = orderRepository.search(status, cancelRequested, orderId, text,
                 PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt", "id")));
@@ -172,7 +189,7 @@ public class OrderService {
         }
         order.setStatus(OrderStatus.CONFIRMED);
         order.setConfirmedBy(employee(employeeId));
-        order.setConfirmedAt(LocalDateTime.now());
+        order.setConfirmedAt(VnpayClient.nowVn());
         return order;
     }
 
@@ -194,8 +211,11 @@ public class OrderService {
         if (order.isCancelRequested()) {
             throw new BusinessRuleException("Khách đang yêu cầu huỷ đơn này: hãy duyệt hoặc từ chối yêu cầu trước khi giao.");
         }
+        if (order.isCancelRejected()) {
+            order.setCancelReason(null);
+        }
         order.setStatus(OrderStatus.SHIPPED);
-        order.setShippedAt(LocalDateTime.now());
+        order.setShippedAt(VnpayClient.nowVn());
         return order;
     }
 
@@ -205,7 +225,7 @@ public class OrderService {
         Order order = lockOrder(orderId);
         requireStatus(order, OrderStatus.SHIPPED, "hoàn tất");
         order.setStatus(OrderStatus.COMPLETED);
-        order.setCompletedAt(LocalDateTime.now());
+        order.setCompletedAt(VnpayClient.nowVn());
         if (order.getPaymentMethod() == PaymentMethod.COD) {
             order.setPaymentStatus(PaymentStatus.PAID);
             Payment payment = new Payment(order, PaymentMethod.COD, order.getTotalAmount());
@@ -213,19 +233,26 @@ public class OrderService {
             payment.setPaidAt(order.getCompletedAt());
             paymentRepository.save(payment);
         }
+        orderRepository.flush();
+        membershipService.recalculateAll();
         return order;
     }
 
     // SHIPPED -> RETURNED: khách không nhận hàng. Không tự cộng tồn: tạo sẵn yêu cầu trả hàng REFUSED_DELIVERY
-    // để staff thẩm định từng dòng (tái nhập / tiêu huỷ) ở module trả hàng.
+    // ở trạng thái APPROVED (chờ nhận hàng hoàn về kho) để kho xác nhận khi thực tế nhận lại kiện hàng từ shipper.
     @Transactional
-    public Order markReturned(Long orderId) {
+    public Order markReturned(Long orderId, Long employeeId) {
         Order order = lockOrder(orderId);
         requireStatus(order, OrderStatus.SHIPPED, "chuyển sang 'khách không nhận hàng'");
         order.setStatus(OrderStatus.RETURNED);
-        order.setReturnedAt(LocalDateTime.now());
-        returnService.createForRefusedDelivery(order);
+        order.setReturnedAt(VnpayClient.nowVn());
+        returnService.createForRefusedDelivery(order, employeeId);
         return order;
+    }
+
+    @Transactional
+    public Order markReturned(Long orderId) {
+        return markReturned(orderId, null);
     }
 
     // Staff huỷ đơn chưa giao (hết hàng, không liên lạc được khách...), bắt buộc ghi lý do
@@ -236,7 +263,12 @@ public class OrderService {
         if (!STAFF_CANCELLABLE.contains(order.getStatus())) {
             throw new BusinessRuleException("Đơn " + order.getStatus().getLabel().toLowerCase() + " không huỷ được.");
         }
-        cancel(order, reason.trim());
+        String finalReason = reason.trim();
+        if (order.isCancelRequested() && order.getCancelReason() != null && !order.getCancelReason().isBlank()) {
+            String combined = "Khách yêu cầu: " + order.getCancelReason() + " | Cửa hàng: " + finalReason;
+            finalReason = combined.length() > 255 ? combined.substring(0, 255) : combined;
+        }
+        cancel(order, finalReason);
         return order;
     }
 
@@ -257,7 +289,8 @@ public class OrderService {
         if (!order.isCancelRequested()) {
             throw new BusinessRuleException("Đơn #" + orderId + " không có yêu cầu huỷ đang chờ.");
         }
-        order.setCancelReason(null);
+        String rejectedReason = Order.REJECTED_CANCEL_PREFIX + order.getCancelReason();
+        order.setCancelReason(rejectedReason.length() > 255 ? rejectedReason.substring(0, 255) : rejectedReason);
         return order;
     }
 
@@ -282,13 +315,20 @@ public class OrderService {
     void cancel(Order order, String reason) {
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelReason(reason);
-        order.setCancelledAt(LocalDateTime.now());
+        order.setCancelledAt(VnpayClient.nowVn());
 
         for (OrderItemLot taken : orderItemLotRepository.findByOrderId(order.getId())) {
+            Lot lot = taken.getLot();
+            // Không cộng trả vào lô đã bị xuất huỷ (tiêu huỷ) hoặc đã hết hạn hoàn toàn
+            if (LotService.isDisposed(lot.getId()) || inventoryPolicy.levelOf(lot.getExpiryDate()) == ExpiryLevel.EXPIRED) {
+                log.info("Huỷ đơn #{}: bỏ qua cộng trả {} sp vào lô #{} vì lô đã tiêu huỷ hoặc hết hạn",
+                        order.getId(), taken.getQuantity(), lot.getId());
+                continue;
+            }
             // Cộng trả đúng lô gốc. Lô giờ đã dưới 90 ngày thì tự thành hàng RED (chỉ bán qua Flash Sale).
-            if (lotRepository.putBack(taken.getLot().getId(), taken.getQuantity()) == 0) {
+            if (lotRepository.putBack(lot.getId(), taken.getQuantity()) == 0) {
                 log.warn("Huỷ đơn #{}: không cộng trả được {} sp vào lô #{} (vượt số lượng nhập)",
-                        order.getId(), taken.getQuantity(), taken.getLot().getId());
+                        order.getId(), taken.getQuantity(), lot.getId());
             }
         }
         for (OrderItem item : orderItemRepository.findDetailedByOrderId(order.getId())) {
@@ -334,13 +374,20 @@ public class OrderService {
         Map<Long, OrderCountRow> counts = ids.isEmpty() ? Map.of()
                 : orderItemRepository.countByOrderIds(ids).stream()
                 .collect(Collectors.toMap(OrderCountRow::getOrderId, Function.identity()));
+        Map<Long, ReturnRequest> latestReturnByOrder = ids.isEmpty() ? Map.of()
+                : returnRequestRepository.findByOrderIds(ids).stream()
+                .collect(Collectors.toMap(r -> r.getOrder().getId(), Function.identity(), (existing, replacing) -> existing));
+        Map<Long, List<OrderItemPreview>> previews = itemPreviews(ids);
         return orders.map(o -> {
             OrderCountRow count = counts.get(o.getId());
             Customer c = o.getCustomer();
+            ReturnRequest ret = latestReturnByOrder.get(o.getId());
+            List<OrderItemPreview> items = previews.getOrDefault(o.getId(), List.of());
             return new OrderRow(o.getId(), o.getCreatedAt().format(DATE_TIME), o.getStatus(),
                     o.getPaymentMethod().getLabel(), o.getPaymentStatus().getLabel(), o.getTotalAmount(),
                     count == null ? 0 : count.getLineCount(), count == null ? 0 : count.getTotalQuantity(),
-                    c.getFullName(), c.getAccount().getEmail(), o.isCancelRequested());
+                    c.getFullName(), c.getAccount().getEmail(), o.isCancelRequested(),
+                    items, ret != null ? ret.getStatus() : null, ret != null ? ret.getId() : null);
         });
     }
 
@@ -376,6 +423,11 @@ public class OrderService {
                         .map(p -> vnpayClient.holdUntil(p.getCreatedAt())).orElse(null)
                 : null;
 
+        String displayCancelReason = order.getCancelReason();
+        if (displayCancelReason != null && displayCancelReason.startsWith(Order.REJECTED_CANCEL_PREFIX)) {
+            displayCancelReason = null;
+        }
+
         Customer customer = order.getCustomer();
         return OrderDetailDto.builder()
                 .id(order.getId())
@@ -400,8 +452,9 @@ public class OrderService {
                 .completedAtText(format(order.getCompletedAt()))
                 .cancelledAtText(format(order.getCancelledAt()))
                 .returnedAtText(format(order.getReturnedAt()))
-                .cancelReason(order.getCancelReason())
+                .cancelReason(displayCancelReason)
                 .cancelRequested(order.isCancelRequested())
+                .cancelRejected(order.isCancelRejected())
                 .needsRefund(needsRefund(order))
                 .vnpayHoldUntil(holdUntil == null ? null : holdUntil.format(DATE_TIME))
                 .vnpayHoldUntilMillis(holdUntil == null ? null : VnpayClient.toEpochMillis(holdUntil))

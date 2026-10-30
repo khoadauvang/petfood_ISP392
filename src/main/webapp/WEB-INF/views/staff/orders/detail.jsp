@@ -1,6 +1,7 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="csrf"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"></c:set>
@@ -139,7 +140,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <a href="${ctx}/staff/orders">ĐƠN HÀNG</a>
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/orders" style="color:inherit; text-decoration:none;">QUẢN LÝ ĐƠN HÀNG</a>
                 <span class="sep">&gt;</span>
                 <span class="current">CHI TIẾT ĐƠN HÀNG #${order.id}</span>
             </div>
@@ -181,9 +182,6 @@
             <a href="${ctx}/staff/orders" class="btn-pill-outline">
                 <i class="ti ti-arrow-left"></i>Quay lại danh sách
             </a>
-            <button type="button" onclick="window.print()" class="btn-pill-outline">
-                <i class="ti ti-printer"></i>In phiếu đơn
-            </button>
         </div>
     </div>
 
@@ -306,7 +304,9 @@
                                             </a>
                                             <c:if test="${line.flashSale}">
                                                 <span class="pill-badge red" style="font-size:10px; padding:2px 6px">
-                                                    <i class="ti ti-bolt"></i>Flash Sale: <c:out value="${line.flashSaleName}"/>
+                                                    <c:set var="fsNameLower" value="${fn:toLowerCase(line.flashSaleName)}"/>
+                                                    <c:set var="isPromoLine" value="${not (fn:contains(fsNameLower, 'flash sale') or fn:contains(fsNameLower, 'flashsale') or fn:contains(fsNameLower, 'cận hạn') or fn:contains(fsNameLower, 'cận date') or fn:contains(fsNameLower, 'xả hàng') or fn:contains(fsNameLower, 'xả tồn'))}"/>
+                                                    <i class="ti ${isPromoLine ? 'ti-discount-2' : 'ti-bolt'}"></i>${isPromoLine ? 'Chương trình' : 'Flash Sale'}: <c:out value="${line.flashSaleName}"/>
                                                 </span>
                                             </c:if>
                                             <c:forEach var="lot" items="${line.lots}">
@@ -345,7 +345,8 @@
                             </tr>
                             <tr>
                                 <td style="color:var(--text-muted)">
-                                    Giảm giá hạng thành viên (${order.tierDiscountRate}%, không áp dụng cho Flash Sale):
+                                    <c:set var="detailTierName" value="${order.tierDiscountRate >= 10 ? 'Hạng Kim Cương' : (order.tierDiscountRate >= 5 ? 'Hạng Vàng' : (order.tierDiscountRate >= 3 ? 'Hạng Bạc' : 'Hạng Đồng'))}"/>
+                                    Giảm giá hạng thành viên (${detailTierName} · <fmt:formatNumber value="${order.tierDiscountRate}" maxFractionDigits="2"/>%, không áp dụng cho Flash Sale):
                                 </td>
                                 <td class="num" style="color:#dc2626; font-weight:700">
                                     −<fmt:formatNumber value="${order.discountTotal}" type="number"/>₫
@@ -477,7 +478,14 @@
                 <div class="info-box-grid" style="margin-bottom:0">
                     <div class="info-box">
                         <div class="info-box-title"><i class="ti ti-id"></i>Khách nhận hàng</div>
-                        <div class="info-box-name"><c:out value="${order.customerName}"/></div>
+                        <c:set var="detailTierBadge" value="${order.tierDiscountRate >= 10 ? '💎 Kim Cương' : (order.tierDiscountRate >= 5 ? '🥇 Vàng' : (order.tierDiscountRate >= 3 ? '🥈 Bạc' : '🥉 Đồng'))}"/>
+                        <c:set var="detailTierStyle" value="${order.tierDiscountRate >= 10 ? 'background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd' : (order.tierDiscountRate >= 5 ? 'background:#fef3c7; color:#b45309; border:1px solid #fde68a' : (order.tierDiscountRate >= 3 ? 'background:#f1f5f9; color:#334155; border:1px solid #cbd5e1' : 'background:#ffedd5; color:#9a3412; border:1px solid #fed7aa'))}"/>
+                        <div class="info-box-name" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap">
+                            <span><c:out value="${order.customerName}"/></span>
+                            <span style="display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:700; ${detailTierStyle}">
+                                ${detailTierBadge}
+                            </span>
+                        </div>
                         <div class="info-box-desc">
                             <i class="ti ti-phone" style="margin-right:4px; vertical-align:middle"></i>
                             <b><c:out value="${empty order.customerPhone ? 'Chưa cập nhật SĐT' : order.customerPhone}"/></b>

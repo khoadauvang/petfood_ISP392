@@ -12,7 +12,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Flash Sale Xả Kho Cận Date - PetFood</title>
+        <title>Flash Sale &amp; Khuyến Mãi - PetFood</title>
 
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
@@ -36,7 +36,7 @@
                     <span>Trang chủ</span>
                 </a>
                 <span class="breadcrumb-separator">&rsaquo;</span>
-                <span class="breadcrumb-current">Flash Sale xả kho cận date</span>
+                <span class="breadcrumb-current">Flash Sale &amp; Khuyến mãi</span>
             </nav>
 
             <!-- 2. Khung Banner Flash Sale & Đồng hồ đếm ngược -->
@@ -45,23 +45,14 @@
                     <div class="flash-title-group">
                         <div class="flash-heading">
                             <i class="fi fi-rr-flame flame-icon"></i>
-                            <h1>Flash Sale – Giờ Vàng Xả Kho Cận Date</h1>
+                            <h1>Flash Sale &amp; Khuyến Mãi Đặc Biệt</h1>
                         </div>
                         <p class="flash-subtitle">
-                            Số lượng xả kho có hạn &bull; Giảm giá sốc cho các sản phẩm chính hãng
+                            Số lượng ưu đãi có hạn &bull; Giảm giá sốc cho các sản phẩm chính hãng
                         </p>
                     </div>
 
-                    <div class="countdown-box" aria-label="Thời gian còn lại">
-                        <span class="countdown-label">Kết thúc sau:</span>
-                        <div class="countdown-timer">
-                            <span class="time-badge" id="cd-hours">00</span>
-                            <span class="time-colon">:</span>
-                            <span class="time-badge" id="cd-minutes">00</span>
-                            <span class="time-colon">:</span>
-                            <span class="time-badge" id="cd-seconds">00</span>
-                        </div>
-                    </div>
+                    
                 </div>
 
                 <div class="flash-policy-bar">
@@ -79,126 +70,103 @@
                    data-filter="all">
                     Tất cả sản phẩm
                 </a>
+                <a href="${ctx}/flash-sale?filter=promo" 
+                   class="flash-tab ${param.filter == 'promo' ? 'active' : ''}" 
+                   data-filter="PROMO">
+                    Chiến dịch Khuyến mãi
+                </a>
+                <a href="${ctx}/flash-sale?filter=flash" 
+                   class="flash-tab ${param.filter == 'flash' ? 'active' : ''}" 
+                   data-filter="FLASHSALE">
+                    Flash Sale Xả kho
+                </a>
                 <a href="${ctx}/flash-sale?species=DOG&filter=dog" 
                    class="flash-tab ${param.species == 'DOG' or param.filter == 'dog' ? 'active' : ''}" 
                    data-filter="DOG">
-                    <span>🐶</span> Dành cho Chó
+                    Dành cho Chó
                 </a>
                 <a href="${ctx}/flash-sale?species=CAT&filter=cat" 
                    class="flash-tab ${param.species == 'CAT' or param.filter == 'cat' ? 'active' : ''}" 
                    data-filter="CAT">
-                    <span>🐱</span> Dành cho Mèo
+                    Dành cho Mèo
                 </a>
                 <a href="${ctx}/flash-sale?minDiscount=30&filter=deep" 
                    class="flash-tab ${param.minDiscount == '30' or param.filter == 'deep' ? 'active' : ''}" 
                    data-filter="DEEP">
-                    <span>🔥</span> Mức giảm sâu &gt; 30%
+                    Mức giảm sâu &gt; 30%
                 </a>
+                
             </div>
 
-            <!-- 4. Lưới sản phẩm Flash Sale (Lấy từ Database 100%) -->
+            <!-- 4. Lưới sản phẩm Flash Sale (Đồng bộ product-card) -->
             <div class="flash-grid" id="flashProductGrid">
-                <c:choose>
-                    <c:when test="${not empty offers}">
-                        <%-- offers: List<FlashSaleOffer> từ FlashSaleController (suất đang mở bán, BR-65) --%>
-                        <c:forEach var="o" items="${offers}">
-                            <article class="flash-card"
-                                     data-species="${o.species}"
-                                     data-discount="${o.discountPercent}"
-                                     data-end-at="${o.endAt}">
-
-                                <div class="card-top-badges">
-                                    <span class="discount-badge">-${o.discountPercent}%</span>
-                                    <button type="button" class="wishlist-btn" aria-label="Yêu thích">
-                                        <i class="fi fi-rr-heart"></i>
-                                    </button>
-                                </div>
-
-                                <a href="${ctx}/products/${o.productId}" class="flash-image-link">
-                                    <div class="flash-image">
-                                        <c:choose>
-                                            <c:when test="${not empty o.imageUrl}">
-                                                <img src="${ctx}${o.imageUrl}" alt="<c:out value='${o.productName}'/>">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span>Ảnh sản phẩm</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                </a>
-
-                                <div class="flash-info">
-                                    <div class="expiry-pill">
-                                        <i class="fi fi-rr-calendar"></i>
-                                        <span>HSD: <c:out value="${o.expiryText}"/> (còn ${o.daysLeft} ngày)</span>
-                                    </div>
-
-                                    <h3>
-                                        <a href="${ctx}/products/${o.productId}"><c:out value="${o.productName}"/></a>
-                                    </h3>
-
-                                    <div class="price-row">
-                                        <span class="sale-price">
-                                            <fmt:formatNumber value="${o.salePrice}" type="number"/>đ
-                                        </span>
-                                        <c:if test="${o.sellingPrice > o.salePrice}">
-                                            <span class="old-price">
-                                                <fmt:formatNumber value="${o.sellingPrice}" type="number"/>đ
-                                            </span>
-                                        </c:if>
-                                    </div>
-
-                                    <c:set var="soldPct" value="${o.soldPercent}" />
-                                    <div class="progress-info">
-                                        <div class="progress-labels">
-                                            <span class="sold-text">Đã bán: ${soldPct}% · còn ${o.remainingQty} suất</span>
-                                            <span class="status-text ${soldPct >= 80 ? 'urgent' : ''}">
-                                                <c:choose>
-                                                    <c:when test="${soldPct >= 90}">Sắp hết hàng</c:when>
-                                                    <c:when test="${soldPct >= 80}">Gần hết</c:when>
-                                                    <c:otherwise>Đang bán chạy</c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </div>
-                                        <div class="progress-track">
-                                            <div class="progress-fill" style="width: ${soldPct}%;"></div>
-                                        </div>
-                                    </div>
-
+                <c:set var="hasActiveOffer" value="false" />
+                <c:forEach var="o" items="${offers}">
+                    <c:if test="${o.remainingQty > 0}">
+                        <c:set var="hasActiveOffer" value="true" />
+                        <article class="product-card flash-product-card"
+                                 data-species="${o.species}"
+                                 data-discount="${o.discountPercent}"
+                                 data-promo="${o.promotion ? 'PROMO' : 'FLASHSALE'}"
+                                 data-end-at="${o.endAt}">
+                            <a href="${ctx}/products/${o.productId}" class="product-card-link" title="<c:out value='${o.productName}'/>">
+                                <div class="product-image">
+                                    <span class="flash-tag-discount" style="${o.promotion ? 'background:#2563eb;' : ''}">
+                                        <i class="fi fi-rr-flame"></i> -${o.discountPercent}%
+                                    </span>
+                                    <span class="flash-tag-expiry" title="Hạn sử dụng: <c:out value='${o.expiryText}'/>">
+                                        <i class="fi fi-rr-calendar"></i> HSD: <c:out value="${o.expiryText}"/>
+                                    </span>
                                     <c:choose>
-                                        <c:when test="${o.remainingQty > 0 and (empty currentUser or currentUser.role == 'CUSTOMER')}">
-                                            <%-- Thêm dòng Flash Sale (tách riêng khỏi dòng giá thường, BR-65); Guest bị chuyển tới /login --%>
-                                            <form action="${ctx}/cart/add" method="post" class="add-cart-form">
-                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                                <input type="hidden" name="flashSaleItemId" value="${o.flashSaleItemId}">
-                                                <input type="hidden" name="quantity" value="1">
-                                                <input type="hidden" name="returnUrl" value="/flash-sale">
-                                                <button type="submit" class="add-cart-btn">
-                                                    <i class="fi fi-rr-shopping-cart"></i> Thêm vào giỏ
-                                                </button>
-                                            </form>
+                                        <c:when test="${not empty o.imageUrl}">
+                                            <img src="${ctx}${o.imageUrl}" alt="<c:out value='${o.productName}'/>" loading="lazy">
                                         </c:when>
-                                        <c:when test="${o.remainingQty > 0}">
-                                            <button type="button" class="add-cart-btn" disabled>Chỉ khách hàng mua được</button>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <button type="button" class="add-cart-btn" disabled>
-                                                Hết hàng
-                                            </button>
-                                        </c:otherwise>
+                                        <c:otherwise><span class="no-img-text">Ảnh sản phẩm</span></c:otherwise>
                                     </c:choose>
                                 </div>
-                            </article>
-                        </c:forEach>
-                    </c:when>
-                    <c:otherwise>
-                        <!-- Hiển thị thông báo nếu Database chưa có sản phẩm Flash Sale nào -->
-                        <div style="grid-column: span 4; text-align: center; padding: 40px; color: #817872; font-size: 15px;">
-                            <i class="fi fi-rr-box-open" style="font-size: 32px; display: block; margin-bottom: 10px; color: #F47721;"></i>
-                            Hiện tại chưa có sản phẩm nào trong chương trình Flash Sale.
-                        </div>
-                    </c:otherwise>
-                </c:choose>
+                                <div class="product-info">
+                                    <span class="product-card-brand"><c:out value="${empty o.brand ? 'PetFood Official' : o.brand}"/></span>
+                                    <h3 class="product-card-title"><c:out value="${o.productName}"/></h3>
+                                    
+                                    <div class="flash-card-meta">
+                                        <span class="flash-days-pill"><i class="fi fi-rr-clock"></i> Còn ${o.daysLeft} ngày</span>
+                                        <span class="flash-sale-name" title="<c:out value='${o.saleName}'/>">${o.promotion ? '🎁 ' : '⚡ '}<c:out value="${o.saleName}"/></span>
+                                    </div>
+
+                                    <div class="product-card-price-row">
+                                        <div class="flash-price-stack">
+                                            <span class="product-price flash-price"><fmt:formatNumber value="${o.salePrice}" type="number"/> ₫</span>
+                                            <c:if test="${o.sellingPrice > o.salePrice}">
+                                                <span class="product-old-price"><fmt:formatNumber value="${o.sellingPrice}" type="number"/> ₫</span>
+                                            </c:if>
+                                        </div>
+                                        <span class="product-sold flash-stock-tag">Còn ${o.remainingQty} suất</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <c:if test="${currentUser.role == 'CUSTOMER'}">
+                                <div class="product-card-action">
+                                    <form action="${ctx}/cart/add" method="post" class="add-cart-form">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                                        <input type="hidden" name="flashSaleItemId" value="${o.flashSaleItemId}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="flash-btn-buy">
+                                            <i class="fi fi-rr-bolt"></i> ${o.promotion ? 'Mua giá Chương trình' : 'Mua giá Flash Sale'}
+                                        </button>
+                                    </form>
+                                </div>
+                            </c:if>
+                        </article>
+                    </c:if>
+                </c:forEach>
+
+                <c:if test="${not hasActiveOffer}">
+                    <!-- Hiển thị thông báo nếu Database chưa có sản phẩm hoặc tất cả đã hết hàng -->
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: #817872; font-size: 15px; background: #FFF9F5; border-radius: 16px; border: 1.5px dashed #F8CBB0;">
+                        <i class="fi fi-rr-box-open" style="font-size: 38px; display: block; margin-bottom: 12px; color: #F47721;"></i>
+                        Hiện tại chưa có sản phẩm nào trong chương trình Flash Sale / Khuyến mãi.
+                    </div>
+                </c:if>
             </div>
         </main>
 
@@ -209,33 +177,27 @@
         <!-- Script xử lý Đồng hồ đếm ngược, Lọc Tab nhanh & Chat Modal -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-                // 1. Đồng hồ đếm ngược tới suất kết thúc sớm nhất (data-end-at của từng card)
-                const now = Date.now();
-                const ends = Array.from(document.querySelectorAll(".flash-card[data-end-at]"))
-                        .map(c => new Date(c.dataset.endAt).getTime())
-                        .filter(t => !isNaN(t) && t > now);
-                let totalSeconds = ends.length ? Math.floor((Math.min(...ends) - now) / 1000) + 1 : 1;
-                const hoursEl = document.getElementById("cd-hours");
-                const minutesEl = document.getElementById("cd-minutes");
-                const secondsEl = document.getElementById("cd-seconds");
-
-                function updateCountdown() {
-                    if (totalSeconds <= 0) return;
-                    totalSeconds--;
-                    const h = Math.floor(totalSeconds / 3600);
-                    const m = Math.floor((totalSeconds % 3600) / 60);
-                    const s = totalSeconds % 60;
-
-                    if (hoursEl) hoursEl.textContent = String(h).padStart(2, '0');
-                    if (minutesEl) minutesEl.textContent = String(m).padStart(2, '0');
-                    if (secondsEl) secondsEl.textContent = String(s).padStart(2, '0');
-                }
-                updateCountdown();
-                setInterval(updateCountdown, 1000);
-
-                // 2. Chuyển đổi Tab lọc nhanh mượt mà ngay trên trang
+                // Chuyển đổi Tab lọc nhanh mượt mà ngay trên trang
                 const tabs = document.querySelectorAll(".flash-tab");
-                const cards = document.querySelectorAll(".flash-card");
+                const cards = document.querySelectorAll(".flash-product-card");
+
+                function applyTabFilter(filterType) {
+                    cards.forEach(card => {
+                        const species = card.getAttribute("data-species");
+                        const discount = parseInt(card.getAttribute("data-discount") || "0", 10);
+                        const promo = card.getAttribute("data-promo");
+
+                        if (filterType === "all") {
+                            card.style.display = "flex";
+                        } else if (filterType === "PROMO" || filterType === "FLASHSALE") {
+                            card.style.display = (promo === filterType) ? "flex" : "none";
+                        } else if (filterType === "DOG" || filterType === "CAT") {
+                            card.style.display = (species === filterType) ? "flex" : "none";
+                        } else if (filterType === "DEEP") {
+                            card.style.display = (discount >= 30) ? "flex" : "none";
+                        }
+                    });
+                }
 
                 tabs.forEach(tab => {
                     tab.addEventListener("click", function (e) {
@@ -245,21 +207,14 @@
 
                         tabs.forEach(t => t.classList.remove("active"));
                         this.classList.add("active");
-
-                        cards.forEach(card => {
-                            const species = card.getAttribute("data-species");
-                            const discount = parseInt(card.getAttribute("data-discount") || "0", 10);
-
-                            if (filterType === "all") {
-                                card.style.display = "flex";
-                            } else if (filterType === "DOG" || filterType === "CAT") {
-                                card.style.display = (species === filterType) ? "flex" : "none";
-                            } else if (filterType === "DEEP") {
-                                card.style.display = (discount >= 30) ? "flex" : "none";
-                            }
-                        });
+                        applyTabFilter(filterType);
                     });
                 });
+
+                const initialActiveTab = document.querySelector(".flash-tab.active");
+                if (initialActiveTab && initialActiveTab.getAttribute("data-filter")) {
+                    applyTabFilter(initialActiveTab.getAttribute("data-filter"));
+                }
 
                 // 3. Nút Yêu thích (Trái tim)
                 document.querySelectorAll(".wishlist-btn").forEach(btn => {

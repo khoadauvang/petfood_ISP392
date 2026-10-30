@@ -85,7 +85,7 @@ public class ProductAdminService {
     // Gom nhóm các sản phẩm thành dòng sản phẩm cha và các biến thể (Master-Detail Accordion)
     @Transactional(readOnly = true)
     public List<ProductGroupDto> getProductGroups(String keyword, Long categoryId, Species species, ProductStatus status) {
-        Pageable pageable = PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = Pageable.unpaged(Sort.by(Sort.Direction.DESC, "id"));
         Page<Product> page = productRepository.search(keyword, categoryId, species, status, pageable);
         List<Product> products = page.getContent();
 
@@ -162,6 +162,13 @@ public class ProductAdminService {
 
         // Sắp xếp các biến thể trong từng nhóm theo giá tăng dần (vd: 400g trước, 2kg sau)
         for (ProductGroupDto g : groupMap.values()) {
+            if (g.getImageUrl() != null && !g.getImageUrl().isBlank()) {
+                for (ProductVariantDto v : g.getVariants()) {
+                    if (v.getImageUrl() == null || v.getImageUrl().isBlank()) {
+                        v.setImageUrl(g.getImageUrl());
+                    }
+                }
+            }
             g.getVariants().sort((v1, v2) -> {
                 if (v1.getSellingPrice() == null) return -1;
                 if (v2.getSellingPrice() == null) return 1;
@@ -178,6 +185,23 @@ public class ProductAdminService {
         Product product = productRepository.findWithCategoryById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm #" + id));
         List<ProductImage> images = productImageRepository.findByProduct_IdOrderBySortOrderAsc(id);
+        if (images.isEmpty() && product.getSku() != null && !product.getSku().isBlank()) {
+            List<ProductImage> skuImages = productImageRepository.findByProduct_SkuOrderByProduct_IdAscSortOrderAsc(product.getSku());
+            Map<Integer, ProductImage> bySlot = new LinkedHashMap<>();
+            for (ProductImage img : skuImages) {
+                bySlot.putIfAbsent(img.getSortOrder(), img);
+            }
+            images = new ArrayList<>(bySlot.values());
+        }
+        if ((product.getImageUrl() == null || product.getImageUrl().isBlank())
+                && product.getSku() != null && !product.getSku().isBlank()) {
+            for (Product sibling : productRepository.findBySkuOrderByIdAsc(product.getSku())) {
+                if (sibling.getImageUrl() != null && !sibling.getImageUrl().isBlank()) {
+                    product.setImageUrl(sibling.getImageUrl());
+                    break;
+                }
+            }
+        }
         StockSummary stock = loadStock(List.of(id)).getOrDefault(id, StockSummary.EMPTY);
         return new ProductDetailDto(product, images, stock);
     }
@@ -274,6 +298,9 @@ public class ProductAdminService {
         Map<Integer, ProductImage> currentBySlot = new HashMap<>();
         for (ProductImage image : productImageRepository.findByProduct_IdOrderBySortOrderAsc(id)) {
             currentBySlot.put(image.getSortOrder(), image);
+        }
+        if (currentBySlot.size() < IMAGE_COUNT) {
+            inheritImages(id, newImages, errors);
         }
         for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
             String field = "image" + slot;
@@ -435,10 +462,32 @@ public class ProductAdminService {
     // Chép nội dung ảnh của sản phẩm gốc vào các vị trí nhân viên chưa chọn file. Ghi thành file mới theo SKU
     // của biến thể (không dùng chung URL): sửa / thay ảnh sản phẩm gốc sau này không ảnh hưởng biến thể.
     private void inheritImages(Long parentId, Map<Integer, byte[]> images, Map<String, String> errors) {
-        findOrThrow(parentId);                                  // sản phẩm gốc phải còn tồn tại
+        Product parent = findOrThrow(parentId);                 // sản phẩm gốc phải còn tồn tại
         Map<Integer, String> parentUrls = new HashMap<>();
         for (ProductImage image : productImageRepository.findByProduct_IdOrderBySortOrderAsc(parentId)) {
             parentUrls.put(image.getSortOrder(), image.getImageUrl());
+        }
+        if (parentUrls.size() < IMAGE_COUNT && parent.getSku() != null && !parent.getSku().isBlank()) {
+            for (ProductImage image : productImageRepository.findByProduct_SkuOrderByProduct_IdAscSortOrderAsc(parent.getSku())) {
+                parentUrls.putIfAbsent(image.getSortOrder(), image.getImageUrl());
+            }
+        }
+        String fallbackUrl = parentUrls.get(1);
+        if (fallbackUrl == null || fallbackUrl.isBlank()) {
+            fallbackUrl = parent.getImageUrl();
+        }
+        if ((fallbackUrl == null || fallbackUrl.isBlank()) && parent.getSku() != null && !parent.getSku().isBlank()) {
+            for (Product sibling : productRepository.findBySkuOrderByIdAsc(parent.getSku())) {
+                if (sibling.getImageUrl() != null && !sibling.getImageUrl().isBlank()) {
+                    fallbackUrl = sibling.getImageUrl();
+                    break;
+                }
+            }
+        }
+        if (fallbackUrl != null && !fallbackUrl.isBlank()) {
+            for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
+                parentUrls.putIfAbsent(slot, fallbackUrl);
+            }
         }
         for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
             String field = "image" + slot;

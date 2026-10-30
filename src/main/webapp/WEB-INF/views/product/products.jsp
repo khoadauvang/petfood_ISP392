@@ -30,8 +30,6 @@
         <%@ include file="/WEB-INF/views/common/_header.jspf" %>
 
         <main class="page-container">
-            <%-- Trang / bộ lọc đang xem, để Guest đăng nhập xong quay lại (đọc bằng JS ở nút "Thêm vào giỏ") --%>
-            <span id="loginRedirectPath" hidden data-path="<c:out value='/products?${filterQuery}&page=${currentPage}'/>"></span>
             <!-- Breadcrumb -->
             <nav class="breadcrumb" aria-label="Breadcrumb">
                 <a href="${ctx}/" class="breadcrumb-home">
@@ -151,63 +149,63 @@
                         </div>
                     </div>
 
-
                     <div class="product-grid">
                         <c:forEach var="p" items="${products}">
-                            <article class="product-card">
-                                <a href="${ctx}/products/${p.id}" class="product-image-link" aria-label="Xem chi tiết sản phẩm">
-                                    <div class="product-image">
-                                        <c:choose>
-                                            <c:when test="${not empty p.imageUrl}">
-                                                <img src="${ctx}${p.imageUrl}" alt="<c:out value='${p.name}'/>">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span>Chưa có ảnh sản phẩm</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                </a>
-
-                                <div class="product-info">
-                                    <p class="product-category"><c:out value="${p.brand}"/></p>
-                                    <h3>
-                                        <a href="${ctx}/products/${p.id}"><c:out value="${p.name}"/></a>
-                                    </h3>
-                                    <p class="product-price">
-                                        <fmt:formatNumber value="${p.price}" type="number"/> ₫
-                                    </p>
-                                    <p class="stock-status ${p.inStock ? '' : 'out-of-stock'}">
-                                        <span class="stock-dot"></span>
-                                        <c:choose>
-                                            <c:when test="${p.inStock}">Còn hàng</c:when>
-                                            <c:otherwise>Hết hàng</c:otherwise>
-                                        </c:choose>
-                                    </p>
-
-                                    <%-- Staff/Admin không có giỏ hàng; thêm xong quay lại đúng trang / bộ lọc đang xem --%>
-                                    <c:choose>
-                                        <c:when test="${p.inStock and (currentUser == null or currentUser.role == 'CUSTOMER')}">
-                                            <form class="add-cart-form ajax-add-to-cart-form">
-                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                                <input type="hidden" name="productId" value="${p.id}">
-                                                <input type="hidden" name="quantity" value="1">
-                                                <button type="button" class="add-cart-btn ajax-submit-btn"
-                                                        data-product-image="${not empty p.imageUrl ? ctx.concat(p.imageUrl) : ''}">
-                                                    <i class="fi fi-rr-shopping-cart"></i> Thêm vào giỏ hàng
-                                                </button>
-                                            </form>
-                                        </c:when>
-                                        <c:when test="${not p.inStock}">
-                                            <button type="button" class="add-cart-btn" disabled>
-                                                <i class="fi fi-rr-shopping-cart"></i> Hết hàng
-                                            </button>
-                                        </c:when>
-                                    </c:choose>
-                                </div>
+                            <article class="product-card ${p.inStock ? '' : 'out-of-stock'}">
+                                <c:choose>
+                                    <c:when test="${p.inStock}">
+                                        <a href="${ctx}/products/${p.id}" class="product-card-link" title="<c:out value='${p.name}'/>">
+                                            <div class="product-image">
+                                                <c:choose>
+                                                    <c:when test="${not empty p.imageUrl}">
+                                                        <img src="${ctx}${p.imageUrl}" alt="<c:out value='${p.name}'/>" loading="lazy">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span>Chưa có ảnh sản phẩm</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                            <div class="product-info">
+                                                <span class="product-card-brand"><c:out value="${empty p.brand ? 'PetFood Official' : p.brand}"/></span>
+                                                <h3 class="product-card-title"><c:out value="${p.name}"/></h3>
+                                                <div class="product-card-price-row">
+                                                    <span class="product-price">
+                                                        <fmt:formatNumber value="${p.price}" type="number"/> ₫
+                                                    </span>
+                                                    <span class="product-sold">Đã bán ${p.soldCount}</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="product-card-disabled" title="Sản phẩm tạm hết hàng">
+                                            <div class="product-image">
+                                                <span class="badge-out-stock">Hết hàng</span>
+                                                <c:choose>
+                                                    <c:when test="${not empty p.imageUrl}">
+                                                        <img src="${ctx}${p.imageUrl}" alt="<c:out value='${p.name}'/>" loading="lazy">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span>Chưa có ảnh sản phẩm</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                            <div class="product-info">
+                                                <span class="product-card-brand"><c:out value="${empty p.brand ? 'PetFood Official' : p.brand}"/></span>
+                                                <h3 class="product-card-title"><c:out value="${p.name}"/></h3>
+                                                <div class="product-card-price-row">
+                                                    <span class="product-price">
+                                                        <fmt:formatNumber value="${p.price}" type="number"/> ₫
+                                                    </span>
+                                                    <span class="product-sold">Đã bán ${p.soldCount}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                             </article>
                         </c:forEach>
                     </div>
-
 
                     <c:if test="${totalPages > 1}">
                         <nav class="pagination" aria-label="Phân trang">
@@ -239,95 +237,10 @@
             </div>
         </main>
 
-
         <%-- Nhúng Footer --%>
         <%@ include file="/WEB-INF/views/common/_footer.jspf" %>
 
         <%-- Nhúng Nút Chat nổi --%>
         <%@ include file="/WEB-INF/views/common/_chat-widget.jspf" %>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const forms = document.querySelectorAll(".add-cart-form");
-
-                forms.forEach(form => {
-                    const button = form.querySelector(".add-cart-btn");
-
-                    button.addEventListener("click", function (e) {
-                        e.preventDefault(); // Chặn việc submit form truyền thống gây reload trang
-
-                        // 1. Lấy token CSRF và dữ liệu sản phẩm trong form
-                        const csrfTokenInput = form.querySelector('input[name*="csrf"], input[name="_csrf"]');
-                        const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
-
-                        const productId = form.querySelector('input[name="productId"]').value;
-                        const quantity = form.querySelector('input[name="quantity"]').value || "1";
-
-                        const formData = new URLSearchParams();
-                        formData.append("productId", productId);
-                        formData.append("quantity", quantity);
-                        if (csrfToken) {
-                            formData.append("_csrf", csrfToken);
-                        }
-
-                        // 2. Gửi request ngầm lên Backend để thêm vào giỏ hàng
-                        fetch('${ctx}/cart/add', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData.toString()
-                        })
-                                .then(response => {
-                                    // Guest / phiên hết hạn: Spring Security không trả JSON -> sang trang đăng nhập
-                                    const isJson = (response.headers.get('Content-Type') || '').includes('application/json');
-                                    if (!isJson) {
-                                        // đăng nhập xong quay lại đúng trang / bộ lọc đang xem
-                                        const back = document.getElementById('loginRedirectPath').dataset.path;
-                                        window.location.href = '${ctx}/login?redirect=' + encodeURIComponent(back);
-                                        return null;
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    if (!data)
-                                        return;
-                                    if (data.ok) {
-                                        // 3. Hiệu ứng đổi nút thành công ngay lập tức tại chỗ
-                                        const originalHtml = this.innerHTML;
-                                        this.innerHTML = '<i class="fi fi-rr-check"></i> Đã thêm!';
-                                        this.classList.add("added");
-                                        this.disabled = true;
-
-                                        // 4. Cập nhật tổng số lượng trong giỏ trên icon ở header (cartItemCount do BE trả về)
-                                        const cartIcon = document.querySelector('.header-cart');
-                                        if (cartIcon) {
-                                            let badge = cartIcon.querySelector('.cart-badge');
-                                            if (!badge) {
-                                                badge = document.createElement('span');
-                                                badge.className = 'cart-badge';
-                                                cartIcon.appendChild(badge);
-                                            }
-                                            badge.textContent = data.cartItemCount;
-                                        }
-
-                                        // Sau 1.2 giây trả lại trạng thái ban đầu cho nút bấm
-                                        setTimeout(() => {
-                                            this.innerHTML = originalHtml;
-                                            this.classList.remove("added");
-                                            this.disabled = false;
-                                        }, 1200);
-
-                                    } else {
-                                        alert(data.message);
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error("Lỗi:", err);
-                                });
-                    });
-                });
-            });
-        </script>
     </body>
 </html>

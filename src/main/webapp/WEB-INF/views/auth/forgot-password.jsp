@@ -22,16 +22,13 @@
 <body>
 
     <%-- 1. HEADER CHUNG --%>
-    <c:set var="ownFlash" value="true"/>
     <%@ include file="/WEB-INF/views/common/_header.jspf" %>
 
     <%-- 2. KHU VỰC QUÊN MẬT KHẨU (FULL MÀN HÌNH, KHUNG TRẮNG NGÀ) --%>
     <main class="login-hero-section" style="background-image: url('${ctx}/images/login.jpg');">
         <div class="login-glass-card">
             <%-- Nút X quay lại login --%>
-            <%-- Đang đăng nhập (đi từ trang hồ sơ) thì quay lại hồ sơ, Guest quay lại đăng nhập --%>
-            <c:set var="backUrl" value="${empty currentUser ? '/login' : (currentUser.role == 'CUSTOMER' ? '/profile#password' : '/')}"/>
-            <a href="${ctx}${backUrl}" class="glass-close-btn" title="Quay lại">
+            <a href="${ctx}/login" class="glass-close-btn" title="Quay lại đăng nhập">
                 <i class="fi fi-br-cross-small"></i>
             </a>
 
@@ -54,15 +51,7 @@
             <form:form method="post" action="${ctx}/forgot-password" modelAttribute="forgotPasswordForm" class="glass-form" id="forgotForm" novalidate="novalidate">
                 
                 <div class="input-underline-group" id="forgotEmailGroup">
-                    <%-- Đang đăng nhập: chỉ đặt lại mật khẩu của chính mình (BE cũng bỏ qua email gửi lên) --%>
-                    <c:choose>
-                        <c:when test="${not empty currentUser}">
-                            <form:input path="email" type="email" id="forgotEmailInput" maxlength="255" readonly="true" placeholder=" "/>
-                        </c:when>
-                        <c:otherwise>
-                            <form:input path="email" type="email" id="forgotEmailInput" maxlength="255" autofocus="autofocus" placeholder=" "/>
-                        </c:otherwise>
-                    </c:choose>
+                    <form:input path="email" type="email" id="forgotEmailInput" maxlength="255" autofocus="autofocus" placeholder=" "/>
                     <label for="forgotEmailInput">Email đăng ký</label>
                     <span class="input-right-icon"><i class="fi fi-rr-envelope"></i></span>
                 </div>
@@ -75,7 +64,7 @@
             </form:form>
 
             <p class="register-prompt">
-                <a href="${ctx}${backUrl}"><i class="fi fi-rr-arrow-left"></i> ${empty currentUser ? 'Quay lại đăng nhập' : 'Quay lại'}</a>
+                <a href="${ctx}/login"><i class="fi fi-rr-arrow-left"></i> Quay lại đăng nhập</a>
             </p>
         </div>
     </main>

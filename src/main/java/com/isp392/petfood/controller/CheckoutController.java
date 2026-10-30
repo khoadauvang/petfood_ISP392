@@ -1,5 +1,6 @@
 package com.isp392.petfood.controller;
 
+import com.isp392.petfood.dto.CartLineDto;
 import com.isp392.petfood.dto.CheckoutForm;
 import com.isp392.petfood.dto.CheckoutSummary;
 import com.isp392.petfood.entity.Order;
@@ -56,8 +57,10 @@ public class CheckoutController {
             return "redirect:/cart";
         }
         CheckoutForm form = new CheckoutForm();
-        if (itemIds != null) {
+        if (itemIds != null && !itemIds.isEmpty()) {
             form.setItemIds(itemIds);
+        } else {
+            form.setItemIds(summary.getLines().stream().map(CartLineDto::getId).toList());
         }
         model.addAttribute("checkoutForm", form);
         return show(model, summary);

@@ -250,11 +250,11 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <a href="${ctx}/staff/products" style="text-decoration:none; color:inherit;">
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/products" style="text-decoration:none; color:inherit;">QUẢN LÝ SẢN PHẨM</a> <span class="sep">&gt;</span> <span class="current">${not empty parentProduct ? 'THÊM BIẾN THỂ' : (empty productId ? 'THÊM MỚI' : 'CHỈNH SỬA')}</span><!--
                     ‹ QUẢN LÝ SẢN PHẨM &amp; BIẾN THỂ
                 </a>
                 <span class="sep" style="margin: 0 6px;">&gt;</span>
-                <span class="current" style="color:var(--color-primary)">${not empty parentProduct ? 'THÊM BIẾN THỂ' : (empty productId ? 'THÊM MỚI' : 'CHỈNH SỬA')}</span>
+                <span class="current" style="color:var(--color-primary)">${not empty parentProduct ? 'THÊM BIẾN THỂ' : (empty productId ? 'THÊM MỚI' : 'CHỈNH SỬA')}</span>-->
             </div>
             <h1 style="display:flex; align-items:center; gap:12px; margin-top:4px;">
                 <c:out value="${pageHeading}"/>

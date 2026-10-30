@@ -66,11 +66,7 @@
                 <div class="input-field-block">
                     <div class="phone-row-flex" id="regPhoneRow">
                         <div class="phone-prefix-box">
-                            <%-- Cờ Việt Nam vẽ bằng SVG: emoji cờ phụ thuộc font emoji của máy (Windows hiện chữ "VN", có font Linux vẽ sai cờ) --%>
-                            <svg width="22" height="15" viewBox="0 0 30 20" aria-label="Việt Nam" role="img" style="border-radius:2px; flex-shrink:0;">
-                                <rect width="30" height="20" fill="#DA251D"/>
-                                <polygon fill="#FFFF00" points="15,4 16.76,9.57 22.61,9.53 17.85,12.93 19.70,18.47 15,15 10.30,18.47 12.15,12.93 7.39,9.53 13.24,9.57"/>
-                            </svg> +84
+                            <span>🇻🇳</span> +84
                         </div>
                         <div class="input-underline-group flex-grow" id="regPhoneGroup" style="margin-bottom: 0;">
                             <form:input path="phone" id="regPhone" maxlength="12" placeholder="90 123 4567"/>

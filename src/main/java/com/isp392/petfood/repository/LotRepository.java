@@ -22,11 +22,24 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
         LocalDate getNearestExpiry();   // HSD của lô bán thường gần nhất = lô sẽ xuất trước theo FEFO (BR-53)
     }
 
-    // Tồn bán thường của một nhóm sản phẩm: chỉ cộng các lô còn hàng, còn hạn >= minExpiry (BR-54).
+    // Tồn bán thường của một nhóm sản phẩm: chỉ cộng phần chưa giữ chỗ khuyến mãi của các lô còn hàng, còn hạn >= minExpiry (BR-54, BR-68).
     // Chạy 1 câu cho cả trang, tránh gọi 12 lần (mỗi sản phẩm một lần).
     @Query("""
-            select l.product.id as productId, sum(l.onHandQty) as quantity, min(l.expiryDate) as nearestExpiry
+            select l.product.id as productId,
+                   sum(case when l.onHandQty > coalesce(r.reservedQty, 0L)
+                            then l.onHandQty - coalesce(r.reservedQty, 0L)
+                            else 0L end) as quantity,
+                   min(case when l.onHandQty > coalesce(r.reservedQty, 0L)
+                            then l.expiryDate
+                            else null end) as nearestExpiry
             from Lot l
+            left join (
+                select fsi.lot.id as lotId, sum(fsi.allocatedQty - fsi.soldQty) as reservedQty
+                from FlashSaleItem fsi
+                where fsi.flashSale.status <> com.isp392.petfood.enums.FlashSaleStatus.ENDED
+                  and fsi.allocatedQty > fsi.soldQty
+                group by fsi.lot.id
+            ) r on r.lotId = l.id
             where l.product.id in :productIds
               and l.expiryDate >= :minExpiry
               and l.onHandQty > 0
@@ -35,7 +48,7 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
     List<StockRow> sumSellableQuantity(@Param("productIds") Collection<Long> productIds,
                                        @Param("minExpiry") LocalDate minExpiry);
 
-    // Tồn thực tế (mọi lô) và tồn bán thường (lô còn hạn >= minExpiry) của nhiều sản phẩm trong 1 câu.
+    // Tồn thực tế (mọi lô) và tồn bán thường (lô còn hạn >= minExpiry trừ phần đang giữ chỗ khuyến mãi) của nhiều sản phẩm trong 1 câu.
     interface StockSummaryRow {
         Long getProductId();
         Long getOnHandQty();
@@ -45,8 +58,17 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
     @Query("""
             select l.product.id as productId,
                    sum(l.onHandQty) as onHandQty,
-                   sum(case when l.expiryDate >= :minExpiry then l.onHandQty else 0 end) as sellableQty
+                   sum(case when l.expiryDate >= :minExpiry and l.onHandQty > coalesce(r.reservedQty, 0L)
+                            then l.onHandQty - coalesce(r.reservedQty, 0L)
+                            else 0L end) as sellableQty
             from Lot l
+            left join (
+                select fsi.lot.id as lotId, sum(fsi.allocatedQty - fsi.soldQty) as reservedQty
+                from FlashSaleItem fsi
+                where fsi.flashSale.status <> com.isp392.petfood.enums.FlashSaleStatus.ENDED
+                  and fsi.allocatedQty > fsi.soldQty
+                group by fsi.lot.id
+            ) r on r.lotId = l.id
             where l.product.id in :productIds
             group by l.product.id
             """)
@@ -147,6 +169,14 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             order by l.expiryDate, l.id
             """)
     List<Lot> findRedInStock(@Param("minExpiry") LocalDate minExpiry, @Param("maxExpiry") LocalDate maxExpiry);
+
+    // ===== Chương trình khuyến mãi: lô bình thường còn hàng có hạn >= 90 ngày (BR-12, BR-54) =====
+    @Query("""
+            select l from Lot l join fetch l.product p
+            where l.onHandQty > 0 and l.expiryDate >= :minExpiry
+            order by p.name asc, l.expiryDate asc
+            """)
+    List<Lot> findNormalLotsInStock(@Param("minExpiry") LocalDate minExpiry);
 
     // Tổng số lô còn hàng trong kho
     @Query("select count(l) from Lot l where l.onHandQty > 0")

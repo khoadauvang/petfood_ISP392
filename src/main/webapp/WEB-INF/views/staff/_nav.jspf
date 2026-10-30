@@ -1,4 +1,4 @@
-<%@ page pageEncoding="UTF-8" %>
+﻿<%@ page pageEncoding="UTF-8" %>
 <%-- Sidebar + topbar + thông báo dùng chung cho các trang /staff và /admin (include tĩnh).
      Trang include file này phải khai báo taglib "c" và biến ctx (= contextPath) trước khi include.
      Thông báo: successMessage / warningMessage / errorMessage (controller gửi qua flash attribute hoặc model).
@@ -10,12 +10,7 @@
 <aside class="sb" id="sidebar" aria-label="Menu quản lý">
     <a class="sb-brand" href="${ctx}${isAdmin ? '/admin' : '/staff'}" style="display:flex; align-items:center; gap:12px; height:var(--topbar-h); padding:0 20px; border-bottom:1px solid var(--line); text-decoration:none;">
         <span class="sb-logo-wrap" style="width:38px; height:38px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <svg viewBox="0 0 32 32" fill="none" style="width:36px; height:36px; display:block;">
-                <path d="M 3 19 C 6.5 19 8.5 15.5 10.5 10 L 13.5 3.5 L 16.5 6.2 C 18.5 7.2 21.5 8.2 25.5 10.8 C 27.5 12 27.5 14.2 25.5 15.2 L 22 16.5" 
-                      stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M 6.5 26.5 C 6.5 18 9.5 14.5 14.5 14.5 C 19.5 14.5 22.5 18 22.5 26.5 Z" 
-                      stroke="#ea580c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <i class="fi fi-rr-pets" style="font-size:30px; color:#f47721; line-height:1;"></i>
         </span>
         <span>
             <b style="font-size:20px; font-weight:900; letter-spacing:-0.03em; color:#1e293b; line-height:1; display:block">Pet<span style="color:#ea580c">Food</span></b>
@@ -43,7 +38,7 @@
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/orders')) ? 'active' : ''}" href="${ctx}/staff/orders">
                 <i class="ti ti-receipt"></i>Quản lý đơn hàng</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/flash-sales')) ? 'active' : ''}" href="${ctx}/staff/flash-sales">
-                <i class="ti ti-bolt"></i>Flash Sale</a>
+                <i class="ti ti-percentage"></i>Chương trình</a>
         </details>
 
         <details class="sb-group" open>
@@ -66,8 +61,6 @@
 
         <details class="sb-group" open>
             <summary>Chăm sóc khách hàng <i class="ti ti-chevron-down"></i></summary>
-            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/support')) ? 'active' : ''}" href="${ctx}/staff/support">
-                <i class="ti ti-headset"></i>Yêu cầu hỗ trợ</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/chat-nodes')) ? 'active' : ''}" href="${ctx}/staff/chat-nodes">
                 <i class="ti ti-message-chatbot"></i>Kịch bản phản hồi chat</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/reviews')) ? 'active' : ''}" href="${ctx}/staff/reviews">

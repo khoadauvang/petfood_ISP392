@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
@@ -16,25 +16,15 @@
             transition: background var(--transition);
         }
         .prod-group-row:hover {
-            background: #fff8f1 !important;
+            background: #fffcf9 !important;
         }
         .prod-group-row.expanded {
-            background: #fff4ea !important;
-            border-bottom-color: transparent !important;
-        }
-        .chev-icon {
-            display: inline-block;
-            transition: transform 0.2s ease;
-            font-size: 16px;
-            color: #94a3b8;
-        }
-        .prod-group-row.expanded .chev-icon {
-            transform: rotate(90deg);
-            color: #ea580c;
+            background: #fff7ee !important;
+            border-bottom: 0 !important;
         }
         .prod-thumb {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             object-fit: contain;
             background: #ffffff;
@@ -42,12 +32,77 @@
             padding: 2px;
             flex-shrink: 0;
         }
+        .chev-icon {
+            font-size: 16px;
+            color: var(--text-placeholder);
+            transition: transform 0.2s ease, color 0.2s ease;
+            display: inline-block;
+        }
+        .prod-group-row.expanded .chev-icon {
+            transform: rotate(90deg);
+            color: var(--color-primary);
+        }
+        .variant-accordion-card {
+            background: #fffaf5;
+            border: 1px solid #ffd8b8;
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin: 6px 0 14px;
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.05);
+        }
+        .variant-accordion-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #fed7aa;
+            flex-wrap: wrap;
+        }
+        .variant-subtable {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .variant-subtable th {
+            background: #fff0e2 !important;
+            color: #9a3412 !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            padding: 9px 12px !important;
+            border-bottom: 1px solid #ffd8b8 !important;
+            text-align: left;
+            letter-spacing: .04em;
+        }
+        .variant-subtable th.num,
+        .variant-subtable td.num {
+            text-align: right !important;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .variant-subtable td {
+            background: #ffffff !important;
+            padding: 10px 12px !important;
+            font-size: 12px !important;
+            border-bottom: 1px solid #f8ede3 !important;
+            vertical-align: middle;
+        }
+        .variant-subtable tr:last-child td {
+            border-bottom: 0 !important;
+        }
+        .variant-subtable tr:hover td {
+            background: #fff9f4 !important;
+        }
         .btn-variant-badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             padding: 5px 12px;
-            border-radius: 20px;
+            border-radius: 9999px;
             font-size: 12px;
             font-weight: 700;
             background: #fff7ee;
@@ -60,50 +115,6 @@
             background: #ea580c;
             color: #ffffff;
             border-color: #ea580c;
-        }
-        .variant-accordion-card {
-            background: #ffffff;
-            border: 1px solid #fed7aa;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin: 6px 0 12px 0;
-            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.06);
-        }
-        .variant-accordion-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed #fed7aa;
-        }
-        .variant-subtable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .variant-subtable th {
-            background: #fbf7f2;
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: 800;
-            color: #78350f;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            border-bottom: 1px solid #fed7aa;
-            text-align: left;
-        }
-        .variant-subtable td {
-            padding: 12px 14px;
-            font-size: 13px;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-            background: #ffffff;
-        }
-        .variant-subtable tr:last-child td {
-            border-bottom: none;
-        }
-        .variant-subtable tr:hover td {
-            background: #fffcf8;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
@@ -222,8 +233,6 @@
                 <th style="padding:14px 16px; width:64px; text-align:center;">ẢNH</th>
                 <th style="padding:14px 16px; min-width:260px">TÊN DÒNG SẢN PHẨM &amp; BIẾN THỂ</th>
                 <th style="padding:14px 16px;">MÃ SKU GỐC</th>
-                <th style="padding:14px 16px;">DANH MỤC</th>
-                <th style="padding:14px 16px;">THÚ CƯNG</th>
                 <th style="padding:14px 16px; text-align:right;" class="num">GIÁ NIÊM YẾT</th>
                 <th style="padding:14px 16px; min-width:160px">TRẠNG THÁI</th>
                 <th style="padding:14px 16px; text-align:center; min-width:210px">THAO TÁC / BIẾN THỂ</th>
@@ -263,7 +272,21 @@
                                             <c:out value="${g.baseName}"/>
                                         </div>
                                         <div style="font-size:12px; color:#64748b; margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap">
-                                            <span><c:out value="${empty g.brand ? 'PetCare' : g.brand}"/></span>
+                                            <span style="font-weight:600; color:#475569"><c:out value="${empty g.brand ? 'PetCare' : g.brand}"/></span>
+                                            <span class="sep">•</span>
+                                            <span style="font-weight:600; color:#475569"><c:out value="${g.categoryName}"/></span>
+                                            <span class="sep">•</span>
+                                            <c:choose>
+                                                <c:when test="${g.species == 'DOG'}">
+                                                    <span class="pill-badge orange" style="font-size:11px; padding:1px 6px"><i class="ti ti-dog"></i> Chó</span>
+                                                </c:when>
+                                                <c:when test="${g.species == 'CAT'}">
+                                                    <span class="pill-badge purple" style="font-size:11px; padding:1px 6px"><i class="ti ti-cat"></i> Mèo</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="pill-badge blue" style="font-size:11px; padding:1px 6px"><i class="ti ti-paw"></i> Chó &amp; Mèo</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <span class="sep">•</span>
                                             <span style="color:#0284c7; font-weight:700">
                                                 <i class="ti ti-layers-subtract" style="font-size:12px"></i> ${g.variantCount} biến thể (${g.specsSummary})
@@ -279,16 +302,6 @@
                                 <code style="font-size:12px; font-weight:700; background:#f3f4f6; padding:3px 8px; border-radius:6px; color:#334155">
                                     <c:out value="${g.baseSku}"/>
                                 </code>
-                            </td>
-                            <td style="padding:14px 16px;">
-                                <span style="font-weight:600; color:#334155"><c:out value="${g.categoryName}"/></span>
-                            </td>
-                            <td style="padding:14px 16px;">
-                                <c:choose>
-                                    <c:when test="${g.species == 'DOG'}"><span class="pill-badge orange">🐶 Chó</span></c:when>
-                                    <c:when test="${g.species == 'CAT'}"><span class="pill-badge red">🐱 Mèo</span></c:when>
-                                    <c:otherwise><span class="pill-badge gold">🐶🐱 Chó &amp; Mèo</span></c:otherwise>
-                                </c:choose>
                             </td>
                             <td style="padding:14px 16px;" class="num">
                                 <b style="font-size:14px; color:var(--text-logo)">
@@ -318,7 +331,7 @@
                             <td style="padding:14px 16px; text-align:center;" onclick="event.stopPropagation()">
                                 <div style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
                                     <%-- Nút mở/thu gọn biến thể quy cách --%>
-                                    <button type="button" class="btn-variant-badge" onclick="toggleProductAccordion('${g.groupId}')" title="Nhấp để xem/ẩn chi tiết ${g.variantCount} biến thể">
+                                    <button type="button" class="btn-variant-badge" onclick="event.stopPropagation(); toggleProductAccordion('${g.groupId}')">
                                         <i class="ti ti-layers-subtract"></i> ${g.variantCount} Biến thể
                                     </button>
 
@@ -338,25 +351,19 @@
                                                 <i class="ti ti-player-play" style="font-size:15px;"></i>
                                             </button>
                                         </c:if>
-                                        <button type="button" class="act-icon danger" style="width:30px; height:30px; border-radius:8px; display:grid; place-items:center; cursor:pointer;"
-                                                onclick="batchDeleteGroup('${g.groupId}', '<c:out value="${g.baseName}"/>', [<c:forEach var='v' items='${g.variants}' varStatus='vs'>{id:${v.id},sku:'${v.sku}'}<c:if test='${!vs.last}'>,</c:if></c:forEach>])"
-                                                title="Xóa toàn bộ dòng sản phẩm (${g.variantCount} biến thể)">
-                                            <i class="ti ti-trash" style="font-size:15px;"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </td>
                         </tr>
 
-                        <%-- Dòng Accordion xổ ra danh sách chi tiết các biến thể (Detail Row) --%>
                         <tr id="detail-${g.groupId}" class="variant-accordion-row" style="display:none; background:#fffcf9;">
-                            <td colspan="8" style="padding:0 20px 20px 20px; border-bottom:2px solid #fed7aa">
+                            <td colspan="6" style="padding:0 20px 20px 20px; border-bottom:2px solid #fed7aa">
                                 <div class="variant-accordion-card">
                                     <div class="variant-accordion-head">
                                         <div style="display:flex; align-items:center; gap:8px">
                                             <i class="ti ti-box" style="color:#ea580c; font-size:20px"></i>
                                             <b style="color:#9a3412; font-size:13px; text-transform:uppercase; letter-spacing:.04em">
-                                                CHI TIẾT ${g.variantCount} BIẾN THỂ CỦA: <c:out value="${g.baseName}"/>
+                                                CHI TI&#7870;T
                                             </b>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap">
@@ -375,10 +382,6 @@
                                                     <i class="ti ti-player-play"></i> Kích hoạt bán cả dòng
                                                 </button>
                                             </c:if>
-                                            <button type="button" class="btn-pill-secondary" style="padding:4px 10px; font-size:11px; border:1px solid #fecaca; color:#dc2626; background:#fef2f2; cursor:pointer; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"
-                                                    onclick="batchDeleteGroup('${g.groupId}', '<c:out value="${g.baseName}"/>', [<c:forEach var='v' items='${g.variants}' varStatus='vs'>{id:${v.id},sku:'${v.sku}'}<c:if test='${!vs.last}'>,</c:if></c:forEach>])">
-                                                <i class="ti ti-trash"></i> Xóa cả dòng sản phẩm
-                                            </button>
                                             <a href="${ctx}/staff/products/new?variantOf=${g.variants[0].id}" class="btn-pill-primary" style="padding:4px 14px; font-size:11px; text-decoration:none" title="Thêm quy cách mới cho dòng sản phẩm này">
                                                 <i class="ti ti-plus"></i>Thêm biến thể mới
                                             </a>
@@ -478,7 +481,7 @@
                 </c:when>
                 <c:otherwise>
                     <tr>
-                        <td colspan="8">
+                        <td colspan="6">
                             <div class="empty-state" style="text-align:center; padding:45px 20px; color:var(--text-muted)">
                                 <i class="ti ti-package-off" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.5"></i>
                                 <b>Không tìm thấy sản phẩm nào</b>

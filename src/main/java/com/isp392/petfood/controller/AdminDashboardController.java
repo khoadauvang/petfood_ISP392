@@ -38,6 +38,8 @@ public class AdminDashboardController {
         model.addAttribute("filterFrom", start);
         model.addAttribute("filterTo", end);
         model.addAttribute("alertSummary", inventoryAlertService.getSummary());
+        model.addAttribute("lowStockProducts", inventoryAlertService.lowStockProducts());
+        model.addAttribute("nearExpiryLots", inventoryAlertService.nearExpiryLots());
         try {
             model.addAttribute("stats", dashboardService.build(start, end));
         } catch (BusinessRuleException e) {

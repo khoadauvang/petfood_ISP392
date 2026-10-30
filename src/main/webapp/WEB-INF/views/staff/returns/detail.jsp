@@ -244,7 +244,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <a href="${ctx}/staff/returns">QUẢN LÝ TRẢ HÀNG</a>
+                <span>QUẢN LÝ KHO &amp; ĐỔI TRẢ</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/returns" style="color:inherit; text-decoration:none;">QUẢN LÝ TRẢ HÀNG</a>
                 <span class="sep">&gt;</span>
                 <span class="current">CHI TIẾT YÊU CẦU #${ret.id}</span>
             </div>
@@ -296,9 +296,6 @@
             <a href="${ctx}/staff/orders/${ret.orderId}" class="btn-pill-outline" target="_blank" title="Mở đơn hàng gốc ở tab mới">
                 <i class="ti ti-external-link"></i>Xem đơn hàng gốc
             </a>
-            <button type="button" onclick="window.print()" class="btn-pill-outline">
-                <i class="ti ti-printer"></i>In phiếu
-            </button>
         </div>
     </div>
 
@@ -406,7 +403,19 @@
                     <i class="ti ${ret.status == 'REJECTED' ? 'ti-x' : 'ti-check'}"></i>
                 </div>
                 <span class="stepper-label">${ret.status == 'REJECTED' ? 'Từ chối' : 'Duyệt yêu cầu'}</span>
-                <span class="stepper-time">${not empty ret.reviewedText ? ret.reviewedText : (ret.status == 'REQUESTED' ? 'Đang chờ' : '--')}</span>
+                <span class="stepper-time">
+                    <c:choose>
+                        <c:when test="${not empty ret.reviewedText}">
+                            <c:choose>
+                                <c:when test="${ret.reviewedText.contains(' · ')}">
+                                    ${ret.reviewedText.substring(0, ret.reviewedText.indexOf(' · '))}<br><small style="color:#64748b">${ret.reviewedText.substring(ret.reviewedText.indexOf(' · ') + 3)}</small>
+                                </c:when>
+                                <c:otherwise>${ret.reviewedText}</c:otherwise>
+                            </c:choose>
+                        </c:when>
+                        <c:otherwise>${ret.status == 'REQUESTED' ? 'Đang chờ' : '--'}</c:otherwise>
+                    </c:choose>
+                </span>
             </div>
 
             <%-- Bước 3: Nhận hàng trả --%>
@@ -473,6 +482,9 @@
                                             <div style="display:flex; align-items:center; gap:6px; margin-top:2px">
                                                 <c:if test="${not empty l.sku}">
                                                     <span style="font-size:11px; color:var(--text-muted)">SKU: ${l.sku}</span>
+                                                </c:if>
+                                                <c:if test="${l.promotion}">
+                                                    <span class="pill-badge red" style="font-size:10px; padding:1px 6px">Chương trình</span>
                                                 </c:if>
                                                 <c:if test="${l.flashSale}">
                                                     <span class="pill-badge red" style="font-size:10px; padding:1px 6px">Flash Sale</span>

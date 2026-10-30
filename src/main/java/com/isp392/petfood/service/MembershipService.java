@@ -35,11 +35,13 @@ public class MembershipService {
     private final CustomerRepository customerRepository;
     private final MembershipPolicy membershipPolicy;
 
-    // Hằng ngày lúc 00:05 (petfood.membership.recalc-cron)
-    @Scheduled(cron = "${petfood.membership.recalc-cron:0 5 0 * * *}")
+    // Chạy định kỳ tự động mỗi phút ở chế độ nền để nâng/hạ hạng hội viên ngay khi đủ điều kiện
+    @Scheduled(fixedDelayString = "${petfood.membership.recalc-delay-ms:60000}", initialDelay = 15_000)
     public void scheduledRecalculate() {
         int changed = recalculateAll();
-        log.info("Tính lại hạng thành viên: {} khách đổi hạng", changed);
+        if (changed > 0) {
+            log.info("Tự động cập nhật hạng thành viên: {} khách đổi hạng", changed);
+        }
     }
 
     // Tính lại ngay lúc khởi động: máy không chạy lúc 00:05 thì hạng vẫn được cập nhật
@@ -52,7 +54,7 @@ public class MembershipService {
     // Trả về số khách đổi hạng
     @Transactional
     public int recalculateAll() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(membershipPolicy.getReturnWindowDays());
+        LocalDateTime cutoff = VnpayClient.nowVn().minusDays(membershipPolicy.getReturnWindowDays());
         Map<Long, BigDecimal> spend = toMap(orderRepository.sumSettledGoodsByCustomer(cutoff));
         Map<Long, BigDecimal> refunds = toMap(orderRepository.sumRefundsByCustomer(cutoff));
 
@@ -67,6 +69,23 @@ public class MembershipService {
             }
         }
         return changed;
+    }
+
+    // Tính chi tiêu thực tế đã chốt của 1 khách hàng và tự động cập nhật hạng nếu đủ điều kiện
+    @Transactional
+    public BigDecimal getAndUpdateCustomerSpend(Customer customer) {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(membershipPolicy.getReturnWindowDays());
+        Map<Long, BigDecimal> spend = toMap(orderRepository.sumSettledGoodsByCustomer(cutoff));
+        Map<Long, BigDecimal> refunds = toMap(orderRepository.sumRefundsByCustomer(cutoff));
+
+        BigDecimal total = spend.getOrDefault(customer.getId(), BigDecimal.ZERO)
+                .subtract(refunds.getOrDefault(customer.getId(), BigDecimal.ZERO))
+                .max(BigDecimal.ZERO);
+        MembershipTier tier = membershipPolicy.tierFor(total);
+        if (tier != customer.getMembershipTier()) {
+            customer.setMembershipTier(tier);
+        }
+        return total;
     }
 
     private static Map<Long, BigDecimal> toMap(List<CustomerAmountRow> rows) {

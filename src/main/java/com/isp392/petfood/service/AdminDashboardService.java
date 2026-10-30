@@ -92,13 +92,21 @@ public class AdminDashboardService {
         return dashboardRepository.allOrders().stream()
                 .map(o -> new AdminDashboard.OrderAuditItem(o.getId(), o.getCustomerId(), o.getCustomerTier(), o.getDate(),
                         LocalDate.parse(o.getDate()).format(DAY), o.getStatus(), o.getPay(), o.getTotal().longValue(),
+                        o.getDiscount() != null ? o.getDiscount().longValue() : 0L,
                         byCategory.getOrDefault(o.getId(), Map.of())))
                 .toList();
     }
 
     private List<AdminDashboard.CustomerAuditItem> allCustomers() {
         return dashboardRepository.allCustomers().stream()
-                .map(c -> new AdminDashboard.CustomerAuditItem(c.getId(), c.getTier(), c.getCreatedAt()))
+                .map(c -> new AdminDashboard.CustomerAuditItem(
+                        c.getId(),
+                        c.getFullName() != null ? c.getFullName() : "Khách hàng",
+                        c.getEmail() != null ? c.getEmail() : "",
+                        c.getPhone() != null ? c.getPhone() : "",
+                        c.getAvatarUrl() != null ? c.getAvatarUrl() : "",
+                        c.getTier(),
+                        c.getCreatedAt()))
                 .toList();
     }
 

@@ -10,6 +10,52 @@
     <title>Tổng quan vận hành sàn kho · PetFood</title>
     <meta name="description" content="Tổng quan về tình hình hoàn tất đơn hàng hôm nay, hàng đợi điều phối và các sai lệch trả hàng.">
     <%@ include file="/WEB-INF/views/staff/_head.jspf" %>
+    <style>
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid var(--line, #e2e8f0);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main, #334155);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .export-btn:hover {
+            background: var(--orange-50, #fff7ed);
+            border-color: #ea580c;
+            color: #ea580c;
+        }
+        .btn-handle-order {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 5px 14px;
+            border-radius: 8px;
+            border: 1.5px solid #ea580c;
+            background: #fff7ed;
+            color: #ea580c;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(234, 88, 12, 0.08);
+            white-space: nowrap;
+        }
+        .btn-handle-order:hover {
+            background: #ea580c;
+            color: #ffffff !important;
+            border-color: #ea580c;
+            box-shadow: 0 3px 8px rgba(234, 88, 12, 0.25);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
 <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
@@ -18,7 +64,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>VẬN HÀNH SÀN KHO</span>
+                <span>TỔNG QUAN</span> <span class="sep">&gt;</span> <span class="current">TỔNG QUAN VẬN HÀNH</span>
             </div>
             <h1 style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
                 TỔNG QUAN VẬN HÀNH
@@ -142,7 +188,11 @@
                                             ● ${o.status.label}
                                         </span>
                                     </td>
-                                    <td><a href="${ctx}/staff/orders/${o.id}" class="export-btn" style="padding:4px 10px; font-size:12px">Xử lý</a></td>
+                                    <td>
+                                        <a href="${ctx}/staff/orders/${o.id}" class="btn-handle-order">
+                                            <i class="ti ti-arrow-right" style="font-size:12px"></i>Xử lý
+                                        </a>
+                                    </td>
                                 </tr>
                             </c:forEach>
                         </c:when>

@@ -61,7 +61,7 @@ a {
         align-items: center;
         gap: 24px;
         width: 100%;
-        max-width: 1200px;
+        max-width: 1380px;
         height: 72px;
         margin: 0 auto;
         padding: 0 20px;
@@ -248,7 +248,7 @@ a {
     }
 /* BREADCRUMB */
 .breadcrumb-bar {
-    max-width: 1200px;
+    max-width: 1380px;
     margin: 16px auto 0;
     width: 100%;
     padding: 0 20px;
@@ -272,12 +272,12 @@ a {
 
 /* LAYOUT PAGE 2 CỘT */
 .page-container {
-    max-width: 1200px;
+    max-width: 1380px;
     margin: 20px auto 40px;
     width: 100%;
     padding: 0 20px;
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 285px 1fr;
     gap: 24px;
     align-items: start;
 }

@@ -28,26 +28,40 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Đơn của đúng khách đang đăng nhập (khách không xem được đơn người khác)
     Optional<Order> findByIdAndCustomer_Id(Long id, Long customerId);
 
-    // Trang quản lý đơn của Staff: lọc trạng thái (null = tất cả), chỉ đơn khách đang yêu cầu huỷ, tìm theo mã đơn / email / tên
+    // Trang quản lý đơn của Staff: lọc trạng thái (null = tất cả), chỉ đơn khách đang yêu cầu huỷ, tìm theo mã đơn / email / tên / số điện thoại
     @Query(value = """
             select o from Order o join fetch o.customer c join fetch c.account a
             where (:status is null or o.status = :status)
               and (:cancelRequested = false
-                   or (o.status = com.isp392.petfood.enums.OrderStatus.PROCESSING and o.cancelReason is not null))
-              and (:orderId is null or o.id = :orderId)
-              and (:keyword is null
-                   or a.email like concat('%', :keyword, '%')
-                   or c.fullName like concat('%', :keyword, '%'))
+                   or (o.status = com.isp392.petfood.enums.OrderStatus.PROCESSING
+                       and o.cancelReason is not null
+                       and o.cancelReason not like '[REJECTED]%'))
+              and (
+                   (:orderId is null and :keyword is null)
+                   or (:orderId is not null and o.id = :orderId)
+                   or (:keyword is not null and (
+                        a.email like concat('%', :keyword, '%')
+                        or c.fullName like concat('%', :keyword, '%')
+                        or c.phone like concat('%', :keyword, '%')
+                   ))
+              )
             """,
             countQuery = """
             select count(o) from Order o
             where (:status is null or o.status = :status)
               and (:cancelRequested = false
-                   or (o.status = com.isp392.petfood.enums.OrderStatus.PROCESSING and o.cancelReason is not null))
-              and (:orderId is null or o.id = :orderId)
-              and (:keyword is null
-                   or o.customer.account.email like concat('%', :keyword, '%')
-                   or o.customer.fullName like concat('%', :keyword, '%'))
+                   or (o.status = com.isp392.petfood.enums.OrderStatus.PROCESSING
+                       and o.cancelReason is not null
+                       and o.cancelReason not like '[REJECTED]%'))
+              and (
+                   (:orderId is null and :keyword is null)
+                   or (:orderId is not null and o.id = :orderId)
+                   or (:keyword is not null and (
+                        o.customer.account.email like concat('%', :keyword, '%')
+                        or o.customer.fullName like concat('%', :keyword, '%')
+                        or o.customer.phone like concat('%', :keyword, '%')
+                   ))
+              )
             """)
     Page<Order> search(@Param("status") OrderStatus status,
                        @Param("cancelRequested") boolean cancelRequested,
@@ -69,11 +83,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         BigDecimal getAmount();
     }
 
-    // Tiền hàng (không tính phí ship) của các đơn COMPLETED đã qua hạn trả hàng, theo từng khách
+    // Tiền hàng (không tính phí ship) của các đơn COMPLETED đã qua hạn trả hàng và không còn yêu cầu trả hàng đang xử lý
     @Query(value = """
             SELECT o.customer_id AS customerId, SUM(o.total_amount - o.shipping_fee) AS amount
             FROM dbo.Orders o
             WHERE o.order_status = N'COMPLETED' AND o.completed_at <= :cutoff
+              AND NOT EXISTS (
+                  SELECT 1 FROM dbo.ReturnRequest rr
+                  WHERE rr.order_id = o.order_id
+                    AND rr.status IN (N'REQUESTED', N'APPROVED', N'RECEIVED', N'INSPECTED')
+              )
             GROUP BY o.customer_id
             """, nativeQuery = true)
     List<CustomerAmountRow> sumSettledGoodsByCustomer(@Param("cutoff") LocalDateTime cutoff);
@@ -86,6 +105,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             JOIN dbo.Orders o ON o.order_id = rr.order_id
             WHERE rr.status = N'REFUNDED' AND ri.refund_amount IS NOT NULL
               AND o.order_status = N'COMPLETED' AND o.completed_at <= :cutoff
+              AND NOT EXISTS (
+                  SELECT 1 FROM dbo.ReturnRequest rr2
+                  WHERE rr2.order_id = o.order_id
+                    AND rr2.status IN (N'REQUESTED', N'APPROVED', N'RECEIVED', N'INSPECTED')
+              )
             GROUP BY o.customer_id
             """, nativeQuery = true)
     List<CustomerAmountRow> sumRefundsByCustomer(@Param("cutoff") LocalDateTime cutoff);

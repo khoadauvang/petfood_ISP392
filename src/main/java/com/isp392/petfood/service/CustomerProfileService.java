@@ -5,6 +5,7 @@ import com.isp392.petfood.dto.CustomerProfileDto;
 import com.isp392.petfood.dto.ProfileForm;
 import com.isp392.petfood.entity.Account;
 import com.isp392.petfood.entity.Customer;
+import com.isp392.petfood.enums.MembershipTier;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.InvalidImageException;
 import com.isp392.petfood.exception.NotFoundException;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 // Hồ sơ khách hàng: họ tên, số điện thoại, ảnh đại diện (bảng Customer). Email và hạng chỉ xem.
 @Service
@@ -30,10 +33,35 @@ public class CustomerProfileService {
     private final ProductImageProcessor imageProcessor;
     private final AvatarStorage avatarStorage;
     private final PasswordEncoder passwordEncoder;
+    private final MembershipService membershipService;
+    private final MembershipPolicy membershipPolicy;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public CustomerProfileDto getProfile(Long customerId) {
-        return toDto(find(customerId));
+        Customer customer = find(customerId);
+        BigDecimal settledSpend = membershipService.getAndUpdateCustomerSpend(customer);
+
+        MembershipTier currentTier = customer.getMembershipTier();
+        BigDecimal nextTierSpend = membershipPolicy.nextTierSpend(currentTier);
+        String nextTierLabel = membershipPolicy.nextTierLabel(currentTier);
+        int progressPct = nextTierSpend.compareTo(BigDecimal.ZERO) > 0
+                ? (int) Math.min(100, settledSpend.multiply(BigDecimal.valueOf(100)).divide(nextTierSpend, 0, RoundingMode.HALF_UP).longValue())
+                : 100;
+
+        Account account = customer.getAccount();
+        return new CustomerProfileDto(
+                account.getEmail(),
+                customer.getFullName(),
+                customer.getPhone(),
+                customer.getAvatarUrl(),
+                customer.getMembershipTier().getLabel(),
+                membershipPolicy.rateOf(currentTier),
+                account.getGoogleId() != null,
+                account.getPasswordHash() != null,
+                settledSpend,
+                nextTierSpend,
+                nextTierLabel,
+                progressPct);
     }
 
     @Transactional(readOnly = true)
@@ -101,7 +129,7 @@ public class CustomerProfileService {
     }
 
     // Gọi trong transaction: customer.getAccount() là LAZY
-    private static CustomerProfileDto toDto(Customer customer) {
+    private CustomerProfileDto toDto(Customer customer) {
         Account account = customer.getAccount();
         return new CustomerProfileDto(
                 account.getEmail(),
@@ -109,6 +137,7 @@ public class CustomerProfileService {
                 customer.getPhone(),
                 customer.getAvatarUrl(),
                 customer.getMembershipTier().getLabel(),
+                membershipPolicy.rateOf(customer.getMembershipTier()),
                 account.getGoogleId() != null,
                 account.getPasswordHash() != null);
     }

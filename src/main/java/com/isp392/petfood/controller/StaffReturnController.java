@@ -7,9 +7,12 @@ import com.isp392.petfood.enums.InspectionResult;
 import com.isp392.petfood.enums.ReturnReason;
 import com.isp392.petfood.enums.ReturnStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
+import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.security.AccountPrincipal;
 import com.isp392.petfood.service.ReturnService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -35,6 +39,8 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class StaffReturnController {
 
+    private static final Logger log = LoggerFactory.getLogger(StaffReturnController.class);
+
     private final ReturnService returnService;
 
     @GetMapping
@@ -43,12 +49,17 @@ public class StaffReturnController {
                        @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                        @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                        @RequestParam(name = "keyword", required = false) String keyword,
-                       @RequestParam(name = "page", defaultValue = "1") int page, Model model) {
-        Page<ReturnRow> result = returnService.search(status, reason, from, to, keyword, Math.max(page, 1) - 1);
+                       @RequestParam(name = "page", defaultValue = "1") int page,
+                       @RequestParam(name = "size", required = false) Integer size,
+                       @RequestParam(name = "returnId", required = false) Long returnId,
+                       Model model) {
+        int pageSize = (size != null && size > 0) ? size : 10;
+        Page<ReturnRow> result = returnService.search(status, reason, from, to, keyword, Math.max(page, 1) - 1, pageSize);
         model.addAttribute("returns", result.getContent());
         model.addAttribute("currentPage", result.getNumber() + 1);
         model.addAttribute("totalPages", result.getTotalPages());
         model.addAttribute("totalItems", result.getTotalElements());
+        model.addAttribute("pageSize", pageSize);
         model.addAttribute("statuses", ReturnStatus.values());
         model.addAttribute("reasons", ReturnReason.values());
         model.addAttribute("filterStatus", status);
@@ -57,9 +68,42 @@ public class StaffReturnController {
         model.addAttribute("filterTo", to);
         model.addAttribute("filterKeyword", keyword);
         model.addAttribute("filterQuery", QueryStrings.of(
-                "status", status, "reason", reason, "from", from, "to", to, "keyword", keyword));
+                "status", status, "reason", reason, "from", from, "to", to, "keyword", keyword,
+                "size", size));
         model.addAttribute("returnCounts", returnService.getReturnCounts());
+
+        Long activeId = returnId;
+        if (activeId == null && !result.isEmpty()) {
+            activeId = result.getContent().get(0).getId();
+        }
+        if (activeId != null) {
+            try {
+                ReturnDetailDto detailDto = returnService.getForStaff(activeId);
+                model.addAttribute("selectedReturn", detailDto);
+                model.addAttribute("selectedReturnId", activeId);
+                InspectForm form = new InspectForm();
+                detailDto.getLines().forEach(l -> {
+                    InspectForm.Line line = new InspectForm.Line();
+                    line.setReturnItemId(l.getReturnItemId());
+                    form.getLines().add(line);
+                });
+                model.addAttribute("inspectForm", form);
+                model.addAttribute("inspectionResults", InspectionResult.values());
+            } catch (NotFoundException e) {
+                model.addAttribute("errorMessage", e.getMessage());     // gõ sai mã yêu cầu: danh sách vẫn hiện
+            } catch (RuntimeException e) {
+                // lỗi khác: trang vẫn hiện danh sách, ghi log để còn tìm nguyên nhân
+                log.error("Không tải được chi tiết yêu cầu trả hàng #{}", activeId, e);
+                model.addAttribute("errorMessage", "Không tải được chi tiết yêu cầu trả hàng #" + activeId + ".");
+            }
+        }
         return "staff/returns/list";
+    }
+
+    @GetMapping("/{id}/data")
+    @ResponseBody
+    public ReturnDetailDto getReturnData(@PathVariable("id") Long id) {
+        return returnService.getForStaff(id);
     }
 
     @GetMapping("/{id}")
@@ -113,6 +157,6 @@ public class StaffReturnController {
         } catch (BusinessRuleException e) {
             redirect.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/staff/returns/" + id;
+        return "redirect:/staff/returns?returnId=" + id;
     }
 }

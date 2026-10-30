@@ -3,6 +3,7 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
+<c:set var="csrf"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"></c:set>
 <%-- Model: lowStockProducts, nearExpiryLots, alertSummary, shelfLifeDays, quarantineDays --%>
 <!DOCTYPE html>
 <html lang="vi">
@@ -170,7 +171,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>VẬN HÀNH KHO</span> <span class="sep">&gt;</span> <span>TỒN KHO &amp; LÔ HÀNG</span> <span class="sep">&gt;</span> <span class="current">CẢNH BÁO HẠN SỬ DỤNG</span>
+                <span>QUẢN LÝ KHO &amp; ĐỔI TRẢ</span> <span class="sep">&gt;</span> <span class="current">CẢNH BÁO HẠN SỬ DỤNG</span>
             </div>
             <h1>CẢNH BÁO HẠN SỬ DỤNG KHO</h1>
             <p class="page-sub">Giám sát các ngưỡng hạn sử dụng cấp bách, đề xuất Flash Sale giải phóng hàng cận hạn và theo dõi các lô hàng đã hết hạn.</p>
@@ -185,20 +186,6 @@
             </a>
         </div>
     </div>
-
-    <%-- Thông báo Flash message nếu có --%>
-    <c:if test="${not empty successMessage}">
-        <div style="margin-bottom:18px; padding:12px 18px; border-radius:12px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; box-shadow:0 2px 8px rgba(16, 185, 129, 0.1)">
-            <i class="ti ti-circle-check" style="font-size:20px; color:#10b981"></i>
-            <span><c:out value="${successMessage}"/></span>
-        </div>
-    </c:if>
-    <c:if test="${not empty errorMessage}">
-        <div style="margin-bottom:18px; padding:12px 18px; border-radius:12px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; box-shadow:0 2px 8px rgba(239, 68, 68, 0.1)">
-            <i class="ti ti-alert-circle" style="font-size:20px; color:#ef4444"></i>
-            <span><c:out value="${errorMessage}"/></span>
-        </div>
-    </c:if>
 
     <%-- 3 KPI Cards: Thông tin chính xác theo số liệu thực tế hạn dùng kho --%>
     <section class="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px">
@@ -222,14 +209,14 @@
             <div class="kpi-meta"><span class="badge red">● Đã chặn bán đơn hàng mới</span></div>
         </div>
 
-        <%-- Card 3: Lô đã quá hạn - Khóa bán --%>
+        <%-- Card 3: Lô đã quá hạn - Tiêu hủy --%>
         <div class="panel kpi reveal">
             <div class="kpi-top">
                 <span class="kpi-label">LÔ HÀNG ĐÃ QUÁ HẠN</span>
                 <span class="pill-badge dark">QUÁ HẠN</span>
             </div>
             <div class="kpi-value" style="color:#78350f"><c:out value="${alertSummary != null ? alertSummary.expiredLotCount : 0}"/> <small>Lô</small></div>
-            <div class="kpi-meta"><span class="badge gray">● Khóa bán, không xuất kho</span></div>
+            <div class="kpi-meta"><span class="badge gray">● Tiêu hủy, không xuất kho</span></div>
         </div>
     </section>
 
@@ -255,6 +242,10 @@
 
     <%-- Filter Bar --%>
     <div class="filters" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+        <div style="display:flex; align-items:center; gap:6px; font-weight:700; color:var(--text-main); font-size:13px">
+            <i class="ti ti-filter" style="font-size:18px; color:#ea580c"></i>
+            <span>Bộ lọc:</span>
+        </div>
         <div style="flex:1; min-width:260px; position:relative">
             <i class="ti ti-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-placeholder)"></i>
             <input type="search" id="lotSearchInput" placeholder="Tìm kiếm SKU, Tên sản phẩm, hoặc Số lô..."
@@ -279,7 +270,6 @@
         <table id="lotsAlertTable" style="margin:0; border:0; border-radius:0; box-shadow:none">
             <thead>
             <tr>
-                <th style="width:36px"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
                 <th>SẢN PHẨM &amp; SKU</th>
                 <th>MÃ LÔ</th>
                 <th>HẠN SỬ DỤNG</th>
@@ -297,7 +287,6 @@
                             data-level="${l.level}"
                             data-days="${l.daysLeft}"
                             data-search="${l.sku.toLowerCase()} ${l.productName.toLowerCase()} ${l.id}">
-                            <td><input type="checkbox" class="row-checkbox"></td>
                             <td>
                                 <div style="display:flex; align-items:center; gap:10px">
                                     <div class="avatar" style="width:40px; height:40px; font-size:16px; background:#fed7aa; color:#9a3412; display:flex; align-items:center; justify-content:center; border-radius:10px">
@@ -342,29 +331,43 @@
                             <td>
                                 <c:choose>
                                     <c:when test="${l.daysLeft le 0 or l.level == 'EXPIRED'}">
-                                        <span style="color:#78350f; font-weight:700">● Ngừng bán - Đã quá hạn</span>
+                                        <span style="color:#78350f; font-weight:700">● Ngừng bán - Chờ tiêu hủy</span>
                                     </c:when>
                                     <c:when test="${l.level == 'BLOCKED'}">
-                                        <span style="color:#dc2626; font-weight:700">● Chặn bán - Không phân bổ</span>
+                                        <span style="color:#dc2626; font-weight:700">● Chặn bán - Chờ tiêu hủy</span>
+                                    </c:when>
+                                    <c:when test="${l.daysLeft lt 30}">
+                                        <span style="color:#ea580c; font-weight:700">● Ưu tiên Flash Sale (Giảm 70%)</span>
                                     </c:when>
                                     <c:otherwise>
-                                        <span style="color:#ea580c; font-weight:700">● Ưu tiên Flash Sale / FEFO</span>
+                                        <span style="color:#ea580c; font-weight:700">● Ưu tiên Flash Sale (Giảm 40%)</span>
                                     </c:otherwise>
                                 </c:choose>
                             </td>
                             <td style="text-align:right">
                                 <div class="lot-action-cell">
                                     <c:choose>
-                                        <%-- Lô đã quá hạn hoặc cấp bách: không bán dưới mọi hình thức (BR-51), không có chức năng tiêu hủy --%>
+                                        <%-- Lô đã quá hạn hoặc cấp bách (<21 ngày): Tiêu hủy --%>
                                         <c:when test="${l.daysLeft le 0 or l.level == 'EXPIRED' or l.level == 'BLOCKED'}">
-                                            <span style="color:#991b1b; font-weight:700"><i class="ti ti-lock"></i> Khóa bán</span>
+                                            <form method="post" action="${ctx}/staff/lots/${l.id}/dispose" style="display:inline; margin:0;" onsubmit="return confirm('Xác nhận tiêu hủy lô hàng #LOT-${l.id} (${l.sku})?\n\nToàn bộ ${l.onHandQty} sản phẩm tồn sẽ được xuất hủy khỏi kho.');">
+                                                ${csrf}
+                                                <input type="hidden" name="redirectUrl" value="/staff/alerts">
+                                                <button type="submit" class="btn-dispose" title="Lập biên bản xuất hủy lô hàng này">
+                                                    <i class="ti ti-trash"></i>Tiêu hủy
+                                                </button>
+                                            </form>
                                         </c:when>
 
-                                        <%-- Lô cận hạn (21-90 ngày): hiển thị nút Tạo Flash Sale đồng bộ --%>
+                                        <%-- Lô cận hạn (21-90 ngày): Kích hoạt Flash Sale NGAY LẬP TỨC --%>
                                         <c:otherwise>
-                                            <a href="${ctx}/staff/flash-sales/new" class="btn-flashsale" title="Đưa sản phẩm của lô này vào chiến dịch Flash Sale">
-                                                <i class="ti ti-bolt"></i>Tạo Flash Sale
-                                            </a>
+                                            <form method="post" action="${ctx}/staff/flash-sales/quick-create" style="display:inline; margin:0;"
+                                                  onsubmit="return confirm('Kích hoạt Flash Sale NGAY LẬP TỨC cho lô hàng #LOT-${l.id}?\n\n• Sản phẩm: ${l.productName}\n• Hạn dùng còn: ${l.daysLeft} ngày\n• Mức giảm theo HSD: ${l.daysLeft lt 30 ? '70%' : '40%'}\n• Số lượng xả kho: ${l.onHandQty} đơn vị\n\nChiến dịch sẽ bắt đầu mở bán ngay trên hệ thống!');">
+                                                ${csrf}
+                                                <input type="hidden" name="lotId" value="${l.id}">
+                                                <button type="submit" class="btn-flashsale" title="Kích hoạt Flash Sale ngay lập tức cho lô này (Giảm ${l.daysLeft lt 30 ? '70%' : '40%'})">
+                                                    <i class="ti ti-bolt"></i>Tạo Flash Sale
+                                                </button>
+                                            </form>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -374,7 +377,7 @@
                 </c:when>
                 <c:otherwise>
                     <tr>
-                        <td colspan="8" style="text-align:center; padding:36px; color:var(--text-muted)">
+                        <td colspan="7" style="text-align:center; padding:36px; color:var(--text-muted)">
                             <i class="ti ti-circle-check" style="color:#10b981; font-size:28px; vertical-align:middle; margin-right:8px"></i>
                             Hiện tại kho an toàn! Không có lô hàng nào rơi vào diện cận hạn hoặc quá hạn.
                         </td>
@@ -412,7 +415,7 @@
                     </div>
                     <div style="display:flex; align-items:flex-start; gap:8px">
                         <span class="pill-badge red" style="margin-top:2px">&lt; 21 Ngày / Quá hạn</span>
-                        <div><b>Cấp bách &amp; Hết hạn:</b> Khóa hoàn toàn, không bán dưới mọi hình thức (BR-51).</div>
+                        <div><b>Cấp bách &amp; Hết hạn:</b> Chặn bán toàn bộ; xuất hủy tiêu hủy hàng theo quy định an toàn (BR-51).</div>
                     </div>
                 </div>
             </div>

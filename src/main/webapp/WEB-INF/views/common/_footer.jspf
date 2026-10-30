@@ -195,18 +195,16 @@
             <a href="${ctx}/policies/expiry" class="${activePage == 'policy-expiry' ? 'active' : ''}">Cam kết hạn dùng tối thiểu 90 ngày</a>
             <a href="${ctx}/policies/shipping" class="${activePage == 'policy-shipping' ? 'active' : ''}">Chính sách giao hàng hỏa tốc 2H</a>
             <a href="${ctx}/policies/guide" class="${activePage == 'guide' ? 'active' : ''}">Hướng dẫn mua hàng &amp; thanh toán</a>
-            <a href="${ctx}/support" class="${activePage == 'faq' ? 'active' : ''}">Câu hỏi thường gặp (FAQ)</a>
+            <a href="${ctx}/faq" class="${activePage == 'faq' ? 'active' : ''}">Câu hỏi thường gặp (FAQ)</a>
         </div>
 
-        <!-- Cột 4: Tài khoản (Staff / Admin không có hồ sơ khách và đơn hàng) -->
-        <c:if test="${empty currentUser or currentUser.role == 'CUSTOMER'}">
+        <!-- Cột 4: Tài khoản -->
         <div class="footer-column">
             <h3>Tài khoản</h3>
             <a href="${ctx}/profile" class="${activePage == 'profile' ? 'active' : ''}">Thông tin tài khoản</a>
             <a href="${ctx}/orders" class="${activePage == 'orders' ? 'active' : ''}">Lịch sử đơn hàng</a>
-            <a href="${ctx}/profile?tab=tier" class="${activePage == 'vip' ? 'active' : ''}">Thành viên VIP PetClub</a>
+            <a href="${ctx}/vip" class="${activePage == 'vip' ? 'active' : ''}">Thành viên VIP PetClub</a>
         </div>
-        </c:if>
     </div>
 
     <!-- Dòng bản quyền dưới cùng -->

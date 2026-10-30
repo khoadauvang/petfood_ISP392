@@ -278,6 +278,28 @@
         .s13-tier-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; }
         .s13-stat-bar { height: 10px; border-radius: 99px; background: #f1f5f9; overflow: hidden; position: relative; margin-top: 6px; }
         .s13-stat-bar-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; }
+
+        .rev-table-scroll {
+            max-height: 380px;
+            overflow-y: auto;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .rev-table-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .rev-table-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .rev-table-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 99px;
+        }
+        .rev-table-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 <body>
@@ -810,12 +832,6 @@
                     <p style="font-size:13.5px; color:#64748b; margin:0;">Theo dõi hiệu quả bán hàng, xu hướng đơn hàng và kết quả kinh doanh tổng thể.</p>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <button type="button" class="export-btn" onclick="alert('Đã lên lịch gửi báo cáo định kỳ tự động mỗi 08:00 sáng thứ Hai hàng tuần qua email Quản trị viên!')" style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:9px 15px; font-size:13px; font-weight:700; color:#334155; cursor:pointer;">
-                        <i class="ti ti-calendar-time" style="font-size:16px; color:#64748b;"></i> Đặt lịch gửi báo cáo tự động
-                    </button>
-                    <button type="button" class="export-btn" onclick="window.print()" style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:9px 15px; font-size:13px; font-weight:700; color:#334155; cursor:pointer;">
-                        <i class="ti ti-printer" style="font-size:16px; color:#64748b;"></i> In báo cáo
-                    </button>
                     <button type="button" class="export-btn" onclick="exportRevenueReportCsv()" style="background:#ea580c; border:1px solid #ea580c; color:#fff; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 2px 6px rgba(234,88,12,0.25);">
                         <i class="ti ti-download" style="font-size:16px;"></i> Xuất báo cáo
                     </button>
@@ -1381,13 +1397,7 @@
                         </div>
                     </div>
 
-                    <%-- Insight nhận định quan trọng --%>
-                    <div style="background:#fffcf8; border:1px solid #fed7aa; border-radius:12px; padding:12px 14px; display:flex; gap:10px; align-items:flex-start;">
-                        <span style="font-size:16px;">💡</span>
-                        <div style="font-size:12px; color:#92400e; line-height:1.5;">
-                            <b>Nhận định quan trọng:</b> Khách hàng lựa chọn phương thức COD chiếm <b>54.5%</b> tổng đơn hàng và VNPay chiếm <b>45.5%</b> tổng đơn hàng trong kỳ.
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -1400,68 +1410,56 @@
                     <p style="font-size:12.5px; color:#64748b; margin:0;">Kiểm toán chi tiết giao dịch theo ngày</p>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="rev-input-wrap" style="padding:5px 10px;">
-                        <select id="screen12SortSelect" onchange="changeDailyAuditSort(this.value)">
-                            <option value="desc">Sắp xếp: Ngày giảm dần</option>
-                            <option value="asc">Sắp xếp: Ngày tăng dần</option>
-                            <option value="revenue">Sắp xếp: Doanh thu cao nhất</option>
-                        </select>
-                    </div>
+                    <select id="screen12SortSelect" onchange="changeDailyAuditSort(this.value)" style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer; font-family:inherit; outline:none; transition:all 0.15s ease;">
+                        <option value="desc">Ngày giảm dần</option>
+                        <option value="asc">Ngày tăng dần</option>
+                        <option value="revenue">Doanh thu cao nhất</option>
+                    </select>
                     <button type="button" class="export-btn" onclick="exportDailyAuditCsv()" style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">
                         <i class="ti ti-download" style="font-size:15px; color:#64748b;"></i> Xuất file CSV
                     </button>
                 </div>
             </div>
 
-            <div style="overflow-x:auto;">
-                <table class="rev-table" id="screen12AuditTable">
-                    <thead>
-                    <tr>
-                        <th>NGÀY</th>
-                        <th style="text-align:right;">TỔNG ĐƠN HÀNG</th>
-                        <th style="text-align:right;">ĐÃ HOÀN THÀNH</th>
-                        <th style="text-align:right;">ĐÃ HỦY</th>
-                        <th style="text-align:right;">DOANH THU (VND)</th>
-                        <th style="text-align:right;">GIÁ TRỊ TRUNG BÌNH ĐƠN (AOV)</th>
+            <div class="rev-table-scroll">
+                <table class="rev-table" id="screen12AuditTable" style="margin:0; width:100%; border-collapse:collapse;">
+                    <thead style="position:sticky; top:0; z-index:2; background:#f8fafc;">
+                    <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <th style="background:#f8fafc;">NGÀY</th>
+                        <th style="text-align:right; background:#f8fafc;">TỔNG ĐƠN HÀNG</th>
+                        <th style="text-align:right; background:#f8fafc;">ĐÃ HOÀN THÀNH</th>
+                        <th style="text-align:right; background:#f8fafc;">ĐÃ HỦY</th>
+                        <th style="text-align:right; background:#f8fafc;">DOANH THU (VND)</th>
+                        <th style="text-align:right; background:#f8fafc;">GIÁ TRỊ TRUNG BÌNH ĐƠN (AOV)</th>
                     </tr>
                     </thead>
                     <tbody id="screen12AuditTbody">
                         <%-- Render bởi renderScreen12DailyTable() --%>
                     </tbody>
-                    <tfoot>
-                    <tr style="background:#fffbeb; font-weight:800; border-top:2px solid #fed7aa;">
-                        <td style="color:#92400e;" id="screen12FooterTotalDays">Tổng cộng (22 ngày có đơn)</td>
-                        <td style="text-align:right; color:#1e293b;" id="screen12FooterTotalOrders">66</td>
-                        <td style="text-align:right; color:#10b981;" id="screen12FooterCompletedOrders">56</td>
-                        <td style="text-align:right; color:#ef4444;" id="screen12FooterCancelledOrders">4</td>
-                        <td style="text-align:right; color:#1e293b; font-size:14px;" id="screen12FooterRevenue">₫35,616,708</td>
-                        <td style="text-align:right; color:#1e293b;" id="screen12FooterAov">₫636,013</td>
+                    <tfoot style="position:sticky; bottom:0; z-index:2; background:#fffbeb;">
+                    <tr style="background:#fffbeb; font-weight:800; border-top:2px solid #fed7aa; box-shadow:0 -1px 3px rgba(0,0,0,0.04);">
+                        <td style="color:#92400e; background:#fffbeb;" id="screen12FooterTotalDays">Tổng cộng (22 ngày có đơn)</td>
+                        <td style="text-align:right; color:#1e293b; background:#fffbeb;" id="screen12FooterTotalOrders">66</td>
+                        <td style="text-align:right; color:#10b981; background:#fffbeb;" id="screen12FooterCompletedOrders">56</td>
+                        <td style="text-align:right; color:#ef4444; background:#fffbeb;" id="screen12FooterCancelledOrders">4</td>
+                        <td style="text-align:right; color:#1e293b; font-size:14px; background:#fffbeb;" id="screen12FooterRevenue">₫35,616,708</td>
+                        <td style="text-align:right; color:#1e293b; background:#fffbeb;" id="screen12FooterAov">₫636,013</td>
                     </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <%-- Phân trang bảng ngày 1..5 --%>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:14px; border-top:1px solid #f1f5f9; flex-wrap:wrap; gap:12px;">
-                <div style="font-size:12.5px; color:#64748b; font-weight:600;" id="screen12PaginationInfo">
-                    Hiển thị 1 đến 7 trong 31 ngày
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; flex-wrap:wrap; gap:10px; font-size:12px; color:#64748b;">
+                <div style="font-weight:600;" id="screen12PaginationInfo">
+                    Hiển thị toàn bộ 27 ngày giao dịch
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;" id="screen12PaginationButtons">
-                    <%-- Các nút phân trang render bằng JS --%>
+                <div style="display:flex; align-items:center; gap:4px; color:#64748b;">
+                    <i class="ti ti-arrows-vertical" style="font-size:14px;"></i> Dùng con lăn chuột hoặc kéo thanh cuộn để xem tất cả các ngày
                 </div>
             </div>
         </div>
 
-        <%-- Bottom Note Bar --%>
-        <div style="background:#fffcf8; border:1px solid #fed7aa; border-radius:12px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#92400e; font-weight:600;">
-                <i class="ti ti-info-circle" style="font-size:16px;"></i>
-                <span>Xem trước trạng thái không có dữ liệu: Có thể lọc theo khoảng ngày bất kỳ trong lịch sử để xem biểu đồ biến thiên tương ứng.</span>
-            </div>
-            <button type="button" style="border:none; background:none; cursor:pointer; color:#92400e; font-size:16px;">
-                <i class="ti ti-chevron-up"></i>
-            </button>
-        </div>
+        
     </div>
 
     <%-- =========================================================================
@@ -1692,8 +1690,8 @@
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
                         <div>
-                            <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Biến động số lượng hội viên theo hạng qua các tháng</h3>
-                            <p style="font-size:12px; color:#64748b; margin:0;">Thước đo tăng trưởng cơ cấu từ Tháng 7 đến Tháng 10/2026</p>
+                            <h3 id="s13MonthlyTrendTitle" style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Biến động số lượng hội viên theo hạng qua các tháng</h3>
+                            <p id="s13MonthlyTrendSubtitle" style="font-size:12px; color:#64748b; margin:0;">Thước đo tăng trưởng cơ cấu từ Tháng 7 đến Tháng 10/2026</p>
                         </div>
                         <div style="width:34px; height:34px; border-radius:50%; border:1px solid #e2e8f0; display:grid; place-items:center; color:#64748b;">
                             <i class="ti ti-chart-bar" style="font-size:18px;"></i>
@@ -1985,8 +1983,6 @@
                 </div>
             </div>
         </div>
-            </div>
-        </div>
 
         <%-- Row 5: Bảng tổng hợp kinh doanh theo hạng thành viên --%>
         <div class="rev-chart-card">
@@ -2099,12 +2095,147 @@
                 </table>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; font-size:12px; color:#64748b;">
+            <div style="margin-top:14px; font-size:12px; color:#64748b;">
+                * Ghi chú: Doanh thu tính theo giá trị hóa đơn đã thanh toán thành công trong kỳ báo cáo.
+            </div>
+        </div>
+
+        <%-- Row 6: Bảng chi tiết chi tiêu của từng khách hàng hội viên (Screen 13) --%>
+        <div class="rev-chart-card" style="margin-top:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:14px;">
                 <div>
-                    * Ghi chú: Doanh thu tính theo giá trị hóa đơn đã thanh toán thành công trong kỳ báo cáo.
+                    <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 4px 0; display:inline-flex; align-items:center; gap:8px;">
+                        <i class="ti ti-users" style="color:#ea580c; font-size:19px;"></i> CHI TIẾT CHI TIÊU TỪNG HỘI VIÊN
+                        <span class="pill-badge orange" style="font-size:11px;" id="s13CustomerSpendingBadge">0 hội viên</span>
+                    </h3>
+                    <p style="font-size:12.5px; color:#64748b; margin:0;" id="s13CustomerSpendingPeriodLabel">
+                        Theo dõi mức độ chi tiêu thực tế, giá trị đơn trung bình và chính sách chiết khấu hội viên đã cấp theo kỳ lọc.
+                    </p>
                 </div>
-                <div style="color:#ea580c; font-weight:600;">
-                    Xuất dữ liệu chi tiết hỗ trợ đối soát kế toán
+                
+                <%-- Toolbar: Tìm kiếm, lọc số dòng, sắp xếp và xuất CSV --%>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <%-- Ô tìm kiếm hội viên --%>
+                    <div style="position:relative; min-width:230px;">
+                        <i class="ti ti-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:15px;"></i>
+                        <input type="text" id="s13CustSearchInput" placeholder="Tìm tên, email, SĐT..."
+                               style="width:100%; padding:7px 12px 7px 34px; border-radius:10px; border:1px solid #cbd5e1; font-size:12.5px; outline:none; background:#fff;"
+                               oninput="onScreen13CustSearchInput()">
+                    </div>
+
+                    <%-- Dropdown sắp xếp --%>
+                    <select id="s13CustSortSelect" onchange="onScreen13CustSortChange()"
+                            style="padding:7px 12px; border-radius:10px; border:1px solid #cbd5e1; font-size:12.5px; background:#fff; color:#334155; font-weight:600; cursor:pointer;">
+                        <option value="spent_desc">Chi tiêu cao nhất ↓</option>
+                        <option value="spent_asc">Chi tiêu thấp nhất ↑</option>
+                        <option value="orders_desc">Số đơn nhiều nhất ↓</option>
+                        <option value="aov_desc">Giá trị đơn TB (AOV) cao nhất ↓</option>
+                        <option value="discount_desc">Ưu đãi nhận nhiều nhất ↓</option>
+                        <option value="name_asc">Tên A → Z</option>
+                    </select>
+
+                    <%-- Dropdown số lượng mỗi trang --%>
+                    <select id="s13CustPageSizeSelect" onchange="onScreen13CustPageSizeChange()"
+                            style="padding:7px 10px; border-radius:10px; border:1px solid #cbd5e1; font-size:12.5px; background:#fff; color:#334155; font-weight:600; cursor:pointer;">
+                        <option value="5">5 / trang</option>
+                        <option value="10" selected>10 / trang</option>
+                        <option value="20">20 / trang</option>
+                        <option value="50">50 / trang</option>
+                    </select>
+
+                    <%-- Nút xuất CSV --%>
+                    <button type="button" class="export-btn" onclick="exportScreen13CustomerSpendingCsv()"
+                            style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">
+                        <i class="ti ti-download" style="font-size:15px;"></i> Xuất bảng (CSV)
+                    </button>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="rev-table" id="screen13CustSpendingTable" style="margin-bottom:0;">
+                    <thead>
+                        <tr>
+                            <th style="width:45px; text-align:center;">STT</th>
+                            <th style="min-width:210px;">HỘI VIÊN</th>
+                            <th style="width:130px; text-align:center;">HẠNG HIỆN TẠI</th>
+                            <th style="width:130px; text-align:center;">SỐ ĐƠN HOÀN TẤT</th>
+                            <th style="width:160px; text-align:right;">TỔNG CHI TIÊU (VNĐ)</th>
+                            <th style="width:150px; text-align:right;">GIÁ TRỊ ĐƠN TB (AOV)</th>
+                            <th style="width:140px; text-align:right;">ƯU ĐÃI ĐÃ NHẬN</th>
+                            <th style="width:120px; text-align:center;">ĐƠN GẦN NHẤT</th>
+                            <th style="width:80px; text-align:center;">THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="s13CustSpendingTbody">
+                        <!-- Render động qua JS -->
+                    </tbody>
+                    <tfoot style="background:#fff7ed; border-top:2px solid #fed7aa;" id="s13CustSpendingTfoot">
+                        <!-- Tổng hợp tfoot render động -->
+                    </tfoot>
+                </table>
+            </div>
+
+            <%-- Thanh phân trang đồng bộ phong cách Quản lý đơn hàng & Quản lý trả hàng --%>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:16px; padding-top:14px; border-top:1px solid #f1f5f9;">
+                <div style="font-size:13px; color:#64748b;" id="s13CustPaginationInfo">
+                    Hiển thị 0 trong tổng số 0 hội viên
+                </div>
+                <div class="pager" style="margin:0; display:flex; align-items:center; gap:4px; flex-wrap:wrap;" id="s13CustPaginationControls">
+                    <!-- Pager rendered via JS -->
+                </div>
+            </div>
+        </div>
+
+        <%-- Modal Popup: Lịch sử đơn hàng của hội viên (Phương án 2 - Bảo mật tối đa) --%>
+        <div id="custOrdersHistoryModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;" onclick="closeCustOrdersModal()">
+            <div style="background:#fff; border-radius:18px; width:100%; max-width:880px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); border:1px solid #fed7aa; overflow:hidden;" onclick="event.stopPropagation();">
+                <%-- Modal Header --%>
+                <div style="padding:16px 22px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:#fffaf5;">
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#1e293b; display:flex; align-items:center; gap:8px;">
+                            <i class="ti ti-history" style="color:#ea580c; font-size:20px;"></i>
+                            LỊCH SỬ ĐƠN HÀNG: <span id="modalCustName" style="color:#ea580c;">--</span>
+                            <span id="modalCustTierBadge"></span>
+                        </h3>
+                        <p id="modalCustSub" style="margin:4px 0 0 0; font-size:12px; color:#64748b;">
+                            SĐT: -- • Email: -- • Tổng chi tiêu: 0₫
+                        </p>
+                    </div>
+                    <button type="button" onclick="closeCustOrdersModal()" style="background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:8px; line-height:1;" title="Đóng cửa sổ">
+                        &times;
+                    </button>
+                </div>
+
+                <%-- Modal Body: Bảng đơn hàng --%>
+                <div style="padding:18px 22px; overflow-y:auto; flex:1;">
+                    <div style="overflow-x:auto;">
+                        <table class="rev-table" style="margin-bottom:0; font-size:13px;">
+                            <thead>
+                                <tr>
+                                    <th style="width:115px; text-align:center;">MÃ ĐƠN</th>
+                                    <th style="width:110px; text-align:center;">NGÀY ĐẶT</th>
+                                    <th style="width:110px; text-align:center;">THANH TOÁN</th>
+                                    <th style="width:140px; text-align:right;">TỔNG TIỀN (VNĐ)</th>
+                                    <th style="width:125px; text-align:right;">ƯU ĐÃI (VNĐ)</th>
+                                    <th style="width:140px; text-align:center;">TRẠNG THÁI</th>
+                                    <th style="width:95px; text-align:center;">THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalCustOrdersTbody">
+                                <!-- Render dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <%-- Modal Footer --%>
+                <div style="padding:12px 22px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:#fafafa; font-size:12.5px;">
+                    <div id="modalCustOrdersSummary" style="color:#64748b; font-weight:600;">
+                        Tổng cộng: 0 đơn hàng
+                    </div>
+                    <button type="button" onclick="closeCustOrdersModal()" style="padding:6px 18px; border-radius:8px; background:#fff; border:1px solid #cbd5e1; font-size:12.5px; font-weight:700; color:#475569; cursor:pointer;">
+                        Đóng
+                    </button>
                 </div>
             </div>
         </div>
@@ -2201,7 +2332,15 @@
     let ALL_CUSTOMERS_DATA = [
         <c:if test="${not empty stats.allCustomers}">
             <c:forEach var="c" items="${stats.allCustomers}" varStatus="loop">
-                { id: ${c.id}, tier: '${c.tier}', createdAt: '${c.createdAt}' }<c:if test="${!loop.last}">,</c:if>
+                {
+                    id: ${c.id},
+                    name: '<c:out value="${c.fullName}"/>',
+                    email: '<c:out value="${c.email}"/>',
+                    phone: '<c:out value="${c.phone}"/>',
+                    avatarUrl: '<c:out value="${c.avatarUrl}"/>',
+                    tier: '${c.tier}',
+                    createdAt: '${c.createdAt}'
+                }<c:if test="${!loop.last}">,</c:if>
             </c:forEach>
         </c:if>
     ];
@@ -2209,7 +2348,7 @@
     let ALL_ORDERS_DATA = [
         <c:if test="${not empty stats.allOrders}">
             <c:forEach var="o" items="${stats.allOrders}" varStatus="loop">
-                { id: ${o.id}, customerId: ${o.customerId != null ? o.customerId : 'null'}, tier: '${o.customerTier}', customerTier: '${o.customerTier}', date: '${o.date}', dayText: '${o.dayText}', status: '${o.status}', pay: '${o.pay}', total: ${o.total}, cats: ${o.catsJson} }<c:if test="${!loop.last}">,</c:if>
+                { id: ${o.id}, customerId: ${o.customerId != null ? o.customerId : 'null'}, tier: '${o.customerTier}', customerTier: '${o.customerTier}', date: '${o.date}', dayText: '${o.dayText}', status: '${o.status}', pay: '${o.pay}', total: ${o.total}, discount: ${o.discount}, cats: ${o.catsJson} }<c:if test="${!loop.last}">,</c:if>
             </c:forEach>
         </c:if>
     ];
@@ -2658,18 +2797,15 @@
         }
     }
 
-    // 3. BẢNG TỔNG HỢP DOANH SỐ HÀNG NGÀY & PHÂN TRANG (DỮ LIỆU ĐỘNG THEO BỘ LỌC)
+    // 3. BẢNG TỔNG HỢP DOANH SỐ HÀNG NGÀY & THANH CUỘN SCROLLBAR (DỮ LIỆU ĐỘNG THEO BỘ LỌC)
     let currentScreen12MasterDays = [];
-    let currentScreen12Page = 1;
     let currentScreen12Sort = 'desc';
 
-    function renderScreen12DailyTable(page, sortOrder) {
-        if (page) currentScreen12Page = page;
+    function renderScreen12DailyTable(sortOrder) {
         if (sortOrder) currentScreen12Sort = sortOrder;
 
         const tbody = document.getElementById('screen12AuditTbody');
         const infoEl = document.getElementById('screen12PaginationInfo');
-        const btnContainer = document.getElementById('screen12PaginationButtons');
         if (!tbody) return;
 
         let list = [...currentScreen12MasterDays];
@@ -2681,25 +2817,16 @@
             list.sort((a, b) => b.dayNum - a.dayNum);
         }
 
-        const pageSize = 7;
         const totalItems = list.length;
-        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-        if (currentScreen12Page > totalPages) currentScreen12Page = totalPages;
-        if (currentScreen12Page < 1) currentScreen12Page = 1;
-
-        const startIndex = (currentScreen12Page - 1) * pageSize;
-        const endIndex = Math.min(startIndex + pageSize, totalItems);
-        const pageItems = list.slice(startIndex, endIndex);
 
         if (totalItems === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">Không có giao dịch nào phù hợp với bộ lọc đã chọn</td></tr>';
-            if (infoEl) infoEl.innerText = 'Hiển thị 0 trong 0 ngày';
-            if (btnContainer) btnContainer.innerHTML = '';
+            if (infoEl) infoEl.innerText = 'Không có giao dịch nào';
             return;
         }
 
         let rowsHtml = '';
-        pageItems.forEach(item => {
+        list.forEach(item => {
             let badgeHtml = '';
             if (item.badge === 'FLASH SALE') {
                 badgeHtml = ' <span class="pill-badge red" style="font-size:10px; padding:2px 7px; margin-left:4px;">FLASH SALE</span>';
@@ -2720,25 +2847,12 @@
         tbody.innerHTML = rowsHtml;
 
         if (infoEl) {
-            infoEl.innerText = 'Hiển thị ' + (startIndex + 1) + ' đến ' + endIndex + ' trong ' + totalItems + ' ngày';
-        }
-
-        if (btnContainer) {
-            let btnsHtml = '';
-            btnsHtml += '<button type="button" class="page-num-btn" ' + (currentScreen12Page === 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : 'onclick="renderScreen12DailyTable(' + (currentScreen12Page - 1) + ')"') + '>&lt;</button>';
-
-            for (let p = 1; p <= totalPages; p++) {
-                btnsHtml += '<button type="button" class="page-num-btn ' + (p === currentScreen12Page ? 'active' : '') + '" onclick="renderScreen12DailyTable(' + p + ')">' + p + '</button>';
-            }
-
-            btnsHtml += '<button type="button" class="page-num-btn" ' + (currentScreen12Page === totalPages ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : 'onclick="renderScreen12DailyTable(' + (currentScreen12Page + 1) + ')"') + '>&gt;</button>';
-
-            btnContainer.innerHTML = btnsHtml;
+            infoEl.innerText = 'Hiển thị toàn bộ ' + totalItems + ' ngày giao dịch';
         }
     }
 
     function changeDailyAuditSort(val) {
-        renderScreen12DailyTable(1, val);
+        renderScreen12DailyTable(val);
     }
 
     // 4. BỘ LỌC ĐỘNG SCREEN 12 (ÁP DỤNG NGAY LẬP TỨC CHO TOÀN BỘ SCREEN 12)
@@ -2818,7 +2932,7 @@
         });
 
         // Render lại bảng kiểm toán hàng ngày
-        renderScreen12DailyTable(1, currentScreen12Sort);
+        renderScreen12DailyTable(currentScreen12Sort);
 
         // Cập nhật dòng tổng cộng tfoot của bảng ngày
         const ftDays = document.getElementById('screen12FooterTotalDays');
@@ -2903,19 +3017,18 @@
         let catRev4 = 0; // Bánh thưởng & Snack: category 5 + 6 + 7
 
         completedList.forEach(o => {
-            if (o.cats) {
-                // Category 1: Thức ăn hạt cho mèo
-                if (o.cats['1'] || o.cats[1]) catRev1 += Number(o.cats['1'] || o.cats[1]) || 0;
-                // Category 3 + 4: Pate cho mèo (3) + Pate cho chó (4)
-                if (o.cats['3'] || o.cats[3]) catRev2 += Number(o.cats['3'] || o.cats[3]) || 0;
-                if (o.cats['4'] || o.cats[4]) catRev2 += Number(o.cats['4'] || o.cats[4]) || 0;
-                // Category 2: Thức ăn hạt cho chó
-                if (o.cats['2'] || o.cats[2]) catRev3 += Number(o.cats['2'] || o.cats[2]) || 0;
-                // Category 5 + 6 + 7: Bánh thưởng & Snack
-                if (o.cats['5'] || o.cats[5]) catRev4 += Number(o.cats['5'] || o.cats[5]) || 0;
-                if (o.cats['6'] || o.cats[6]) catRev4 += Number(o.cats['6'] || o.cats[6]) || 0;
-                if (o.cats['7'] || o.cats[7]) catRev4 += Number(o.cats['7'] || o.cats[7]) || 0;
-            }
+            const catMap = o.cats || o.categoryAmounts || (typeof o.catsJson === 'string' ? JSON.parse(o.catsJson) : o.catsJson) || {};
+            // Category 1: Thức ăn hạt cho mèo
+            if (catMap['1'] || catMap[1]) catRev1 += Number(catMap['1'] || catMap[1]) || 0;
+            // Category 3 + 4: Pate cho mèo (3) + Pate cho chó (4)
+            if (catMap['3'] || catMap[3]) catRev2 += Number(catMap['3'] || catMap[3]) || 0;
+            if (catMap['4'] || catMap[4]) catRev2 += Number(catMap['4'] || catMap[4]) || 0;
+            // Category 2: Thức ăn hạt cho chó
+            if (catMap['2'] || catMap[2]) catRev3 += Number(catMap['2'] || catMap[2]) || 0;
+            // Category 5 + 6 + 7: Bánh thưởng & Snack
+            if (catMap['5'] || catMap[5]) catRev4 += Number(catMap['5'] || catMap[5]) || 0;
+            if (catMap['6'] || catMap[6]) catRev4 += Number(catMap['6'] || catMap[6]) || 0;
+            if (catMap['7'] || catMap[7]) catRev4 += Number(catMap['7'] || catMap[7]) || 0;
         });
 
         const totalCatRev = catRev1 + catRev2 + catRev3 + catRev4;
@@ -3186,6 +3299,475 @@
         document.body.removeChild(a);
     }
 
+    // ========================================================
+    // BẢNG CHI TIẾT CHI TIÊU HỘI VIÊN (Screen 13 - Row 6)
+    // ========================================================
+    let s13CustMasterList = [];
+    let s13CustCurrentPage = 1;
+    let s13CustPageSize = 10;
+    let s13CustSort = 'spent_desc';
+    let s13CustSearchQuery = '';
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+        });
+    }
+
+    // Phương án 2 (Bảo mật tối đa): Che Tên (Nguyễn V** An), SĐT (0912***001), Email (a***n@example.com)
+    function maskCustomerName(name) {
+        if (!name) return '';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) {
+            return parts[0].length > 1 ? parts[0][0] + '**' : parts[0];
+        }
+        if (parts.length === 2) {
+            return parts[0] + ' ' + parts[1][0] + '**';
+        }
+        const first = parts[0];
+        const last = parts[parts.length - 1];
+        const middle = parts.slice(1, -1).map(w => w[0] + '**').join(' ');
+        return first + ' ' + middle + ' ' + last;
+    }
+
+    function maskCustomerPhone(phone) {
+        if (!phone) return '';
+        const clean = phone.trim().replace(/\s+/g, '');
+        if (clean.length >= 7) {
+            return clean.slice(0, 4) + '***' + clean.slice(-3);
+        }
+        return clean.slice(0, 2) + '***' + clean.slice(-2);
+    }
+
+    function maskCustomerEmail(email) {
+        if (!email || !email.includes('@')) return email || '';
+        const [local, domain] = email.trim().split('@');
+        if (local.length <= 1) return local + '***@' + domain;
+        return local[0] + '***' + local[local.length - 1] + '@' + domain;
+    }
+
+    function computeScreen13CustomerSpending(scopedCust, completedOrders, fromRaw, toRaw) {
+        const periodLbl = document.getElementById('s13CustomerSpendingPeriodLabel');
+        if (periodLbl) {
+            periodLbl.innerText = 'Theo dõi mức độ chi tiêu thực tế, giá trị đơn trung bình và chính sách chiết khấu hội viên đã cấp trong kỳ: ' + formatVnDate(fromRaw) + ' - ' + formatVnDate(toRaw) + '.';
+        }
+
+        // Gom nhóm đơn hoàn tất theo customerId
+        const ordersByCust = {};
+        completedOrders.forEach(o => {
+            if (!o.customerId) return;
+            if (!ordersByCust[o.customerId]) {
+                ordersByCust[o.customerId] = [];
+            }
+            ordersByCust[o.customerId].push(o);
+        });
+
+        const totalPeriodOrders = completedOrders.length;
+
+        s13CustMasterList = scopedCust.map(c => {
+            const custOrders = ordersByCust[c.id] || [];
+            const orderCount = custOrders.length;
+            const totalSpent = custOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+            const aov = orderCount > 0 ? Math.round(totalSpent / orderCount) : 0;
+            const totalDiscount = custOrders.reduce((sum, o) => sum + (Number(o.discount) || 0), 0);
+
+            let lastOrderDate = '';
+            let lastOrderTimestamp = 0;
+            custOrders.forEach(o => {
+                if (o.date) {
+                    const ts = new Date(o.date + 'T00:00:00').getTime();
+                    if (ts > lastOrderTimestamp) {
+                        lastOrderTimestamp = ts;
+                        lastOrderDate = o.date;
+                    }
+                }
+            });
+
+            const orderPct = (totalPeriodOrders > 0 && orderCount > 0)
+                ? ((orderCount / totalPeriodOrders) * 100).toFixed(1)
+                : '0.0';
+
+            const rawName = c.name || c.fullName || 'Khách hàng #' + c.id;
+            const rawEmail = c.email || '';
+            const rawPhone = c.phone || '';
+
+            return {
+                id: c.id,
+                name: rawName,
+                maskedName: maskCustomerName(rawName),
+                email: rawEmail,
+                maskedEmail: maskCustomerEmail(rawEmail),
+                phone: rawPhone,
+                maskedPhone: maskCustomerPhone(rawPhone),
+                avatarUrl: c.avatarUrl || '',
+                tier: c.tier || c.customerTier || 'BRONZE',
+                createdAt: c.createdAt,
+                orderCount: orderCount,
+                orderPct: orderPct,
+                totalSpent: totalSpent,
+                aov: aov,
+                totalDiscount: totalDiscount,
+                lastOrderDate: lastOrderDate,
+                lastOrderDateText: lastOrderDate ? formatVnDate(lastOrderDate) : '--'
+            };
+        });
+
+        const badgeEl = document.getElementById('s13CustomerSpendingBadge');
+        if (badgeEl) {
+            badgeEl.innerText = s13CustMasterList.length + ' hội viên';
+        }
+
+        renderScreen13CustSpendingTable(1);
+    }
+
+    function onScreen13CustSearchInput() {
+        const input = document.getElementById('s13CustSearchInput');
+        s13CustSearchQuery = input ? input.value.trim().toLowerCase() : '';
+        renderScreen13CustSpendingTable(1);
+    }
+
+    function onScreen13CustSortChange() {
+        const select = document.getElementById('s13CustSortSelect');
+        if (select) s13CustSort = select.value;
+        renderScreen13CustSpendingTable(1);
+    }
+
+    function onScreen13CustPageSizeChange() {
+        const select = document.getElementById('s13CustPageSizeSelect');
+        if (select) s13CustPageSize = parseInt(select.value, 10) || 10;
+        renderScreen13CustSpendingTable(1);
+    }
+
+    function renderScreen13CustSpendingTable(page) {
+        s13CustCurrentPage = page || 1;
+        const tbody = document.getElementById('s13CustSpendingTbody');
+        const tfoot = document.getElementById('s13CustSpendingTfoot');
+        const infoEl = document.getElementById('s13CustPaginationInfo');
+        const pagerEl = document.getElementById('s13CustPaginationControls');
+        if (!tbody) return;
+
+        // 1. Tìm kiếm (filter) - hỗ trợ tìm cả chuỗi gốc lẫn chuỗi đã che
+        let filtered = s13CustMasterList;
+        if (s13CustSearchQuery) {
+            const q = s13CustSearchQuery;
+            filtered = s13CustMasterList.filter(c =>
+                c.name.toLowerCase().includes(q) ||
+                c.maskedName.toLowerCase().includes(q) ||
+                c.phone.toLowerCase().includes(q) ||
+                c.maskedPhone.toLowerCase().includes(q) ||
+                c.email.toLowerCase().includes(q) ||
+                c.maskedEmail.toLowerCase().includes(q)
+            );
+        }
+
+        // 2. Sắp xếp (sort)
+        let list = [...filtered];
+        list.sort((a, b) => {
+            if (s13CustSort === 'spent_desc') return (b.totalSpent - a.totalSpent) || (b.orderCount - a.orderCount);
+            if (s13CustSort === 'spent_asc') return (a.totalSpent - b.totalSpent) || (a.orderCount - b.orderCount);
+            if (s13CustSort === 'orders_desc') return (b.orderCount - a.orderCount) || (b.totalSpent - a.totalSpent);
+            if (s13CustSort === 'aov_desc') return (b.aov - a.aov) || (b.totalSpent - a.totalSpent);
+            if (s13CustSort === 'discount_desc') return (b.totalDiscount - a.totalDiscount) || (b.totalSpent - a.totalSpent);
+            if (s13CustSort === 'name_asc') return a.name.localeCompare(b.name, 'vi');
+            return b.totalSpent - a.totalSpent;
+        });
+
+        // 3. Phân trang (paginate)
+        const totalItems = list.length;
+        const totalPages = Math.ceil(totalItems / s13CustPageSize) || 1;
+        if (s13CustCurrentPage > totalPages) s13CustCurrentPage = totalPages;
+        if (s13CustCurrentPage < 1) s13CustCurrentPage = 1;
+
+        const startIdx = (s13CustCurrentPage - 1) * s13CustPageSize;
+        const endIdx = Math.min(startIdx + s13CustPageSize, totalItems);
+        const pagedItems = list.slice(startIdx, endIdx);
+
+        // 4. Render Rows
+        if (totalItems === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:36px; color:#94a3b8; font-weight:600;"><i class="ti ti-users-minus" style="font-size:24px; vertical-align:middle; margin-right:8px; color:#cbd5e1;"></i>Không tìm thấy hội viên nào phù hợp với bộ lọc hiện tại</td></tr>';
+            if (tfoot) tfoot.innerHTML = '';
+            if (infoEl) infoEl.innerText = 'Hiển thị 0 trong tổng số 0 hội viên';
+            if (pagerEl) pagerEl.innerHTML = '';
+            return;
+        }
+
+        let rowsHtml = '';
+        pagedItems.forEach((c, idx) => {
+            const stt = startIdx + idx + 1;
+
+            // Badge hạng chuẩn Figma có sẵn
+            let tierBadgeHtml = '';
+            if (c.tier === 'DIAMOND') {
+                tierBadgeHtml = '<span class="pill-badge diamond" style="padding:4px 10px; font-size:12px; font-weight:700;">💎 Kim Cương</span>';
+            } else if (c.tier === 'GOLD') {
+                tierBadgeHtml = '<span class="pill-badge gold" style="padding:4px 10px; font-size:12px; font-weight:700;">🥇 Vàng</span>';
+            } else if (c.tier === 'SILVER') {
+                tierBadgeHtml = '<span class="pill-badge gray" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:4px 10px; font-size:12px; font-weight:700;">🥈 Bạc</span>';
+            } else {
+                tierBadgeHtml = '<span class="pill-badge orange" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; padding:4px 10px; font-size:12px; font-weight:700;">🥉 Đồng</span>';
+            }
+
+            // Avatar viết tắt hoặc ảnh
+            let avatarHtml = '';
+            if (c.avatarUrl) {
+                avatarHtml = '<img src="${ctx}' + c.avatarUrl + '" alt="" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid #e2e8f0; flex-shrink:0;" onerror="this.style.display=\'none\'">';
+            } else {
+                const initial = c.name ? c.name.charAt(0).toUpperCase() : 'K';
+                avatarHtml = '<div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); color:#9a3412; border:1px solid #fdba74; display:grid; place-items:center; font-weight:800; font-size:13px; flex-shrink:0;">' + initial + '</div>';
+            }
+
+            rowsHtml += '<tr>' +
+                '  <td style="text-align:center; color:#64748b; font-weight:700;">' + stt + '</td>' +
+                '  <td>' +
+                '    <div style="display:flex; align-items:center; gap:10px;">' +
+                '      ' + avatarHtml +
+                '      <div style="min-width:0;">' +
+                '        <b style="font-size:13.5px; color:#1e293b; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;" title="' + escapeHtml(c.maskedName) + '">' + escapeHtml(c.maskedName) + '</b>' +
+                '        <div style="font-size:11.5px; color:#64748b; font-family:monospace; margin-top:2px; white-space:nowrap;">' +
+                '          ' + (c.maskedPhone ? '<span><i class="ti ti-phone" style="font-size:11px;"></i> ' + escapeHtml(c.maskedPhone) + '</span>' : '') +
+                '          ' + (c.maskedEmail ? '<span style="margin-left:6px; color:#94a3b8;">• ' + escapeHtml(c.maskedEmail) + '</span>' : '') +
+                '        </div>' +
+                '      </div>' +
+                '    </div>' +
+                '  </td>' +
+                '  <td style="text-align:center;">' + tierBadgeHtml + '</td>' +
+                '  <td style="text-align:center;">' +
+                '    <b style="color:#1e293b; font-size:13.5px;">' + c.orderCount + ' đơn</b>' +
+                (c.orderCount > 0 ? '<div style="font-size:11px; color:#64748b; margin-top:2px;">(' + c.orderPct + '% tổng đơn)</div>' : '') +
+                '  </td>' +
+                '  <td style="text-align:right;">' +
+                '    <b style="color:#ea580c; font-size:14px; font-weight:800;">' + formatCurrency(c.totalSpent) + '</b>' +
+                '  </td>' +
+                '  <td style="text-align:right; font-weight:700; color:#334155;">' +
+                '    ' + formatCurrency(c.aov) +
+                '  </td>' +
+                '  <td style="text-align:right;">' +
+                '    ' + (c.totalDiscount > 0 ? '<span style="color:#16a34a; font-weight:700;">−' + formatCurrency(c.totalDiscount) + '</span>' : '<span style="color:#94a3b8;">0₫</span>') +
+                '  </td>' +
+                '  <td style="text-align:center; color:#475569; font-size:12.5px; font-weight:600;">' +
+                '    ' + c.lastOrderDateText +
+                '  </td>' +
+                '  <td style="text-align:center;">' +
+                '    <button type="button" class="act-icon" onclick="openCustOrdersModal(' + c.id + ')" style="background:#fff; border:1px solid #fed7aa; color:#ea580c; border-radius:8px; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;" title="Xem lịch sử đơn của ' + escapeHtml(c.maskedName) + '">' +
+                '      <i class="ti ti-list-search" style="font-size:16px;"></i>' +
+                '    </button>' +
+                '  </td>' +
+                '</tr>';
+        });
+
+        tbody.innerHTML = rowsHtml;
+
+        // 5. Render TFOOT Tổng hợp
+        if (tfoot) {
+            const activeCustCount = list.filter(c => c.orderCount > 0).length;
+            const totalOrders = list.reduce((sum, c) => sum + c.orderCount, 0);
+            const totalRevenue = list.reduce((sum, c) => sum + c.totalSpent, 0);
+            const totalDiscount = list.reduce((sum, c) => sum + c.totalDiscount, 0);
+            const overallAov = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
+            tfoot.innerHTML = '<tr>' +
+                '  <td colspan="3" style="font-weight:800; color:#1e293b; padding:12px 16px;">' +
+                '    <i class="ti ti-check" style="color:#ea580c; margin-right:4px;"></i> Tổng cộng (' + activeCustCount + ' hội viên có đơn / ' + totalItems + ' hội viên)' +
+                '  </td>' +
+                '  <td style="text-align:center; font-weight:800; color:#1e293b;">' + totalOrders.toLocaleString('vi-VN') + ' đơn</td>' +
+                '  <td style="text-align:right; font-weight:800; color:#ea580c; font-size:14.5px;">' + formatCurrency(totalRevenue) + '</td>' +
+                '  <td style="text-align:right; font-weight:800; color:#334155;">' + formatCurrency(overallAov) + '</td>' +
+                '  <td style="text-align:right; font-weight:800; color:#16a34a;">−' + formatCurrency(totalDiscount) + '</td>' +
+                '  <td colspan="2" style="text-align:center; font-size:12px; color:#64748b; font-weight:600;">Toàn bộ kỳ lọc</td>' +
+                '</tr>';
+        }
+
+        // 6. Cập nhật thông tin phân trang & Pager Buttons
+        if (infoEl) {
+            infoEl.innerHTML = 'Hiển thị <b>' + (startIdx + 1) + ' - ' + endIdx + '</b> trong tổng số <b>' + totalItems + '</b> hội viên';
+        }
+
+        if (pagerEl) {
+            if (totalPages <= 1) {
+                pagerEl.innerHTML = '';
+            } else {
+                let pagerHtml = '';
+                if (s13CustCurrentPage > 1) {
+                    pagerHtml += '<a href="javascript:void(0)" onclick="renderScreen13CustSpendingTable(1)" title="Về trang đầu" style="padding:0 9px; font-size:12px; font-weight:700">« Đầu</a>';
+                    pagerHtml += '<a href="javascript:void(0)" onclick="renderScreen13CustSpendingTable(' + (s13CustCurrentPage - 1) + ')" title="Trang trước" style="padding:0 9px; font-size:12px; font-weight:700">‹ Trước</a>';
+                }
+
+                const startP = Math.max(1, s13CustCurrentPage - 2);
+                const endP = Math.min(totalPages, s13CustCurrentPage + 2);
+
+                if (startP > 1) {
+                    pagerHtml += '<span style="color:#94a3b8; font-weight:700; padding:0 3px">...</span>';
+                }
+
+                for (let p = startP; p <= endP; p++) {
+                    if (p === s13CustCurrentPage) {
+                        pagerHtml += '<strong style="background:#ea580c; color:#fff; border-color:#ea580c;">' + p + '</strong>';
+                    } else {
+                        pagerHtml += '<a href="javascript:void(0)" onclick="renderScreen13CustSpendingTable(' + p + ')">' + p + '</a>';
+                    }
+                }
+
+                if (endP < totalPages) {
+                    pagerHtml += '<span style="color:#94a3b8; font-weight:700; padding:0 3px">...</span>';
+                }
+
+                if (s13CustCurrentPage < totalPages) {
+                    pagerHtml += '<a href="javascript:void(0)" onclick="renderScreen13CustSpendingTable(' + (s13CustCurrentPage + 1) + ')" title="Trang tiếp theo" style="padding:0 9px; font-size:12px; font-weight:700">Sau ›</a>';
+                    pagerHtml += '<a href="javascript:void(0)" onclick="renderScreen13CustSpendingTable(' + totalPages + ')" title="Đến trang cuối" style="padding:0 9px; font-size:12px; font-weight:700">Cuối »</a>';
+                }
+
+                pagerEl.innerHTML = pagerHtml;
+            }
+        }
+    }
+
+    function exportScreen13CustomerSpendingCsv() {
+        const fromRaw = document.getElementById('s13FilterFrom')?.value || '2026-10-01';
+        const toRaw = document.getElementById('s13FilterTo')?.value || '2026-10-31';
+
+        let list = s13CustMasterList;
+        if (s13CustSearchQuery) {
+            const q = s13CustSearchQuery;
+            list = list.filter(c =>
+                c.name.toLowerCase().includes(q) ||
+                c.maskedName.toLowerCase().includes(q) ||
+                c.phone.toLowerCase().includes(q) ||
+                c.maskedPhone.toLowerCase().includes(q) ||
+                c.email.toLowerCase().includes(q) ||
+                c.maskedEmail.toLowerCase().includes(q)
+            );
+        }
+
+        let csv = '\uFEFF"STT","HỌ VÀ TÊN","SỐ ĐIỆN THOẠI","EMAIL","HẠNG HỘI VIÊN","SỐ ĐƠN HOÀN TẤT","TỔNG CHI TIÊU (VNĐ)","GIÁ TRỊ ĐƠN TB (VNĐ)","ƯU ĐÃI ĐÃ NHẬN (VNĐ)","ĐƠN GẦN NHẤT"\n';
+
+        list.forEach((c, idx) => {
+            const tierName = (c.tier === 'DIAMOND' ? 'Kim Cương' : (c.tier === 'GOLD' ? 'Vàng' : (c.tier === 'SILVER' ? 'Bạc' : 'Đồng')));
+            csv += (idx + 1) + ',"' +
+                c.maskedName.replace(/"/g, '""') + '","' +
+                c.maskedPhone + '","' +
+                c.maskedEmail.replace(/"/g, '""') + '","' +
+                tierName + '",' +
+                c.orderCount + ',' +
+                c.totalSpent + ',' +
+                c.aov + ',' +
+                c.totalDiscount + ',"' +
+                c.lastOrderDateText + '"\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Chi_tiet_chi_tieu_hoi_vien_' + fromRaw.replace(/-/g, '') + '_den_' + toRaw.replace(/-/g, '') + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+
+    // ========================================================
+    // POPUP MODAL: LỊCH SỬ ĐƠN HÀNG HỘI VIÊN (Phương án 2)
+    // ========================================================
+    function getOrderStatusBadge(status) {
+        switch (status) {
+            case 'COMPLETED':
+                return '<span class="pill-badge green" style="background:#dcfce7; color:#166534; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">✓ Hoàn thành</span>';
+            case 'SHIPPED':
+                return '<span class="pill-badge cyan" style="background:#cffafe; color:#155e75; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">🚚 Đang giao</span>';
+            case 'PROCESSING':
+                return '<span class="pill-badge blue" style="background:#dbeafe; color:#1e40af; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">📦 Đang xử lý</span>';
+            case 'CONFIRMED':
+                return '<span class="pill-badge gold" style="background:#fef3c7; color:#92400e; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">⏳ Đã xác nhận</span>';
+            case 'PENDING':
+                return '<span class="pill-badge orange" style="background:#fff7ed; color:#c2410c; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">🕒 Chờ xác nhận</span>';
+            case 'CANCELLED':
+                return '<span class="pill-badge red" style="background:#fee2e2; color:#991b1b; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">✕ Đã hủy</span>';
+            case 'RETURNED':
+                return '<span class="pill-badge gray" style="background:#f1f5f9; color:#475569; font-weight:700; font-size:11px; padding:3px 8px; border-radius:6px;">↩ Trả hàng</span>';
+            default:
+                return '<span class="pill-badge gray" style="font-weight:700; font-size:11px;">' + (status || '--') + '</span>';
+        }
+    }
+
+    function openCustOrdersModal(customerId) {
+        const cust = s13CustMasterList.find(c => c.id === customerId);
+        if (!cust) return;
+
+        const modal = document.getElementById('custOrdersHistoryModal');
+        const nameEl = document.getElementById('modalCustName');
+        const tierEl = document.getElementById('modalCustTierBadge');
+        const subEl = document.getElementById('modalCustSub');
+        const tbody = document.getElementById('modalCustOrdersTbody');
+        const summaryEl = document.getElementById('modalCustOrdersSummary');
+
+        if (!modal) return;
+
+        if (nameEl) nameEl.innerText = cust.maskedName;
+
+        if (tierEl) {
+            if (cust.tier === 'DIAMOND') tierEl.innerHTML = '<span class="pill-badge diamond" style="padding:3px 8px; font-size:11px; font-weight:700;">💎 Kim Cương</span>';
+            else if (cust.tier === 'GOLD') tierEl.innerHTML = '<span class="pill-badge gold" style="padding:3px 8px; font-size:11px; font-weight:700;">🥇 Vàng</span>';
+            else if (cust.tier === 'SILVER') tierEl.innerHTML = '<span class="pill-badge gray" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:3px 8px; font-size:11px; font-weight:700;">🥈 Bạc</span>';
+            else tierEl.innerHTML = '<span class="pill-badge orange" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; padding:3px 8px; font-size:11px; font-weight:700;">🥉 Đồng</span>';
+        }
+
+        if (subEl) {
+            subEl.innerHTML = 'SĐT: <b>' + (cust.maskedPhone || '--') + '</b> &bull; Email: <b>' + (cust.maskedEmail || '--') + '</b> &bull; Tổng chi tiêu: <b style="color:#ea580c;">' + formatCurrency(cust.totalSpent) + '</b> (' + cust.orderCount + ' đơn)';
+        }
+
+        // Lọc tất cả đơn của khách hàng này trong hệ thống từ ALL_ORDERS_DATA
+        const custOrders = ALL_ORDERS_DATA.filter(o => o.customerId === customerId);
+        custOrders.sort((a, b) => (new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()) || (b.id - a.id));
+
+        if (custOrders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:32px; color:#94a3b8; font-weight:600;"><i class="ti ti-package-off" style="font-size:22px; vertical-align:middle; margin-right:6px;"></i>Hội viên này chưa phát sinh đơn hàng nào</td></tr>';
+            if (summaryEl) summaryEl.innerText = 'Tổng cộng: 0 đơn hàng';
+        } else {
+            let rowsHtml = '';
+            let totalSum = 0;
+            let totalDiscount = 0;
+
+            custOrders.forEach(o => {
+                totalSum += Number(o.total) || 0;
+                totalDiscount += Number(o.discount) || 0;
+                const payText = o.pay === 'VNPAY' ? '<span style="color:#0284c7; font-weight:700;">VNPay</span>' : '<span style="color:#d97706; font-weight:700;">COD</span>';
+                const detailUrl = '${ctx}/staff/orders?orderId=' + o.id;
+
+                rowsHtml += '<tr>' +
+                    '  <td style="text-align:center; font-weight:700;"><b style="color:#1e293b;">#ORD-' + o.id + '</b></td>' +
+                    '  <td style="text-align:center; color:#475569; font-weight:600;">' + (typeof formatVnDate === 'function' ? formatVnDate(o.date) : o.date) + '</td>' +
+                    '  <td style="text-align:center;">' + payText + '</td>' +
+                    '  <td style="text-align:right; font-weight:800; color:#1e293b;">' + formatCurrency(o.total) + '</td>' +
+                    '  <td style="text-align:right; color:#16a34a; font-weight:700;">' + (o.discount > 0 ? ('−' + formatCurrency(o.discount)) : '0₫') + '</td>' +
+                    '  <td style="text-align:center;">' + getOrderStatusBadge(o.status) + '</td>' +
+                    '  <td style="text-align:center;">' +
+                    '    <a href="' + detailUrl + '" target="_blank" style="display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:#ea580c; background:#fff7ed; border:1px solid #fed7aa; padding:4px 9px; border-radius:6px; text-decoration:none;" title="Xem chi tiết đơn #ORD-' + o.id + '">' +
+                    '      <i class="ti ti-external-link" style="font-size:13px;"></i> Chi tiết' +
+                    '    </a>' +
+                    '  </td>' +
+                    '</tr>';
+            });
+
+            tbody.innerHTML = rowsHtml;
+            if (summaryEl) {
+                summaryEl.innerHTML = 'Tổng cộng: <b>' + custOrders.length + ' đơn hàng</b> &bull; Doanh số: <b style="color:#ea580c;">' + formatCurrency(totalSum) + '</b> &bull; Ưu đãi: <b style="color:#16a34a;">−' + formatCurrency(totalDiscount) + '</b>';
+            }
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeCustOrdersModal() {
+        const modal = document.getElementById('custOrdersHistoryModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeCustOrdersModal();
+    });
+
+
     function exportRevenueReportCsv() {
         exportDailyAuditCsv();
     }
@@ -3269,14 +3851,10 @@
         const allCust = Array.isArray(ALL_CUSTOMERS_DATA) ? ALL_CUSTOMERS_DATA : [];
         const allOrd = Array.isArray(ALL_ORDERS_DATA) ? ALL_ORDERS_DATA : [];
 
-        // Tính khoảng ngày trước đó để so sánh tăng trưởng
-        const fromD = new Date(fromRaw + 'T00:00:00');
-        const toD = new Date(toRaw + 'T23:59:59');
-        const durationMs = toD.getTime() - fromD.getTime();
-        const prevToD = new Date(fromD.getTime() - 1);
-        const prevFromD = new Date(prevToD.getTime() - durationMs);
-        const prevFromIso = prevFromD.toISOString().slice(0, 10);
-        const prevToIso = prevToD.toISOString().slice(0, 10);
+        // 1. NGÀY CHỐT HỘI VIÊN LŨY KẾ KHÔNG ĐƯỢC VƯỢT QUÁ NGÀY HIỆN TẠI (TRÁNH THÁNG TƯƠNG LAI)
+        const todayObj = new Date();
+        const todayIso = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
+        const effectiveCutoff = (toRaw > todayIso) ? todayIso : toRaw;
 
         // Bảng tra cứu hạng hội viên theo customerId để đảm bảo 100% khớp đúng dù là từ JSP render hay API polling
         const custTierMap = {};
@@ -3286,12 +3864,25 @@
         });
         const getOrderTier = (o) => (o.customerTier || o.tier || (o.customerId ? custTierMap[o.customerId] : null) || 'BRONZE');
 
+        // Danh sách hội viên lũy kế tính đến cuối kỳ lọc (cắt ở effectiveCutoff)
+        const periodCust = allCust.filter(c => c.createdAt <= effectiveCutoff);
+
         // Lọc khách hàng theo hạng (nếu có chọn)
-        const scopedCust = tierVal ? allCust.filter(c => (c.tier || c.customerTier) === tierVal) : allCust;
+        const scopedCust = tierVal ? periodCust.filter(c => (c.tier || c.customerTier) === tierVal) : periodCust;
         const totalMembers = scopedCust.length;
 
         // Hội viên mới gia nhập trong kỳ
         const newMembers = scopedCust.filter(c => c.createdAt >= fromRaw && c.createdAt <= toRaw).length;
+
+        // Tính khoảng ngày trước đó để so sánh tăng trưởng
+        const fromD = new Date(fromRaw + 'T00:00:00');
+        const toD = new Date(toRaw + 'T23:59:59');
+        const durationMs = toD.getTime() - fromD.getTime();
+        const prevToD = new Date(fromD.getTime() - 1);
+        const prevFromD = new Date(prevToD.getTime() - durationMs);
+        const prevFromIso = prevFromD.toISOString().slice(0, 10);
+        const prevToIso = prevToD.toISOString().slice(0, 10);
+
         const prevNewMembers = scopedCust.filter(c => c.createdAt >= prevFromIso && c.createdAt <= prevToIso).length;
 
         let newGrowthHtml = '';
@@ -3303,14 +3894,19 @@
             newGrowthHtml = '<span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:6px; background:#dcfce7; color:#166534; font-weight:700;">+' + newMembers + ' mới</span><span style="color:#64748b; font-weight:600;">trong kỳ lọc</span>';
         }
 
-        // Tăng trưởng tổng quy mô
+                // Tăng trưởng tổng quy mô (kết hợp số lượng cụ thể và tỷ lệ %)
         const prevTotalMembers = scopedCust.filter(c => c.createdAt < fromRaw).length;
         let totalGrowthHtml = '';
         if (prevTotalMembers > 0) {
             const totalGrowthRate = ((totalMembers - prevTotalMembers) / prevTotalMembers * 100).toFixed(1);
-            totalGrowthHtml = '<span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> ' + totalGrowthRate + '%</span><span style="color:#64748b; font-weight:600;">tăng trưởng tổng quy mô</span>';
+            const added = totalMembers - prevTotalMembers;
+            if (added > 0) {
+                totalGrowthHtml = '<span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> +' + added + ' mới (+' + totalGrowthRate + '%)</span><span style="color:#64748b; font-weight:600;">trong kỳ lọc</span>';
+            } else {
+                totalGrowthHtml = '<span style="color:#64748b; font-weight:700;">Không đổi quy mô</span><span style="color:#64748b; font-weight:600;">trong kỳ lọc</span>';
+            }
         } else {
-            totalGrowthHtml = '<span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> 100%</span><span style="color:#64748b; font-weight:600;">quy mô hiện tại</span>';
+            totalGrowthHtml = '<span style="color:#16a34a; font-weight:800; display:inline-flex; align-items:center; gap:2px;"><i class="ti ti-arrow-up"></i> +' + totalMembers + ' hội viên</span><span style="color:#64748b; font-weight:600;">quy mô lũy kế</span>';
         }
 
         // Đơn hàng COMPLETED trong kỳ
@@ -3339,7 +3935,7 @@
             kpiOrdersRatio.innerHTML = '<span class="pill-badge green" style="font-size:11px; padding:3px 8px; border-radius:6px; background:#dcfce7; color:#166534; font-weight:700;">' + activeRatio + '% tỷ lệ</span><span style="color:#64748b; font-weight:600;">hội viên mua sắm</span>';
         }
 
-        // 2. THỐNG KÊ CHI TIẾT THEO 4 HẠNG
+        // 2. THỐNG KÊ CHI TIẾT THEO 4 HẠNG (DỰA TRÊN periodCust LŨY KẾ ĐẾN KỲ LỌC)
         const tierStats = {
             'BRONZE': { name: 'Đồng', en: 'Bronze', color: '#d97706', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 },
             'SILVER': { name: 'Bạc', en: 'Silver', color: '#64748b', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 },
@@ -3347,11 +3943,11 @@
             'DIAMOND': { name: 'Kim cương', en: 'Diamond', color: '#06b6d4', count: 0, pct: 0, newCount: 0, orders: 0, revenue: 0, aov: 0 }
         };
 
-        const totalAllCust = allCust.length || 1;
+        const totalPeriodCust = periodCust.length || 1;
         ['BRONZE', 'SILVER', 'GOLD', 'DIAMOND'].forEach(t => {
-            const mList = allCust.filter(c => (c.tier || c.customerTier) === t);
+            const mList = periodCust.filter(c => (c.tier || c.customerTier) === t);
             tierStats[t].count = mList.length;
-            tierStats[t].pct = (mList.length / totalAllCust * 100).toFixed(1);
+            tierStats[t].pct = (mList.length / totalPeriodCust * 100).toFixed(1);
             tierStats[t].newCount = mList.filter(c => c.createdAt >= fromRaw && c.createdAt <= toRaw).length;
 
             const tOrders = completedOrders.filter(o => getOrderTier(o) === t);
@@ -3362,10 +3958,10 @@
 
         // 3. CẬP NHẬT BIỂU ĐỒ DONUT VÀ 4 THẺ CHỈ SỐ PHÂN BỔ
         const C = 477.5; // Chu vi vòng tròn r=76
-        const lenB = (tierStats.BRONZE.count / totalAllCust) * C;
-        const lenS = (tierStats.SILVER.count / totalAllCust) * C;
-        const lenG = (tierStats.GOLD.count / totalAllCust) * C;
-        const lenD = (tierStats.DIAMOND.count / totalAllCust) * C;
+        const lenB = (tierStats.BRONZE.count / totalPeriodCust) * C;
+        const lenS = (tierStats.SILVER.count / totalPeriodCust) * C;
+        const lenG = (tierStats.GOLD.count / totalPeriodCust) * C;
+        const lenD = (tierStats.DIAMOND.count / totalPeriodCust) * C;
 
         const elB = document.getElementById('s13DonutBronze');
         const elS = document.getElementById('s13DonutSilver');
@@ -3418,9 +4014,9 @@
                 }
             });
         } else {
-            if (centerVal) centerVal.innerText = allCust.length.toLocaleString('vi-VN');
+            if (centerVal) centerVal.innerText = periodCust.length.toLocaleString('vi-VN');
             if (centerLabel) centerLabel.innerText = 'Tổng số hội viên';
-            if (donutSubtitle) donutSubtitle.innerText = 'Cơ cấu ' + allCust.length + ' hội viên thực tế theo các cấp bậc';
+            if (donutSubtitle) donutSubtitle.innerText = 'Cơ cấu ' + periodCust.length + ' hội viên thực tế theo các cấp bậc';
 
             Object.keys(donutSegments).forEach(k => {
                 if (donutSegments[k]) {
@@ -3448,59 +4044,179 @@
         if (cDc) cDc.innerText = tierStats.DIAMOND.count.toLocaleString('vi-VN');
         if (cDp) cDp.innerText = tierStats.DIAMOND.pct + '%';
 
-        // 4. BIẾN ĐỘNG SỐ LƯỢNG HỘI VIÊN THEO HẠNG QUA CÁC THÁNG (DỮ LIỆU THỰC TẾ)
+        // 4. BIẾN ĐỘNG SỐ LƯỢNG HỘI VIÊN THEO HẠNG (QUÝ HOẶC THÁNG THEO BỘ LỌC)
         const monthlyContainer = document.getElementById('s13MonthlyTrendContainer');
+        const trendSubtitle = document.getElementById('s13MonthlyTrendSubtitle');
+        const trendTitle = document.getElementById('s13MonthlyTrendTitle');
+        const trendFooterNote = document.getElementById('s13MonthlyTrendFooterNote');
+
         if (monthlyContainer) {
-            const targetDate = new Date(toRaw + 'T00:00:00');
-            let months = [];
-            for (let i = 0; i < 4; i++) {
-                const d = new Date(targetDate.getFullYear(), targetDate.getMonth() - i, 1);
-                const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-                const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-                const endYmd = ym + '-' + String(lastDay).padStart(2, '0');
-                months.push({ ym: ym, endYmd: endYmd, label: 'Tháng ' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() });
+            // Kiểm tra xem kỳ lọc có phải là lọc "Năm nay" hoặc khoảng thời gian dài > 180 ngày hay không
+            const isYearFilter = (fromRaw.startsWith(toRaw.slice(0, 4)) && fromRaw.endsWith('-01-01') && toRaw.endsWith('-12-31'))
+                                 || (new Date(toRaw).getTime() - new Date(fromRaw).getTime() > 180 * 24 * 3600 * 1000);
+            const filterYear = parseInt(fromRaw.slice(0, 4)) || todayObj.getFullYear();
+
+            if (trendTitle) {
+                trendTitle.innerText = isYearFilter 
+                    ? ('Biến động số lượng hội viên theo hạng qua 4 Quý năm ' + filterYear)
+                    : 'Biến động số lượng hội viên theo hạng qua các tháng';
+            }
+
+            let periods = [];
+
+            if (isYearFilter) {
+                // CHIA 1 NĂM THÀNH 4 QUÝ (QUÝ 1, QUÝ 2, QUÝ 3, QUÝ 4)
+                const isCurrentYear = (filterYear === todayObj.getFullYear());
+                const q4EndYmd = (isCurrentYear && todayIso < filterYear + '-12-31') ? todayIso : filterYear + '-12-31';
+
+                periods = [
+                    {
+                        label: 'Quý 4/' + filterYear,
+                        endYmd: q4EndYmd,
+                        prevEndYmd: filterYear + '-09-30',
+                        isCurrent: isCurrentYear,
+                        tagText: isCurrentYear ? ' (Hiện tại)' : ''
+                    },
+                    {
+                        label: 'Quý 3/' + filterYear,
+                        endYmd: filterYear + '-09-30',
+                        prevEndYmd: filterYear + '-06-30',
+                        isCurrent: false,
+                        tagText: ''
+                    },
+                    {
+                        label: 'Quý 2/' + filterYear,
+                        endYmd: filterYear + '-06-30',
+                        prevEndYmd: filterYear + '-03-31',
+                        isCurrent: false,
+                        tagText: ''
+                    },
+                    {
+                        label: 'Quý 1/' + filterYear,
+                        endYmd: filterYear + '-03-31',
+                        prevEndYmd: (filterYear - 1) + '-12-31',
+                        isCurrent: false,
+                        tagText: ''
+                    }
+                ];
+
+                if (trendSubtitle) {
+                    trendSubtitle.innerText = 'Thước đo tăng trưởng cơ cấu từ Quý 1/' + filterYear + ' đến Quý 4/' + filterYear + (isCurrentYear ? ' (Hiện tại)' : '');
+                }
+                if (trendFooterNote) {
+                    trendFooterNote.innerText = '↗ Tăng trưởng cơ cấu qua 4 Quý';
+                }
+            } else {
+                // HIỂN THỊ THEO 4 THÁNG
+                let targetDate = new Date(toRaw + 'T00:00:00');
+                if (targetDate > todayObj) {
+                    targetDate = new Date(todayObj.getFullYear(), todayObj.getMonth(), 1);
+                } else {
+                    targetDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+                }
+
+                for (let i = 0; i < 4; i++) {
+                    const d = new Date(targetDate.getFullYear(), targetDate.getMonth() - i, 1);
+                    const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                    const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                    const endYmd = ym + '-' + String(lastDay).padStart(2, '0');
+
+                    const prevM = new Date(targetDate.getFullYear(), targetDate.getMonth() - i - 1, 1);
+                    const prevLastDay = new Date(prevM.getFullYear(), prevM.getMonth() + 1, 0).getDate();
+                    const prevEndYmd = prevM.getFullYear() + '-' + String(prevM.getMonth() + 1).padStart(2, '0') + '-' + String(prevLastDay).padStart(2, '0');
+
+                    const isCurrent = (i === 0);
+                    const isFullMonthFilter = (fromRaw.slice(0, 7) === toRaw.slice(0, 7) && fromRaw.slice(0, 7) === ym && fromRaw.endsWith('-01'));
+
+                    periods.push({
+                        label: 'Tháng ' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(),
+                        endYmd: endYmd,
+                        prevEndYmd: prevEndYmd,
+                        isCurrent: isCurrent,
+                        tagText: isCurrent ? (isFullMonthFilter ? ' (Kỳ lọc)' : ' (Hiện tại)') : ''
+                    });
+                }
+
+                if (trendSubtitle && periods.length > 0) {
+                    const oldestLabel = periods[periods.length - 1].label;
+                    const newestLabel = periods[0].label;
+                    trendSubtitle.innerText = 'Thước đo tăng trưởng cơ cấu từ ' + oldestLabel + ' đến ' + newestLabel;
+                }
+                if (trendFooterNote) {
+                    trendFooterNote.innerText = '↗ Tăng trưởng đều 4 tháng';
+                }
             }
 
             let trendHtml = '';
-            months.forEach((m, idx) => {
-                const mCust = allCust.filter(c => c.createdAt <= m.endYmd);
+            periods.forEach((p, idx) => {
+                const mCust = allCust.filter(c => c.createdAt <= p.endYmd);
                 const mTotal = mCust.length;
                 const mB = mCust.filter(c => (c.tier || c.customerTier) === 'BRONZE').length;
                 const mS = mCust.filter(c => (c.tier || c.customerTier) === 'SILVER').length;
                 const mG = mCust.filter(c => (c.tier || c.customerTier) === 'GOLD').length;
                 const mD = mCust.filter(c => (c.tier || c.customerTier) === 'DIAMOND').length;
 
-                const prevM = new Date(targetDate.getFullYear(), targetDate.getMonth() - idx - 1, 1);
-                const prevLastDay = new Date(prevM.getFullYear(), prevM.getMonth() + 1, 0).getDate();
-                const prevEndYmd = prevM.getFullYear() + '-' + String(prevM.getMonth() + 1).padStart(2, '0') + '-' + String(prevLastDay).padStart(2, '0');
-                const prevTotal = allCust.filter(c => c.createdAt <= prevEndYmd).length;
-                const growthPct = prevTotal > 0 ? (((mTotal - prevTotal) / prevTotal) * 100).toFixed(1) : '100.0';
+                const prevCust = allCust.filter(c => c.createdAt <= p.prevEndYmd);
+                const prevTotal = prevCust.length;
+                const newCount = mTotal - prevTotal;
+
+                let barTitleText = '';
+                if (tierVal && tierStats[tierVal]) {
+                    const prevTierCount = prevCust.filter(c => (c.tier || c.customerTier) === tierVal).length;
+                    const curTierCount = (tierVal === 'BRONZE' ? mB : (tierVal === 'SILVER' ? mS : (tierVal === 'GOLD' ? mG : mD)));
+                    const tierNewCount = curTierCount - prevTierCount;
+                    let tierGrowthPct = prevTierCount > 0 ? (((curTierCount - prevTierCount) / prevTierCount) * 100).toFixed(1) : (curTierCount > 0 ? '100.0' : '0.0');
+                    const isUp = curTierCount >= prevTierCount;
+
+                    if (curTierCount === 0) {
+                        barTitleText = '<b style="color:#64748b;">0</b> ' + tierStats[tierVal].name + ' <span style="color:#94a3b8; font-weight:600;">/ ' + mTotal + ' tổng</span>';
+                    } else if (prevTierCount > 0) {
+                        barTitleText = '<b style="color:#1e293b;">' + curTierCount + '</b> ' + tierStats[tierVal].name + ' <span style="color:#64748b; font-weight:600;">/ ' + mTotal + ' tổng (+' + tierNewCount + ' mới • +' + tierGrowthPct + '%)</span>';
+                    } else {
+                        barTitleText = '<b style="color:#1e293b;">' + curTierCount + '</b> ' + tierStats[tierVal].name + ' <span style="color:#64748b; font-weight:600;">/ ' + mTotal + ' tổng (+' + curTierCount + ' mới)</span>';
+                    }
+                } else {
+                    if (mTotal === 0) {
+                        barTitleText = '0 hội viên <span style="color:#94a3b8; font-weight:600;">(Chưa phát sinh)</span>';
+                    } else if (prevTotal > 0) {
+                        const growthPct = (((mTotal - prevTotal) / prevTotal) * 100).toFixed(1);
+                        barTitleText = mTotal.toLocaleString('vi-VN') + ' hội viên <span style="color:#64748b; font-weight:600;">(+' + newCount + ' mới • +' + growthPct + '%)</span>';
+                    } else {
+                        barTitleText = mTotal.toLocaleString('vi-VN') + ' hội viên <span style="color:#64748b; font-weight:600;">(+' + mTotal + ' mới)</span>';
+                    }
+                }
 
                 const pB = mTotal > 0 ? (mB / mTotal * 100).toFixed(1) : 0;
                 const pS = mTotal > 0 ? (mS / mTotal * 100).toFixed(1) : 0;
                 const pG = mTotal > 0 ? (mG / mTotal * 100).toFixed(1) : 0;
                 const pD = mTotal > 0 ? (mD / mTotal * 100).toFixed(1) : 0;
 
-                const isCurrent = (idx === 0);
+                // Opacity làm nổi bật khi người dùng lọc theo hạng
+                const opB = (!tierVal || tierVal === 'BRONZE') ? '1' : '0.22';
+                const opS = (!tierVal || tierVal === 'SILVER') ? '1' : '0.22';
+                const opG = (!tierVal || tierVal === 'GOLD') ? '1' : '0.22';
+                const opD = (!tierVal || tierVal === 'DIAMOND') ? '1' : '0.22';
 
                 trendHtml += '<div>' +
                     '<div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px;">' +
-                        '<span style="font-weight:700; color:' + (isCurrent ? '#ea580c' : '#334155') + '; display:inline-flex; align-items:center; gap:4px;">' +
-                            (isCurrent ? '<i class="ti ti-caret-down" style="font-size:13px;"></i> ' : '') + m.label + (isCurrent ? ' (Kỳ lọc)' : '') +
+                        '<span style="font-weight:700; color:' + (p.isCurrent ? '#ea580c' : '#334155') + '; display:inline-flex; align-items:center; gap:4px;">' +
+                            (p.isCurrent ? '<i class="ti ti-caret-down" style="font-size:13px;"></i> ' : '') + p.label + p.tagText +
                         '</span>' +
-                        '<span style="font-weight:' + (isCurrent ? '800' : '700') + '; color:' + (isCurrent ? '#ea580c' : '#1e293b') + ';">' + mTotal.toLocaleString('vi-VN') + ' hội viên (+' + growthPct + '%)</span>' +
+                        '<span style="font-weight:' + (p.isCurrent ? '800' : '700') + '; color:' + (p.isCurrent ? '#ea580c' : '#1e293b') + ';">' + barTitleText + '</span>' +
                     '</div>' +
                     '<div style="height:12px; border-radius:99px; overflow:hidden; display:flex; background:#e2e8f0;">' +
-                        '<div style="width:' + pB + '%; background:#d97706;" title="Đồng: ' + mB + '"></div>' +
-                        '<div style="width:' + pS + '%; background:#64748b;" title="Bạc: ' + mS + '"></div>' +
-                        '<div style="width:' + pG + '%; background:#f59e0b;" title="Vàng: ' + mG + '"></div>' +
-                        '<div style="width:' + pD + '%; background:#06b6d4;" title="Kim cương: ' + mD + '"></div>' +
+                        (mTotal > 0 ? (
+                            '<div style="width:' + pB + '%; background:#d97706; opacity:' + opB + '; transition:all 0.3s ease;" title="Đồng: ' + mB + '"></div>' +
+                            '<div style="width:' + pS + '%; background:#64748b; opacity:' + opS + '; transition:all 0.3s ease;" title="Bạc: ' + mS + '"></div>' +
+                            '<div style="width:' + pG + '%; background:#f59e0b; opacity:' + opG + '; transition:all 0.3s ease;" title="Vàng: ' + mG + '"></div>' +
+                            '<div style="width:' + pD + '%; background:#06b6d4; opacity:' + opD + '; transition:all 0.3s ease;" title="Kim cương: ' + mD + '"></div>'
+                        ) : '<div style="width:100%; background:#f1f5f9;"></div>') +
                     '</div>' +
                     '<div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#64748b; margin-top:3px;">' +
-                        '<span>Đồng: ' + mB + '</span>' +
-                        '<span>Bạc: ' + mS + '</span>' +
-                        '<span>Vàng: ' + mG + '</span>' +
-                        '<span>Kim cương: ' + mD + '</span>' +
+                        '<span style="' + (tierVal === 'BRONZE' ? 'color:#d97706; font-weight:800;' : '') + '">Đồng: ' + mB + '</span>' +
+                        '<span style="' + (tierVal === 'SILVER' ? 'color:#475569; font-weight:800;' : '') + '">Bạc: ' + mS + '</span>' +
+                        '<span style="' + (tierVal === 'GOLD' ? 'color:#b45309; font-weight:800;' : '') + '">Vàng: ' + mG + '</span>' +
+                        '<span style="' + (tierVal === 'DIAMOND' ? 'color:#0891b2; font-weight:800;' : '') + '">Kim cương: ' + mD + '</span>' +
                     '</div>' +
                 '</div>';
             });
@@ -3508,6 +4224,8 @@
         }
 
         // 5. ROW 3: HÀNH VI MUA SẮM (TỶ TRỌNG DOANH THU & AOV THEO HẠNG)
+        
+
         const totalRev = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
         const pRevD = totalRev > 0 ? (tierStats.DIAMOND.revenue / totalRev * 100).toFixed(0) : 0;
         const pRevG = totalRev > 0 ? (tierStats.GOLD.revenue / totalRev * 100).toFixed(0) : 0;
@@ -3654,6 +4372,9 @@
         if (elTotO) elTotO.innerText = footOrders.toLocaleString('vi-VN') + ' đơn';
         if (elTotR) elTotR.innerText = footRev.toLocaleString('vi-VN') + '₫';
         if (elAvgA) elAvgA.innerText = footAov.toLocaleString('vi-VN') + '₫';
+
+        // 8. ROW 6: BẢNG CHI TIẾT CHI TIÊU TỪNG HỘI VIÊN THEO KỲ LỌC
+        computeScreen13CustomerSpending(scopedCust, completedOrders, fromRaw, toRaw);
     }
 
     function exportScreen13TableCsv() {
@@ -3844,12 +4565,17 @@
                 }
 
                 // Cập nhật ALL_ORDERS_DATA, ALL_CUSTOMERS_DATA và các màn hình Screen 12, Screen 13
-                if (Array.isArray(data.stats.allOrders)) {
-                    ALL_ORDERS_DATA = data.stats.allOrders;
+                                if (Array.isArray(data.stats.allOrders)) {
+                    ALL_ORDERS_DATA = data.stats.allOrders.map(o => ({
+                        ...o,
+                        tier: o.tier || o.customerTier,
+                        customerTier: o.customerTier || o.tier,
+                        cats: o.categoryAmounts || o.cats || (typeof o.catsJson === 'string' ? JSON.parse(o.catsJson) : o.catsJson) || {}
+                    }));
                     applyScreen12Filter();
                 }
                 if (Array.isArray(data.stats.allCustomers)) {
-                    ALL_CUSTOMERS_DATA = data.stats.allCustomers;
+                    ALL_CUSTOMERS_DATA = data.stats.allCustomers.map(c => Object.assign({}, c, { name: c.name || c.fullName || '' }));
                     applyScreen13Filter();
                 }
             }

@@ -16,7 +16,8 @@ public class ProductLotGroupDto {
     private String imageUrl;
     private String categoryName;
     private int lowStockThreshold;
-    private long totalOnHand;       // Tổng tồn thực tế
+    private long totalReceived;     // Tổng số lượng nhập vào kho (receive)
+    private long totalOnHand;       // Tổng số lượng còn lại trong kho (on hand)
     private long reservedQty;      // Giữ chỗ (đơn hàng chưa giao)
     private long sellableQty;      // Tồn khả dụng bán thường (HSD >= 90 ngày)
     private long flashSaleQty;     // Tồn cận hạn Flash Sale (21 <= HSD < 90)
@@ -35,6 +36,7 @@ public class ProductLotGroupDto {
         this.imageUrl = imageUrl;
         this.categoryName = categoryName;
         this.lowStockThreshold = lowStockThreshold;
+        this.totalReceived = 0;
         this.totalOnHand = 0;
         this.reservedQty = 0;
         this.sellableQty = 0;
@@ -47,6 +49,7 @@ public class ProductLotGroupDto {
     public void addLot(LotRow lot) {
         lots.add(lot);
         totalLotCount++;
+        totalReceived += lot.getReceivedQty();
         totalOnHand += lot.getOnHandQty();
         if (lot.getOnHandQty() > 0) {
             activeLotCount++;

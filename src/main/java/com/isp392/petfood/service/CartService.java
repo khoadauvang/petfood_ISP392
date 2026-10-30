@@ -13,6 +13,7 @@ import com.isp392.petfood.enums.CategoryStatus;
 import com.isp392.petfood.enums.ExpiryLevel;
 import com.isp392.petfood.enums.MembershipTier;
 import com.isp392.petfood.enums.ProductStatus;
+import com.isp392.petfood.enums.SaleType;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.repository.CartItemRepository;
@@ -43,10 +44,9 @@ import java.util.stream.Collectors;
 //   BR-07  chỉ khách đã đăng nhập (SecurityConfig: /cart/** cho CUSTOMER)
 //   BR-13  số lượng trong giỏ không vượt tồn khả dụng; kiểm tra lúc thêm/sửa, trang giỏ đánh dấu dòng vượt tồn,
 //          lúc đặt hàng (module 4) phải kiểm tra lại
-//   BR-65  mỗi giỏ một dòng giá thường cho mỗi sản phẩm + một dòng cho mỗi suất Flash Sale
+//   BR-65  mỗi giỏ một dòng giá thường cho mỗi sản phẩm + một dòng cho mỗi suất Flash Sale / Khuyến mãi
 //   7.3    tồn khả dụng của dòng giá thường = tổng on_hand_qty các lô còn >= 90 ngày (lô RED chỉ bán qua Flash Sale)
-//   BR-63, BR-66  dòng Flash Sale chỉ lấy từ phần dành riêng của suất: allocated_qty - sold_qty,
-//          chiến dịch đang chạy và lô vẫn ở mức RED
+//   BR-63, BR-66  dòng Flash Sale / Khuyến mãi chỉ lấy từ phần dành riêng của suất: allocated_qty - sold_qty
 // Giỏ không giữ hàng và không chốt giá: giá hiện theo giá hiện tại, chốt khi đặt hàng (BR-10, BR-16).
 @Service
 @RequiredArgsConstructor
@@ -70,7 +70,7 @@ public class CartService {
         return getCart(customerId, null);
     }
 
-    // Chỉ các dòng có id trong selectedIds (khách tick ở trang giỏ để đặt); null hoặc rỗng: cả giỏ
+    // Chỉ các dòng có id trong selectedIds (khách tick ở trang giỏ để đặt); null: cả giỏ; rỗng: không chọn dòng nào
     @Transactional(readOnly = true)
     public CartView getCart(Long customerId, Collection<Long> selectedIds) {
         List<CartItem> items = onlySelected(cartItemRepository.findDetailedByCustomerId(customerId), selectedIds);
@@ -107,10 +107,13 @@ public class CartService {
         return new CartView(lines, subtotal, totalQuantity, hasProblems, tier.getLabel(), membershipPolicy.rateOf(tier));
     }
 
-    // Lọc các dòng giỏ theo id khách đã chọn; null hoặc rỗng: giữ cả giỏ. Giữ thứ tự của giỏ.
+    // Lọc các dòng giỏ theo id khách đã chọn; null: giữ cả giỏ; rỗng: trả về danh sách trống. Giữ thứ tự của giỏ.
     static List<CartItem> onlySelected(List<CartItem> items, Collection<Long> selectedIds) {
-        if (selectedIds == null || selectedIds.isEmpty()) {
+        if (selectedIds == null) {
             return items;
+        }
+        if (selectedIds.isEmpty()) {
+            return List.of();
         }
         Set<Long> ids = new HashSet<>(selectedIds);
         return items.stream().filter(i -> ids.contains(i.getId())).toList();
@@ -148,12 +151,12 @@ public class CartService {
         return saveLine(cart, item);
     }
 
-    // Dòng Flash Sale: sản phẩm lấy theo lô của suất, không tin productId từ form gửi lên
+    // Dòng Flash Sale / Khuyến mãi: sản phẩm lấy theo lô của suất, không tin productId từ form gửi lên
     @Transactional
     public CartItem addFlashSale(Long customerId, Long flashSaleItemId, int quantity) {
         requirePositive(quantity);
         FlashSaleItem fsItem = flashSaleItemRepository.findDetailedById(flashSaleItemId)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy suất Flash Sale #" + flashSaleItemId));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy suất ưu đãi #" + flashSaleItemId));
         Availability availability = flashSaleAvailability(fsItem, LocalDateTime.now());
         if (availability.problem() != null) {
             throw new BusinessRuleException(availability.problem());
@@ -222,20 +225,32 @@ public class CartService {
         return new Availability((int) Math.min(sellableStock, Integer.MAX_VALUE), null);
     }
 
-    // Flash Sale: chiến dịch đang chạy, lô vẫn ở mức RED (BR-63; dưới 21 ngày thì không bán dưới mọi hình thức),
-    // còn suất trong phần dành riêng (BR-66), không vượt tồn thực của lô
+    // Flash Sale / Khuyến mãi: chiến dịch đang chạy, sản phẩm đang bán,
+    // nếu là FLASH_SALE thì lô ở mức RED (21-89 ngày, BR-63), nếu là PROMOTION thì lô ở mức OK (>= 90 ngày, BR-12/54).
     private Availability flashSaleAvailability(FlashSaleItem fsItem, LocalDateTime now) {
         FlashSale sale = fsItem.getFlashSale();
         if (!sale.isRunningAt(now)) {
-            return new Availability(0, "Flash Sale \"" + sale.getName() + "\" hiện không mở bán");
+            return new Availability(0, "Chương trình \"" + sale.getName() + "\" hiện không mở bán");
         }
         Lot lot = fsItem.getLot();
-        if (inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.RED) {
-            return new Availability(0, "Lô hàng Flash Sale đã quá mốc được bán");
+        Product product = lot.getProduct();
+        if (product.getStatus() != ProductStatus.ACTIVE
+                || product.getCategory().getStatus() != CategoryStatus.ACTIVE) {
+            return new Availability(0, "Sản phẩm đã ngừng kinh doanh");
+        }
+        ExpiryLevel level = inventoryPolicy.levelOf(lot.getExpiryDate());
+        if (sale.getSaleType() == SaleType.PROMOTION) {
+            if (level != ExpiryLevel.OK) {
+                return new Availability(0, "Lô hàng khuyến mãi đã dưới mốc cam kết hạn dùng (90 ngày)");
+            }
+        } else {
+            if (level != ExpiryLevel.RED) {
+                return new Availability(0, "Lô hàng Flash Sale đã quá mốc được bán");
+            }
         }
         int qty = Math.min(fsItem.getRemainingQty(), lot.getOnHandQty());
         if (qty <= 0) {
-            return new Availability(0, "Suất Flash Sale đã bán hết");
+            return new Availability(0, "Suất ưu đãi đã bán hết");
         }
         return new Availability(qty, null);
     }

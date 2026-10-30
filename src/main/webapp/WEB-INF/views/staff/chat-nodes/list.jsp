@@ -13,7 +13,15 @@
 <body>
 <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
 <c:set var="csrf"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"></c:set>
-<h1>KỊCH BẢN CHATBOX</h1>
+<main class="reveal">
+    <div class="page-head">
+        <div>
+            <div class="screen-bc">
+                <span>CHĂM SÓC KHÁCH HÀNG</span> <span class="sep">&gt;</span> <span class="current">KỊCH BẢN PHẢN HỒI CHAT</span>
+            </div>
+            <h1>KỊCH BẢN PHẢN HỒI CHAT</h1>
+        </div>
+    </div>
 <p class="hint">Khách chọn chủ đề → nội dung con → giải pháp. Nút không có con là giải pháp. Nút ẩn thì khách không thấy cả nhánh con.
     Nút đã có yêu cầu hỗ trợ tham chiếu chỉ ẩn được, không xoá.</p>
 <p><a href="${ctx}/staff/chat-nodes/new">+ Thêm chủ đề gốc</a> · <a href="${ctx}/support" target="_blank">Xem chatbox như khách ›</a></p>
@@ -51,5 +59,6 @@
     <c:if test="${empty nodes}"><tr><td colspan="5">Chưa có nút nào. Hãy thêm chủ đề gốc.</td></tr></c:if>
     </tbody>
 </table>
+</main>
 </body>
 </html>

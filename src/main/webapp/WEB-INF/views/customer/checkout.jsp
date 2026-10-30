@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
@@ -37,8 +38,6 @@
                     <span class="sep">&rsaquo;</span>
                     <span class="current">Thanh toán an toàn</span>
                 </nav>
-
-                
             </div>
 
             <!-- 3. FORM CHÍNH BAO TRỌN 2 CỘT ĐỂ GỬI DỮ LIỆU ĐỒNG BỘ -->
@@ -231,7 +230,9 @@
                                         <div class="item-details">
                                             <div class="item-title-line">
                                                 <c:if test="${line.flashSale}">
-                                                    <span class="fs-mini-badge">Flash Sale</span>
+                                                    <c:set var="fsNameLower" value="${fn:toLowerCase(line.flashSaleName)}"/>
+                                                    <c:set var="isPromoLine" value="${not (fn:contains(fsNameLower, 'flash sale') or fn:contains(fsNameLower, 'flashsale') or fn:contains(fsNameLower, 'cận hạn') or fn:contains(fsNameLower, 'cận date') or fn:contains(fsNameLower, 'xả hàng') or fn:contains(fsNameLower, 'xả tồn'))}"/>
+                                                    <span class="fs-mini-badge">${isPromoLine ? 'Chương trình' : 'Flash Sale'}</span>
                                                 </c:if>
                                                 <strong class="item-name"><c:out value="${line.name}"/></strong>
                                             </div>
@@ -256,7 +257,7 @@
                                 <div class="price-row discount-row">
                                     <span>
                                         <i class="fi fi-rr-badge-percent"></i>
-                                        Giảm giá hạng ${summary.tierLabel} (${summary.tierRate}%, không áp cho Flash Sale):
+                                        Giảm giá hạng ${summary.tierLabel} (<fmt:formatNumber value="${summary.tierRate}" maxFractionDigits="2"/>%, không áp cho Flash Sale):
                                     </span>
                                     <strong class="discount-val">
                                         −<fmt:formatNumber value="${summary.discountTotal}" type="number"/>₫
@@ -331,8 +332,8 @@
                                 <i class="fi fi-rr-shield-exclamation"></i>
                                 <span>
                                     Bằng việc bấm Đặt hàng, bạn đồng ý với
-                                    <a href="${ctx}/policy">Điều khoản mua sắm</a> và
-                                    <a href="${ctx}/policy">chính sách cam kết HSD</a> của PetFood.
+                                    <a href="${ctx}/terms">Điều khoản mua sắm</a> và
+                                    <a href="${ctx}/policies/expiry">chính sách cam kết HSD</a> của PetFood.
                                 </span>
                             </div>
                         </section>

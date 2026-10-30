@@ -82,7 +82,7 @@ public class PasswordResetService {
             return;
         }
         Account account = found.get();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = VnpayClient.nowVn();
         Optional<PasswordResetOtp> latest = otpRepository.findFirstByAccount_IdOrderByCreatedAtDescIdDesc(account.getId());
         if (latest.isPresent() && latest.get().getCreatedAt().isAfter(now.minusSeconds(resendSeconds))) {
             return;   // vừa gửi xong, chờ đủ thời gian mới gửi lại
@@ -106,15 +106,16 @@ public class PasswordResetService {
         Account account = accountRepository.findByEmail(normalizeEmail(email))
                 .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
                 .orElseThrow(() -> new BusinessRuleException("otp", INVALID_OTP));
+        LocalDateTime now = VnpayClient.nowVn();
         PasswordResetOtp otp = otpRepository.findFirstWithLockByAccount_IdOrderByCreatedAtDescIdDesc(account.getId())
-                .filter(o -> o.isUsable(LocalDateTime.now(), maxAttempts))
+                .filter(o -> o.isUsable(now, maxAttempts))
                 .orElseThrow(() -> new BusinessRuleException("otp", INVALID_OTP));
         if (!passwordEncoder.matches(form.getOtp(), otp.getOtpHash())) {
             otp.setFailedAttempts(otp.getFailedAttempts() + 1);
             throw new BusinessRuleException("otp", INVALID_OTP);
         }
 
-        otp.setUsedAt(LocalDateTime.now());
+        otp.setUsedAt(now);
         account.setPasswordHash(passwordEncoder.encode(form.getNewPassword()));
         return account.getId();
     }

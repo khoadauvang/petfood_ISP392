@@ -70,7 +70,12 @@ public class AdminDashboard {
         private final String status;
         private final String pay;               // COD | VNPAY
         private final long total;
+        private final long discount;
         private final Map<Long, Long> categoryAmounts;   // category_id -> tiền hàng sau giảm hạng
+
+        public Map<Long, Long> getCats() {
+            return categoryAmounts;
+        }
 
         // JSP nhúng thẳng vào JS: {"<categoryId>":<tiền>,...}
         public String getCatsJson() {
@@ -84,6 +89,10 @@ public class AdminDashboard {
     @AllArgsConstructor
     public static class CustomerAuditItem {
         private final Long id;
+        private final String fullName;
+        private final String email;
+        private final String phone;
+        private final String avatarUrl;
         private final String tier;
         private final String createdAt;         // yyyy-MM-dd, ngày tạo tài khoản
     }

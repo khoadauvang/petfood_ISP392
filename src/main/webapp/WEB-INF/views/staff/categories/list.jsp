@@ -129,8 +129,6 @@
                                         </div>
                                         <div>
                                             <b style="font-size:14px; color:var(--text-main)"><c:out value="${cat.name}"/></b>
-                                            <br>
-                                            <small style="color:var(--text-muted)">Mã định danh: CAT-${cat.id}</small>
                                         </div>
                                     </div>
                                 </td>

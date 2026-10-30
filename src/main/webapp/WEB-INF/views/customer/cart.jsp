@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="activePage" value="cart" />
@@ -28,50 +29,51 @@
 
         <c:set var="regTotal" value="0" />
         <c:set var="flashTotal" value="0" />
+        <c:set var="promoTotal" value="0" />
         <c:set var="regCount" value="0" />
         <c:set var="flashCount" value="0" />
+        <c:set var="promoCount" value="0" />
         <c:set var="unavailableCount" value="0" />
+        <c:set var="tierRate" value="${empty cart ? 0 : cart.tierDiscountRate}" />
+        <c:set var="vipDiscountAmount" value="0" />
 
         <c:if test="${not empty cart and not empty cart.lines}">
             <c:forEach var="line" items="${cart.lines}">
+                <c:set var="fsNameLower" value="${fn:toLowerCase(line.flashSaleName)}"/>
+                <c:set var="isPromoLine" value="${line.flashSale and not (fn:contains(fsNameLower, 'flash sale') or fn:contains(fsNameLower, 'flashsale') or fn:contains(fsNameLower, 'cận hạn') or fn:contains(fsNameLower, 'cận date') or fn:contains(fsNameLower, 'xả hàng') or fn:contains(fsNameLower, 'xả tồn'))}"/>
                 <c:choose>
                     <c:when test="${not empty line.problem}">
                         <c:set var="unavailableCount" value="${unavailableCount + 1}" />
                     </c:when>
                     <c:when test="${line.flashSale}">
                         <c:set var="flashCount" value="${flashCount + 1}" />
-                        <c:set var="flashTotal" value="${flashTotal + line.lineTotal}" />
+                        <c:choose>
+                            <c:when test="${isPromoLine}">
+                                <c:set var="promoCount" value="${promoCount + 1}" />
+                                <c:set var="promoTotal" value="${promoTotal + line.lineTotal}" />
+                            </c:when>
+                            <c:otherwise>
+                                <c:set var="flashTotal" value="${flashTotal + line.lineTotal}" />
+                            </c:otherwise>
+                        </c:choose>
                     </c:when>
                     <c:otherwise>
                         <c:set var="regCount" value="${regCount + 1}" />
                         <c:set var="regTotal" value="${regTotal + line.lineTotal}" />
+                        <fmt:formatNumber value="${(line.lineTotal * tierRate) / 100}" maxFractionDigits="0" groupingUsed="false" var="lineVipDisc"/>
+                        <c:set var="vipDiscountAmount" value="${vipDiscountAmount + lineVipDisc}" />
                     </c:otherwise>
                 </c:choose>
             </c:forEach>
         </c:if>
 
-        <%-- Giảm giá hạng lấy từ BE (cart.tierDiscountRate, đơn vị %), chỉ tính trên hàng giá thường (BR-43).
+        <%-- Giảm giá hạng lấy từ BE (cart.tierDiscountRate, đơn vị %), chỉ tính trên hàng giá thường làm tròn từng dòng (BR-39, BR-43).
              Ngưỡng Freeship lấy từ cấu hình petfood.shipping.free-min-subtotal. Số chốt cuối cùng vẫn do trang checkout tính. --%>
-        <c:set var="tierRate" value="${empty cart ? 0 : cart.tierDiscountRate}" />
-        <c:set var="vipDiscountAmount" value="${regTotal * tierRate / 100}" />
-        <c:set var="finalTotal" value="${regTotal + flashTotal - vipDiscountAmount}" />
+        <c:set var="finalTotal" value="${regTotal + flashTotal + promoTotal - vipDiscountAmount}" />
         <c:set var="freeshipThreshold" value="${freeShipMinSubtotal}" />
         <c:set var="freeshipPct" value="${(finalTotal >= freeshipThreshold) ? 100 : ((finalTotal * 100) / freeshipThreshold)}" />
 
         <main class="page-container">
-
-            <c:if test="${not empty successMessage}">
-                <div style="margin-bottom: 16px; padding: 12px 18px; border-radius: 4px; background: #E9F6EE; border: 1px solid #A8DFB9; color: #266A3C; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    <i class="fi fi-rr-check-circle"></i>
-                    <span><c:out value="${successMessage}"/></span>
-                </div>
-            </c:if>
-            <c:if test="${not empty errorMessage}">
-                <div style="margin-bottom: 16px; padding: 12px 18px; border-radius: 4px; background: #FDE8E4; border: 1px solid #F5C2B8; color: #B92B19; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                    <i class="fi fi-rr-exclamation"></i>
-                    <span><c:out value="${errorMessage}"/></span>
-                </div>
-            </c:if>
 
             <div class="cart-topbar">
                 <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -120,15 +122,21 @@
                                         <c:when test="${validCount > 0}">
                                             <c:forEach var="line" items="${cart.lines}">
                                                 <c:if test="${empty line.problem}">
+                                                    <c:set var="fsNameLower" value="${fn:toLowerCase(line.flashSaleName)}"/>
+                                                    <c:set var="isPromoLine" value="${line.flashSale and not (fn:contains(fsNameLower, 'flash sale') or fn:contains(fsNameLower, 'flashsale') or fn:contains(fsNameLower, 'cận hạn') or fn:contains(fsNameLower, 'cận date') or fn:contains(fsNameLower, 'xả hàng') or fn:contains(fsNameLower, 'xả tồn'))}"/>
                                                     <div class="cart-item js-cart-item ${line.flashSale ? 'flash-item' : ''}"
                                                          data-line-id="${line.id}"
+                                                         data-product-id="${line.productId}"
                                                          data-unit-price="${line.unitPrice}"
                                                          data-flash-sale="${line.flashSale}"
-                                                         data-available="${line.availableQty}">
+                                                         data-promo-sale="${isPromoLine}"
+                                                         data-available="${line.availableQty}"
+                                                         data-prev-qty="${line.quantity}">
 
                                                         <input type="checkbox"
                                                                class="cart-checkbox js-item-checkbox"
                                                                data-group="${line.flashSale ? 'flash' : 'regular'}"
+                                                               data-product-id="${line.productId}"
                                                                value="${line.id}"
                                                                checked
                                                                title="Chọn mua sản phẩm này">
@@ -169,7 +177,7 @@
 
                                                             <c:if test="${line.flashSale}">
                                                                 <div class="item-flash-subtag">
-                                                                    <span class="flash-sale-badge">flash-sale</span>
+                                                                    <span class="flash-sale-badge" style="text-transform:none">${isPromoLine ? 'Chương trình' : 'Flash Sale'}</span>
                                                                     <c:if test="${not empty line.expiryNote}">
                                                                         <span class="flash-expiry-badge"><i class="fi fi-rr-calendar"></i> <c:out value="${line.expiryNote}"/></span>
                                                                     </c:if>
@@ -210,6 +218,9 @@
                                                                        aria-label="Số lượng">
                                                                 <button type="button" class="qty-btn js-qty-plus">&plus;</button>
                                                             </form>
+                                                            <div class="stock-exceed-msg js-stock-warning" style="display: none; color: #d9381e; font-size: 11.5px; font-weight: 600; margin-top: 4px; line-height: 1.3;">
+                                                                <i class="fi fi-rr-exclamation"></i> Vượt tồn kho (tối đa <span class="js-max-avail">${line.availableQty}</span>)
+                                                            </div>
                                                             <c:if test="${line.flashSale and line.availableQty > 0}">
                                                                 <span class="limit-note">Còn ${line.availableQty} suất</span>
                                                             </c:if>
@@ -223,7 +234,7 @@
                                                             <span class="subtotal-note js-line-note">
                                                                 <c:choose>
                                                                     <c:when test="${line.flashSale}">
-                                                                        Giá Flash Sale
+                                                                        ${isPromoLine ? 'Giá Chương trình' : 'Giá Flash Sale'}
                                                                     </c:when>
                                                                     <c:when test="${line.quantity > 1}">
                                                                         ${line.quantity} &times; <fmt:formatNumber value="${line.unitPrice}" type="number"/> ₫
@@ -359,7 +370,7 @@
                             <div class="freeship-card">
                                 <div class="freeship-top">
                                     <span class="freeship-title">
-                                        <i class="fi fi-rr-shipping-fast"></i> Miễn phí vận chuyển nội thành (Đơn từ <fmt:formatNumber value="${freeshipThreshold}" type="number" maxFractionDigits="0"/>đ)
+                                        <i class="fi fi-rr-shipping-fast"></i> Miễn phí vận chuyển nội thành (Đơn từ 150K)
                                     </span>
                                     <span class="freeship-numbers">
                                         Đã đạt <strong id="freeshipCurrentText"><fmt:formatNumber value="${finalTotal}" type="number" maxFractionDigits="0"/></strong>đ / <fmt:formatNumber value="${freeshipThreshold}" type="number" maxFractionDigits="0"/>đ
@@ -391,6 +402,13 @@
                                         <strong id="summaryRegTotal"><fmt:formatNumber value="${regTotal}" type="number"/> ₫</strong>
                                     </div>
 
+                                    <c:if test="${promoCount > 0}">
+                                        <div class="summary-row" id="summaryPromoRow">
+                                            <span>Tạm tính Chương trình: <i class="fi fi-rr-badge-percent text-orange"></i></span>
+                                            <strong class="text-orange" id="summaryPromoTotal"><fmt:formatNumber value="${promoTotal}" type="number"/> ₫</strong>
+                                        </div>
+                                    </c:if>
+
                                     <div class="summary-row">
                                         <span>Tạm tính Flash Sale: <i class="fi fi-rr-flame text-orange"></i></span>
                                         <strong class="text-orange" id="summaryFlashTotal"><fmt:formatNumber value="${flashTotal}" type="number"/> ₫</strong>
@@ -398,7 +416,7 @@
 
                                     <div class="summary-row">
                                         <span>Tổng tạm tính (<span id="summarySelectedQty">${regCount + flashCount}</span> sản phẩm chọn):</span>
-                                        <strong id="summaryRawSubtotal"><fmt:formatNumber value="${regTotal + flashTotal}" type="number"/> ₫</strong>
+                                        <strong id="summaryRawSubtotal"><fmt:formatNumber value="${regTotal + flashTotal + promoTotal}" type="number"/> ₫</strong>
                                     </div>
 
                                     <div class="vip-discount-box">
@@ -409,7 +427,7 @@
                                             <strong class="vip-amount" id="summaryVipDiscount">-<fmt:formatNumber value="${vipDiscountAmount}" type="number" maxFractionDigits="0"/> ₫</strong>
                                         </div>
                                         <p class="vip-rule-note">
-                                            * Giảm giá theo hạng thành viên chỉ tính trên hàng thường được chọn. Không áp dụng cho sản phẩm Flash Sale.
+                                            * Giảm giá theo hạng thành viên chỉ tính trên hàng thường được chọn. Không áp dụng cho sản phẩm Flash Sale / Chương trình.
                                         </p>
                                     </div>
 
@@ -462,18 +480,22 @@
                 function recalculateCartTotals() {
                     const items = document.querySelectorAll('.js-cart-item');
                     let regTotal = 0;
-                    let vipDiscount = 0;
                     let flashTotal = 0;
+                    let promoTotal = 0;
+                    let vipDiscount = 0;
                     let selectedQty = 0;
                     let selectedLines = 0;
                     let selectedIds = [];
+                    let hasOverStock = false;
 
                     items.forEach(item => {
                         const checkbox = item.querySelector('.js-item-checkbox');
                         const qtyInput = item.querySelector('.js-qty-input');
                         const unitPrice = parseFloat(item.dataset.unitPrice || 0);
                         const isFlash = item.dataset.flashSale === 'true';
-                        let qty = parseInt(qtyInput.value, 10);
+                        const isPromo = item.dataset.promoSale === 'true';
+                        const maxAvailable = parseInt(item.dataset.available || 0, 10);
+                        let qty = parseInt(qtyInput ? qtyInput.value : 0, 10);
                         if (isNaN(qty) || qty < 1)
                             qty = 1;
 
@@ -493,8 +515,17 @@
                             selectedLines++;
                             selectedQty += qty;
                             selectedIds.push(checkbox.value);
+
+                            if (maxAvailable > 0 && qty > maxAvailable) {
+                                hasOverStock = true;
+                            }
+
                             if (isFlash) {
-                                flashTotal += lineTotal;
+                                if (isPromo) {
+                                    promoTotal += lineTotal;
+                                } else {
+                                    flashTotal += lineTotal;
+                                }
                             } else {
                                 regTotal += lineTotal;
                                 // làm tròn theo từng dòng như CheckoutService
@@ -505,7 +536,7 @@
                         }
                     });
 
-                    const rawSubtotal = regTotal + flashTotal;
+                    const rawSubtotal = regTotal + flashTotal + promoTotal;
                     const finalTotal = rawSubtotal - vipDiscount;
 
                     const setTxt = (id, val) => {
@@ -516,6 +547,7 @@
 
                     setTxt('selectedLineCount', selectedLines);
                     setTxt('summaryRegTotal', fmtVND(regTotal) + ' ₫');
+                    setTxt('summaryPromoTotal', fmtVND(promoTotal) + ' ₫');
                     setTxt('summaryFlashTotal', fmtVND(flashTotal) + ' ₫');
                     setTxt('summarySelectedQty', selectedQty);
                     setTxt('summaryRawSubtotal', fmtVND(rawSubtotal) + ' ₫');
@@ -556,6 +588,12 @@
                             checkoutBtn.style.boxShadow = 'none';
                             if (checkoutBtnText)
                                 checkoutBtnText.textContent = 'Vui lòng chọn sản phẩm';
+                        } else if (hasOverStock) {
+                            checkoutBtn.style.pointerEvents = 'none';
+                            checkoutBtn.style.background = '#D5CBC5';
+                            checkoutBtn.style.boxShadow = 'none';
+                            if (checkoutBtnText)
+                                checkoutBtnText.textContent = 'Số lượng vượt tồn kho';
                         } else {
                             checkoutBtn.style.pointerEvents = 'auto';
                             checkoutBtn.style.background = '';
@@ -569,6 +607,26 @@
 
                 const selectAllCb = document.getElementById('selectAllCheckbox');
                 const itemCheckboxes = document.querySelectorAll('.js-item-checkbox:not(:disabled)');
+
+                // Kiểm tra URL param ?selectProduct=... (từ nút Mua ngay ở trang chi tiết)
+                const urlParams = new URLSearchParams(window.location.search);
+                const selectProdId = urlParams.get('selectProduct');
+                if (selectProdId) {
+                    let matchedCount = 0;
+                    itemCheckboxes.forEach(cb => {
+                        const itemEl = cb.closest('.js-cart-item');
+                        const prodId = itemEl ? (itemEl.dataset.productId || cb.dataset.productId) : cb.dataset.productId;
+                        if (prodId && String(prodId) === String(selectProdId)) {
+                            cb.checked = true;
+                            matchedCount++;
+                        } else {
+                            cb.checked = false;
+                        }
+                    });
+                    if (selectAllCb) {
+                        selectAllCb.checked = (matchedCount > 0 && matchedCount === itemCheckboxes.length);
+                    }
+                }
 
                 if (selectAllCb) {
                     selectAllCb.addEventListener('change', function () {
@@ -590,6 +648,7 @@
                 function syncQuantityToServer(itemEl, newQty) {
                     const form = itemEl.querySelector('.js-qty-form');
                     const minusBtn = itemEl.querySelector('.js-qty-minus');
+                    const qtyInput = itemEl.querySelector('.js-qty-input');
                     const savingBadge = itemEl.querySelector('.js-saving-badge');
                     const lineId = itemEl.dataset.lineId;
 
@@ -611,13 +670,41 @@
                         fetch(form.action, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: formData.toString()
-                        }).then(res => {
-                            if (res.ok && savingBadge) {
-                                savingBadge.classList.add('show');
-                                setTimeout(() => savingBadge.classList.remove('show'), 1400);
+                        }).then(res => res.json()).then(data => {
+                            if (data && data.ok) {
+                                itemEl.dataset.prevQty = data.quantity;
+                                if (savingBadge) {
+                                    savingBadge.style.color = '';
+                                    savingBadge.innerHTML = '<i class="fi fi-rr-check"></i> Đã lưu';
+                                    savingBadge.classList.add('show');
+                                    setTimeout(() => savingBadge.classList.remove('show'), 1400);
+                                }
+                                if (typeof data.cartItemCount === 'number') {
+                                    document.querySelectorAll('.cart-badge').forEach(b => b.textContent = data.cartItemCount);
+                                }
+                            } else {
+                                const fallbackQty = parseInt(itemEl.dataset.prevQty || 1, 10);
+                                if (qtyInput) {
+                                    qtyInput.value = fallbackQty;
+                                }
+                                if (minusBtn) {
+                                    minusBtn.disabled = (fallbackQty <= 1);
+                                }
+                                recalculateCartTotals();
+                                if (savingBadge) {
+                                    savingBadge.style.color = '#B92B19';
+                                    savingBadge.innerHTML = '<i class="fi fi-rr-exclamation"></i> ' + ((data && data.message) ? data.message : 'Vượt số lượng tồn kho');
+                                    savingBadge.classList.add('show');
+                                    setTimeout(() => {
+                                        savingBadge.classList.remove('show');
+                                        savingBadge.style.color = '';
+                                        savingBadge.innerHTML = '<i class="fi fi-rr-check"></i> Đã lưu';
+                                    }, 3200);
+                                }
                             }
                         }).catch(err => console.error('Lỗi lưu số lượng:', err));
                     }, 350);
@@ -627,14 +714,41 @@
                     const minusBtn = itemEl.querySelector('.js-qty-minus');
                     const plusBtn = itemEl.querySelector('.js-qty-plus');
                     const qtyInput = itemEl.querySelector('.js-qty-input');
+                    const warnEl = itemEl.querySelector('.js-stock-warning');
                     const maxAvailable = parseInt(itemEl.dataset.available || 0, 10);
+
+                    function checkStockWarning(val) {
+                        if (maxAvailable > 0 && val > maxAvailable) {
+                            if (warnEl) warnEl.style.display = 'block';
+                            if (qtyInput) {
+                                qtyInput.style.borderColor = '#d9381e';
+                                qtyInput.style.color = '#d9381e';
+                            }
+                            return false;
+                        } else {
+                            if (warnEl) warnEl.style.display = 'none';
+                            if (qtyInput) {
+                                qtyInput.style.borderColor = '';
+                                qtyInput.style.color = '';
+                            }
+                            return true;
+                        }
+                    }
+
+                    // Kiểm tra cảnh báo ngay khi tải trang
+                    if (qtyInput) {
+                        const initVal = parseInt(qtyInput.value, 10) || 1;
+                        checkStockWarning(initVal);
+                    }
 
                     if (minusBtn && qtyInput) {
                         minusBtn.addEventListener('click', () => {
                             let val = parseInt(qtyInput.value, 10) || 1;
                             if (val > 1) {
-                                qtyInput.value = val - 1;
-                                syncQuantityToServer(itemEl, val - 1);
+                                val = val - 1;
+                                qtyInput.value = val;
+                                checkStockWarning(val);
+                                syncQuantityToServer(itemEl, val);
                             }
                         });
                     }
@@ -642,32 +756,40 @@
                     if (plusBtn && qtyInput) {
                         plusBtn.addEventListener('click', () => {
                             let val = parseInt(qtyInput.value, 10) || 1;
-                            if (maxAvailable > 0 && val >= maxAvailable) {
-                                qtyInput.value = maxAvailable;
+                            let nextVal = val + 1;
+                            if (maxAvailable > 0 && nextVal > maxAvailable) {
+                                checkStockWarning(nextVal);
+                                recalculateCartTotals();
                                 return;
                             }
-                            qtyInput.value = val + 1;
-                            syncQuantityToServer(itemEl, val + 1);
+                            qtyInput.value = nextVal;
+                            checkStockWarning(nextVal);
+                            syncQuantityToServer(itemEl, nextVal);
                         });
                     }
 
                     if (qtyInput) {
                         qtyInput.addEventListener('input', () => {
                             let val = parseInt(qtyInput.value, 10);
-                            if (isNaN(val) || val < 1)
+                            if (isNaN(val) || val < 1) {
                                 return;
-                            if (maxAvailable > 0 && val > maxAvailable) {
-                                val = maxAvailable;
-                                qtyInput.value = maxAvailable;
                             }
-                            syncQuantityToServer(itemEl, val);
+                            const valid = checkStockWarning(val);
+                            if (valid) {
+                                syncQuantityToServer(itemEl, val);
+                            } else {
+                                recalculateCartTotals();
+                            }
                         });
 
                         qtyInput.addEventListener('blur', () => {
                             let val = parseInt(qtyInput.value, 10);
                             if (isNaN(val) || val < 1) {
                                 qtyInput.value = 1;
+                                checkStockWarning(1);
                                 syncQuantityToServer(itemEl, 1);
+                            } else {
+                                checkStockWarning(val);
                             }
                         });
                     }

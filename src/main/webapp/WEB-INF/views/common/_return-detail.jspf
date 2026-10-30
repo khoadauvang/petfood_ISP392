@@ -38,9 +38,10 @@
                 <tr>
                     <td>
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <img src="${ctx}/assets/images/placeholder.jpg" class="product-thumb-img" alt="${l.productName}" onerror="this.src='https://via.placeholder.com/60/fff4df/f47721?text=PetFood'">
+                            <img src="${ctx}/images/products/${l.sku}/1.jpg" class="product-thumb-img" alt="${l.productName}" onerror="this.src='https://via.placeholder.com/64/fff4df/f47721?text=PetFood'">
                             <div>
                                 <strong style="color:var(--text-primary, #3d3028); font-size:14px;"><c:out value="${l.productName}"/></strong>
+                                <c:if test="${l.promotion}"><span style="color:#b91c1c; font-size:11px; font-weight:700;"> (Chương trình)</span></c:if>
                                 <c:if test="${l.flashSale}"><span style="color:#b91c1c; font-size:11px; font-weight:700;"> (Flash Sale)</span></c:if>
                             </div>
                         </div>
@@ -143,4 +144,4 @@
             </c:forEach>
         </div>
     </c:if>
-</div>
+</div>

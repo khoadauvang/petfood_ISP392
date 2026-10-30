@@ -12,11 +12,10 @@
         <title>Chi tiết đơn hàng #PFS-${order.id} · PetFood</title>
 
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="${ctx}/css/order-detail.css">
+        <link rel="stylesheet" href="${ctx}/css/order-detail.css?v=2">
     </head>
     <body>
 
@@ -101,12 +100,41 @@
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <span class="badge-status-pill ${order.status}">${not empty order.status.label ? order.status.label : order.status}</span>
+                            <c:choose>
+                                <c:when test="${order.cancelRequested}">
+                                    <span class="badge-status-pill CANCEL_REQUESTED" style="background: #FFF3E0; color: #E65100; border: 1px solid #FFE0B2; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fi fi-rr-clock"></i> Chờ duyệt hủy
+                                    </span>
+                                </c:when>
+                                <c:when test="${not empty returns and returns[0].status.name() == 'REFUNDED'}">
+                                    <span class="badge-status-pill RETURNED" style="background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fi fi-rr-rotate-left"></i> Đã hoàn trả
+                                    </span>
+                                </c:when>
+                                <c:when test="${not empty returns and returns[0].status.name() != 'REJECTED' and returns[0].status.name() != 'CLOSED'}">
+                                    <span class="badge-status-pill RETURN_REQUESTED" style="background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fi fi-rr-time-past"></i> Đang xử lý hoàn trả (${returns[0].status.label})
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge-status-pill ${order.status}">${not empty order.status.label ? order.status.label : order.status}</span>
+                                </c:otherwise>
+                            </c:choose>
                             <a href="${ctx}/orders" class="btn-action-secondary">
                                 <i class="fi fi-rr-arrow-left"></i> Danh sách đơn hàng
                             </a>
                         </div>
                     </div>
+
+                    <!-- THÔNG BÁO YÊU CẦU HỦY ĐANG CHỜ CỬA HÀNG XÁC NHẬN -->
+                    <c:if test="${order.cancelRequested}">
+                        <div style="margin: 14px 0 20px; padding: 12px 16px; background: #FFF4E5; border: 1px solid #FFD8A8; border-radius: 8px; color: #D95300; font-size: 13.5px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fi fi-rr-info" style="font-size: 18px; flex-shrink: 0;"></i>
+                            <div>
+                                <strong>Yêu cầu hủy đơn đang chờ cửa hàng duyệt.</strong> Lý do đã gửi: <em><c:out value="${order.cancelReason}"/></em>
+                            </div>
+                        </div>
+                    </c:if>
 
                     <!-- TIMELINE -->
                     <div class="timeline-section">
@@ -186,7 +214,7 @@
                     </c:if>
 
                     <a href="${ctx}/products" class="btn-action-primary">
-                        <i class="fi fi-rr-shopping-bag"></i> Mua lại / Tiếp tục mua sắm
+                        <i class="fi fi-rr-shopping-bag"></i> Tiếp tục mua sắm
                     </a>
                 </div>
 
@@ -198,18 +226,20 @@
                         </h3>
                         <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px;">
                             <c:forEach var="r" items="${returns}">
-                                <li class="return-item-row">
-                                    <div>
-                                        <a href="${ctx}/orders/${order.id}/returns/${r.id}" style="color: var(--primary-orange, #f47721); font-weight: 700; text-decoration: none;">
-                                            #${r.id}
-                                        </a>
-                                        <span style="color: var(--text-secondary, #817872); margin-left: 8px;">
-                                            · ${r.createdAtText} · Lý do: <c:out value="${r.reason.label}"/>
-                                        </span>
-                                    </div>
-                                    <span class="return-status-tag">
-                                        <c:out value="${r.status.label}"/>
-                                    </span>
+                                <li>
+                                    <!-- Biến cả khối thành thẻ a để bấm vào đâu cũng được -->
+                                    <a href="${ctx}/orders/${order.id}/returns/${r.id}" class="return-item-link-row">
+                                        <div class="return-item-info">
+                                            <span class="return-date-badge"><i class="fi fi-rr-calendar"></i> ${r.createdAtText}</span>
+                                            <span class="return-reason-text">Lý do: <c:out value="${r.reason.label}"/></span>
+                                        </div>
+                                        <div class="return-item-action-right">
+                                            <span class="return-status-tag">
+                                                <c:out value="${r.status.label}"/>
+                                            </span>
+                                            <span class="btn-view-detail-text">Xem chi tiết <i class="fi fi-rr-angle-right"></i></span>
+                                        </div>
+                                    </a>
                                 </li>
                             </c:forEach>
                         </ul>

@@ -13,8 +13,8 @@
     <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
 
     <main class="admin-main">
-        <div class="breadcrumb-bar" style="margin-bottom: 0.5rem; font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">
-            <a href="${ctx}/admin/employees" style="color: #64748b; text-decoration: none;">‹ QUẢN LÝ TÀI KHOẢN NHÂN VIÊN</a>
+        <div class="screen-bc">
+            <span>QUẢN TRỊ HỆ THỐNG</span> <span class="sep">&gt;</span> <a href="${ctx}/admin/employees" style="color:inherit; text-decoration:none;">QUẢN LÝ TÀI KHOẢN NHÂN VIÊN</a> <span class="sep">&gt;</span> <span class="current">TẠO TÀI KHOẢN MỚI</span>
         </div>
 
         <div class="page-header-row" style="margin-bottom: 1.25rem;">

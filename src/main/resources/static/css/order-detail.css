@@ -76,7 +76,7 @@ a {
         align-items: center;
         gap: 24px;
         width: 100%;
-        max-width: 1200px;
+        max-width: 1380px;
         height: 72px;
         margin: 0 auto;
         padding: 0 20px;
@@ -263,7 +263,7 @@ a {
     }
 
 .breadcrumb-bar {
-    max-width: 1200px;
+    max-width: 1380px;
     margin: 16px auto 0;
     width: 100%;
     padding: 0 20px;
@@ -285,12 +285,12 @@ a {
 }
 
 .page-container {
-    max-width: 1200px;
+    max-width: 1380px;
     margin: 20px auto 40px;
     width: 100%;
     padding: 0 20px;
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 285px 1fr;
     gap: 24px;
     flex: 1;
 }
@@ -407,7 +407,7 @@ a {
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    z-index: 2;
+    z-index: 3;
 }
 
 .step-item.active .step-icon {
@@ -590,12 +590,51 @@ a {
     color: var(--primary-orange, #f47721);
 }
 
-.return-item-row {
-    padding: 10px 0;
-    border-bottom: 1px dashed var(--border-search, #eadfd7);
+.return-item-link-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    background: #FFFDFB;
+    border: 1.5px solid #F4E3C9;
+    border-radius: 4px; /* Bo vuông nhẹ chuẩn gu */
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.return-item-link-row:hover {
+    border-color: #F47721;
+    background: #FFF6EE;
+    transform: translateY(-1px);
+}
+
+.return-item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #3D3028;
+}
+
+.return-date-badge {
+    font-weight: 700;
+    color: #817872;
+}
+
+.return-item-action-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.btn-view-detail-text {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #F47721;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .return-status-tag {
@@ -970,6 +1009,7 @@ a {
     text-align: center;
     margin-top: 10px;
     padding: 10px 0;
+    isolation: isolate;
 }
 
 .step-item {
@@ -978,12 +1018,12 @@ a {
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    z-index: 1;
+
 }
 
 .step-icon {
     position: relative;
-    z-index: 2;
+    z-index: 3;
     width: 36px !important;
     height: 36px !important;
     min-width: 36px !important;
@@ -1020,12 +1060,13 @@ a {
     height: 3px !important;
     transform: translateY(-50%) !important;
     background: #E2D8CE;
-    z-index: 1;
     transition: background 0.3s ease;
+    z-index: 1 !important;
+
 }
 
 .step-item:first-child::before {
-    display: none !important;
+    display: none;
 }
 
 .step-item.active::before {

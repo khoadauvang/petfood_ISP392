@@ -117,6 +117,25 @@ public class CartController {
         return "redirect:/cart";
     }
 
+    @PostMapping(value = "/items/{id}/quantity", headers = "X-Requested-With=XMLHttpRequest")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateQuantityAjax(@AuthenticationPrincipal AccountPrincipal user,
+                                                                  @PathVariable("id") Long id,
+                                                                  @RequestParam(name = "quantity") int quantity) {
+        try {
+            CartItem item = cartService.updateQuantity(user.getCustomerId(), id, quantity);
+            return ResponseEntity.ok(Map.of(
+                    "ok", true,
+                    "quantity", item.getQuantity(),
+                    "cartItemCount", cartService.countItems(user.getCustomerId()),
+                    "message", "Đã lưu"
+            ));
+        } catch (BusinessRuleException e) {
+            return ResponseEntity.unprocessableEntity()
+                    .body(Map.of("ok", false, "message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/items/{id}/delete")
     public String remove(@AuthenticationPrincipal AccountPrincipal user,
                          @PathVariable("id") Long id,

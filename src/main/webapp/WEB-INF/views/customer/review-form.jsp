@@ -45,18 +45,28 @@
         .review-star-group {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 12px 0 20px;
+            gap: 16px;
+            margin: 14px 0 22px;
         }
         .review-stars {
-            display: flex;
-            gap: 6px;
-            font-size: 32px;
+            display: inline-flex;
+            gap: 8px;
+            font-size: 34px;
             color: #e2d9d2;
             cursor: pointer;
+            user-select: none;
         }
         .review-stars .star-btn {
-            transition: color .15s;
+            transition: color .15s ease, transform .15s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #d1c7be;
+            padding: 2px;
+        }
+        .review-stars .star-btn:hover {
+            transform: scale(1.25);
         }
         .review-stars .star-btn.active {
             color: #f59e0b;
@@ -140,13 +150,13 @@
                     <form:hidden path="rating" id="pageRatingInput" />
                     <div class="review-star-group">
                         <div class="review-stars" id="pageStars">
-                            <span class="star-btn active" data-val="1" onclick="selectPageStar(1)"><i class="fi fi-sr-star"></i></span>
-                            <span class="star-btn active" data-val="2" onclick="selectPageStar(2)"><i class="fi fi-sr-star"></i></span>
-                            <span class="star-btn active" data-val="3" onclick="selectPageStar(3)"><i class="fi fi-sr-star"></i></span>
-                            <span class="star-btn active" data-val="4" onclick="selectPageStar(4)"><i class="fi fi-sr-star"></i></span>
-                            <span class="star-btn active" data-val="5" onclick="selectPageStar(5)"><i class="fi fi-sr-star"></i></span>
+                            <span class="star-btn" data-val="1" role="button" aria-label="1 sao"><i class="fi fi-sr-star"></i></span>
+                            <span class="star-btn" data-val="2" role="button" aria-label="2 sao"><i class="fi fi-sr-star"></i></span>
+                            <span class="star-btn" data-val="3" role="button" aria-label="3 sao"><i class="fi fi-sr-star"></i></span>
+                            <span class="star-btn" data-val="4" role="button" aria-label="4 sao"><i class="fi fi-sr-star"></i></span>
+                            <span class="star-btn" data-val="5" role="button" aria-label="5 sao"><i class="fi fi-sr-star"></i></span>
                         </div>
-                        <span id="pageRatingText" style="font-size: 13.5px; font-weight: 700; color: #d97706;">Tuyệt vời (5/5)</span>
+                        <span id="pageRatingText" style="font-size: 14px; font-weight: 700; color: #d97706;">Tuyệt vời (5/5)</span>
                     </div>
                     <form:errors path="rating" cssClass="error" style="color:#d9381e; font-size:12px;" />
                 </div>
@@ -182,9 +192,9 @@
             5: 'Tuyệt vời (5/5)'
         };
 
-        function selectPageStar(val) {
-            document.getElementById('pageRatingInput').value = val;
-            document.getElementById('pageRatingText').innerText = pageLabels[val] || (val + '/5');
+        let selectedRating = 5;
+
+        function renderStars(val) {
             const stars = document.querySelectorAll('#pageStars .star-btn');
             stars.forEach((star, idx) => {
                 if (idx < val) {
@@ -193,11 +203,48 @@
                     star.classList.remove('active');
                 }
             });
+            const textEl = document.getElementById('pageRatingText');
+            if (textEl) {
+                textEl.innerText = pageLabels[val] || (val + '/5');
+            }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const currentRating = parseInt(document.getElementById('pageRatingInput').value) || 5;
-            selectPageStar(currentRating);
+        function setRating(val) {
+            selectedRating = val;
+            const input = document.getElementById('pageRatingInput');
+            if (input) input.value = val;
+            renderStars(val);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('pageRatingInput');
+            let initialVal = parseInt(input ? input.value : 5, 10);
+            if (isNaN(initialVal) || initialVal < 1 || initialVal > 5) {
+                initialVal = 5;
+            }
+            setRating(initialVal);
+
+            const starContainer = document.getElementById('pageStars');
+            const stars = document.querySelectorAll('#pageStars .star-btn');
+
+            stars.forEach(star => {
+                const starVal = parseInt(star.getAttribute('data-val'), 10);
+                
+                star.addEventListener('mouseenter', () => {
+                    renderStars(starVal);
+                });
+
+                star.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setRating(starVal);
+                });
+            });
+
+            if (starContainer) {
+                starContainer.addEventListener('mouseleave', () => {
+                    renderStars(selectedRating);
+                });
+            }
         });
     </script>
 </body>

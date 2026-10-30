@@ -4,6 +4,7 @@ import com.isp392.petfood.entity.Payment;
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.enums.PaymentMethod;
 import com.isp392.petfood.repository.OrderRepository;
+import com.isp392.petfood.service.VnpayClient.QueryOutcome;
 import com.isp392.petfood.service.VnpayClient.QueryResult;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -37,10 +38,7 @@ public class PaymentJobs {
 
     @Scheduled(fixedDelayString = "${petfood.vnpay.expire-job-delay-ms:60000}", initialDelay = 30_000)
     public void expireUnpaidVnpayOrders() {
-        if (!vnpay.isConfigured()) {
-            return;
-        }
-        LocalDateTime before = LocalDateTime.now().minusMinutes(vnpay.getHoldMinutes() + GRACE_MINUTES);
+        LocalDateTime before = VnpayClient.nowVn().minusMinutes(vnpay.getHoldMinutes() + GRACE_MINUTES);
         for (Long orderId : orderRepository.findUnpaidIdsCreatedBefore(PaymentMethod.VNPAY, OrderStatus.PENDING, before)) {
             try {
                 Optional<Payment> pending = paymentService.findPendingVnpay(orderId);
@@ -48,7 +46,9 @@ public class PaymentJobs {
                     paymentService.cancelExpiredVnpay(orderId);
                     continue;
                 }
-                QueryResult result = paymentService.queryVnpay(pending.get());   // gọi VNPay ngoài transaction
+                QueryResult result = vnpay.isConfigured()
+                        ? paymentService.queryVnpay(pending.get())
+                        : new QueryResult(QueryOutcome.NOT_PAID, "99", null);
                 paymentService.applyQueryResult(pending.get().getId(), result);
             } catch (RuntimeException e) {
                 log.warn("Xử lý đơn VNPay quá hạn #{} lỗi: {}", orderId, e.getMessage());
@@ -58,7 +58,7 @@ public class PaymentJobs {
 
     @Scheduled(fixedDelayString = "${petfood.order.cod-job-delay-ms:600000}", initialDelay = 60_000)
     public void cancelStaleCodOrders() {
-        LocalDateTime before = LocalDateTime.now().minusHours(codConfirmHours);
+        LocalDateTime before = VnpayClient.nowVn().minusHours(codConfirmHours);
         for (Long orderId : orderRepository.findUnpaidIdsCreatedBefore(PaymentMethod.COD, OrderStatus.PENDING, before)) {
             try {
                 paymentService.cancelStaleCod(orderId, codConfirmHours);

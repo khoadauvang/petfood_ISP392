@@ -75,7 +75,7 @@ a {
     align-items: center;
     gap: 24px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1380px;
     height: 72px;
     margin: 0 auto;
     padding: 0 20px;
@@ -232,7 +232,7 @@ a {
    3. BREADCRUMB & LAYOUT
    ========================================================= */
 .breadcrumb-bar {
-    max-width: 1240px;
+    max-width: 1380px;
     margin: 18px auto 0;
     width: 100%;
     padding: 0 20px;
@@ -252,13 +252,13 @@ a {
 }
 
 .page-container {
-    max-width: 1200px;
+    max-width: 1380px;
     margin: 20px auto 60px;
     width: 100%;
     padding: 0 20px;
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 24px;
+    grid-template-columns: 285px 1fr;
+    gap: 28px;
     align-items: start;
     flex: 1;
 }
@@ -630,4 +630,37 @@ a {
     .product-price-col {
         text-align: left;
     }
+}
+
+
+/* Bổ sung trạng thái Chờ duyệt hủy */
+.status-badge.CANCEL_REQUESTED {
+    background: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFE0B2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cancel-pending-tag {
+    font-size: 13px;
+    font-weight: 600;
+    color: #D95300;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: #FFF4E5;
+    border: 1px solid #FFE0B2;
+    border-radius: 6px;
+}
+
+.status-badge.RETURN_REQUESTED {
+    background: #F3E8FF;
+    color: #7E22CE;
+    border: 1px solid #E9D5FF;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }

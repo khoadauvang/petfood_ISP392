@@ -13,7 +13,14 @@
 <body>
 <%@ include file="/WEB-INF/views/staff/_nav.jspf" %>
 
-<p><a href="${ctx}/staff/products">‹ Danh sách sản phẩm</a></p>
+<main class="reveal">
+    <div class="page-head">
+        <div>
+            <div class="screen-bc">
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/products" style="color:inherit; text-decoration:none;">QUẢN LÝ SẢN PHẨM</a> <span class="sep">&gt;</span> <span class="current">CHI TIẾT SẢN PHẨM</span>
+            </div>
+        </div>
+    </div>
 <h1><c:out value="${product.name}"/></h1>
 
 <div class="filters">
@@ -42,6 +49,7 @@
             </c:when>
             <c:otherwise><div class="noimg">Thiếu ảnh ${loop.index + 1}</div></c:otherwise>
         </c:choose>
+
     </c:forEach>
 </div>
 
@@ -57,7 +65,25 @@
             <c:if test="${product.categoryStatus == 'HIDDEN'}"><span class="badge HIDDEN">Danh mục đang ẩn</span></c:if>
         </td>
     </tr>
-    <tr><th>Loài · Nhóm tuổi</th><td>${product.species.label} · ${product.ageGroup.label}</td></tr>
+    <tr>
+        <th>Loài · Nhóm tuổi</th>
+        <td>
+            <c:choose>
+                <c:when test="${product.species == 'DOG'}">
+                    <span class="pill-badge orange"><i class="ti ti-dog"></i>${product.species.label}</span>
+                </c:when>
+                <c:when test="${product.species == 'CAT'}">
+                    <span class="pill-badge purple"><i class="ti ti-cat"></i>${product.species.label}</span>
+                </c:when>
+                <c:otherwise>
+                    <span class="pill-badge blue"><i class="ti ti-paw"></i>Chó và mèo</span>
+                </c:otherwise>
+            </c:choose>
+
+            <span style="margin: 0 6px; color: var(--text-placeholder);">·</span>
+            <span class="pill-badge gray">${product.ageGroup.label}</span>
+        </td>
+    </tr>
     <tr><th>Giá bán</th><td><fmt:formatNumber value="${product.sellingPrice}" type="number"/> ₫</td></tr>
     <tr><th>Trạng thái</th><td><span class="badge ${product.status}">${product.status.label}</span></td></tr>
     <tr><th>Ngày tạo</th><td>${product.createdAtText}</td></tr>
@@ -103,6 +129,7 @@
                             <c:when test="${lot.depleted}"><span class="badge">Hết hàng</span></c:when>
                             <c:otherwise><span class="badge lv-${lot.level}">${lot.level.label}</span></c:otherwise>
                         </c:choose>
+
                     </td>
                     <td class="num">${lot.receivedQty}</td>
                     <td class="num">${lot.onHandQty}</td>
@@ -124,5 +151,7 @@
         </table>
     </c:otherwise>
 </c:choose>
+
+</main>
 </body>
 </html>

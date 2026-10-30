@@ -2,6 +2,7 @@ package com.isp392.petfood.service;
 
 import com.isp392.petfood.dto.ProductCardDto;
 import com.isp392.petfood.dto.ProductFilter;
+import com.isp392.petfood.dto.ProductVariantDto;
 import com.isp392.petfood.dto.CategoryOption;
 import com.isp392.petfood.dto.ShopProductDto;
 import com.isp392.petfood.entity.Category;
@@ -135,6 +136,35 @@ public class ProductService {
                 sellableQty,
                 nearestExpiry == null ? null : nearestExpiry.format(DATE),
                 nearestExpiry == null ? null : inventoryPolicy.daysLeft(nearestExpiry));
+    }
+
+    // Lấy danh sách các quy cách / biến thể cùng dòng (cùng SKU) của sản phẩm
+    @Transactional(readOnly = true)
+    public List<ProductVariantDto> getVariants(Long currentProductId) {
+        Product current = productRepository.findById(currentProductId).orElse(null);
+        if (current == null) {
+            return List.of();
+        }
+        List<Product> variants = productRepository.findBySkuAndStatusAndCategory_StatusOrderBySellingPriceAsc(
+                current.getSku(), ProductStatus.ACTIVE, CategoryStatus.ACTIVE);
+        if (variants.size() <= 1) {
+            return List.of();
+        }
+        Map<Long, StockRow> stockMap = loadSellableStock(variants.stream().map(Product::getId).toList());
+        return variants.stream().map(p -> {
+            StockRow stock = stockMap.get(p.getId());
+            long sellableQty = stock != null ? stock.getQuantity() : 0;
+            return ProductVariantDto.builder()
+                    .id(p.getId())
+                    .sku(p.getFullSku())
+                    .name(p.getName())
+                    .spec(p.getVariant())
+                    .sellingPrice(p.getSellingPrice())
+                    .status(p.getStatus())
+                    .imageUrl(p.getImageUrl())
+                    .sellableQty(sellableQty)
+                    .build();
+        }).toList();
     }
 
     // ===== Dữ liệu cho các ô lọc =====

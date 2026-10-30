@@ -15,6 +15,7 @@ public class ReturnLineDto {
     private final String sku;
     private final String productName;
     private final boolean flashSale;
+    private final boolean promotion;
     private final int orderedQty;
     private final int quantity;
     private final boolean opened;
@@ -22,4 +23,11 @@ public class ReturnLineDto {
     private final InspectionResult inspectionResult;
     private final String inspectionNote;
     private final BigDecimal refundAmount;
+
+    public ReturnLineDto(Long returnItemId, Long productId, String sku, String productName, boolean flashSale,
+                         int orderedQty, int quantity, boolean opened, BigDecimal maxRefund,
+                         InspectionResult inspectionResult, String inspectionNote, BigDecimal refundAmount) {
+        this(returnItemId, productId, sku, productName, flashSale, false, orderedQty, quantity, opened, maxRefund,
+                inspectionResult, inspectionNote, refundAmount);
+    }
 }

@@ -30,9 +30,9 @@
                 <!-- Slide 1 -->
                 <div class="slide active" style="background-image: url('${ctx}/images/banner1.jpg');">
                     <div class="slide-content">
-                        <div class="slide-badge"><i class="fi fi-rr-sparkles"></i> Dinh Dưỡng Chuẩn Chuyên Gia</div>
+                        <div class="slide-badge"><i class="fi fi-rr-sparkles"></i> Dinh Dưỡng Thú Cưng Hàng Đầu</div>
                         <h1>Nuôi cún mèo khỏe re,<br>Sen chẳng cần lo nghĩ!</h1>
-                        <p>Hệ thống dinh dưỡng và chăm sóc thú cưng cao cấp hàng đầu Việt Nam. Cam kết date mới FEFO 90+ ngày.</p>
+                        <p>Hệ thống thức ăn và đồ ăn vặt thú cưng chính hãng hàng đầu Việt Nam. Cam kết date mới FEFO 90+ ngày.</p>
                         <a href="${ctx}/products" class="slide-btn">Khám phá ngay &rarr;</a>
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                 <div class="benefit-icon"><i class="fi fi-rr-heart"></i></div>
                 <div>
                     <h3>Chăm sóc tận tâm</h3>
-                    <p>Bác sĩ thú y tư vấn 24/7</p>
+                    <p>Tư vấn khẩu phần ăn 24/7</p>
                 </div>
             </div>
             <div class="benefit-item">
@@ -134,6 +134,78 @@
                 </div>
             </div>
         </section>
+
+        <!-- FLASH SALE XẢ KHO CẬN DATE -->
+        <c:if test="${not empty flashSaleOffers}">
+            <section class="product-section flash-sale-section">
+                <div class="section-header">
+                    <div>
+                        <span class="section-label flash-label">
+                            <i class="fi fi-rr-flame"></i> GIỜ VÀNG GIÁ SỐC &bull; XẢ KHO CẬN DATE
+                        </span>
+                        <h2>Flash Sale Cận Date</h2>
+                        <p>Số lượng có hạn &bull; Giảm sốc đến 70% &bull; Minh bạch HSD theo chuẩn FEFO.</p>
+                    </div>
+                    <a href="${ctx}/flash-sale" class="view-all flash-view-all">Xem tất cả Flash Sale &rarr;</a>
+                </div>
+
+                <div class="product-grid">
+                    <c:forEach var="o" items="${flashSaleOffers}">
+                        <c:if test="${o.remainingQty > 0}">
+                            <article class="product-card flash-product-card" data-species="${o.species}" data-discount="${o.discountPercent}">
+                                <a href="${ctx}/products/${o.productId}" class="product-card-link" title="<c:out value='${o.productName}'/>">
+                                    <div class="product-image">
+                                        <span class="flash-tag-discount">
+                                            <i class="fi fi-rr-flame"></i> -${o.discountPercent}%
+                                        </span>
+                                        <span class="flash-tag-expiry" title="Hạn sử dụng: <c:out value='${o.expiryText}'/>">
+                                            <i class="fi fi-rr-calendar"></i> HSD: <c:out value="${o.expiryText}"/>
+                                        </span>
+                                        <c:choose>
+                                            <c:when test="${not empty o.imageUrl}">
+                                                <img src="${ctx}${o.imageUrl}" alt="<c:out value='${o.productName}'/>" loading="lazy">
+                                            </c:when>
+                                            <c:otherwise><span class="no-img-text">Ảnh sản phẩm</span></c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="product-info">
+                                        <span class="product-card-brand"><c:out value="${empty o.brand ? 'PetFood Official' : o.brand}"/></span>
+                                        <h3 class="product-card-title"><c:out value="${o.productName}"/></h3>
+                                        
+                                        <div class="flash-card-meta">
+                                            <span class="flash-days-pill"><i class="fi fi-rr-clock"></i> Còn ${o.daysLeft} ngày</span>
+                                            <span class="flash-sale-name" title="<c:out value='${o.saleName}'/>"><c:out value="${o.saleName}"/></span>
+                                        </div>
+
+                                        <div class="product-card-price-row">
+                                            <div class="flash-price-stack">
+                                                <span class="product-price flash-price"><fmt:formatNumber value="${o.salePrice}" type="number"/> ₫</span>
+                                                <c:if test="${o.sellingPrice > o.salePrice}">
+                                                    <span class="product-old-price"><fmt:formatNumber value="${o.sellingPrice}" type="number"/> ₫</span>
+                                                </c:if>
+                                            </div>
+                                            <span class="product-sold flash-stock-tag">Còn ${o.remainingQty} suất</span>
+                                        </div>
+                                    </div>
+                                </a>
+                                <c:if test="${currentUser.role == 'CUSTOMER'}">
+                                    <div class="product-card-action">
+                                        <form action="${ctx}/cart/add" method="post" class="add-cart-form">
+                                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                                            <input type="hidden" name="flashSaleItemId" value="${o.flashSaleItemId}">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="flash-btn-buy">
+                                                <i class="fi fi-rr-bolt"></i> Mua giá Flash Sale
+                                            </button>
+                                        </form>
+                                    </div>
+                                </c:if>
+                            </article>
+                        </c:if>
+                    </c:forEach>
+                </div>
+            </section>
+        </c:if>
 
         <!-- SẢN PHẨM BÁN CHẠY & MỚI VỀ (3D PRODUCT SHOWCASE) -->
         <section class="product-section">
@@ -148,45 +220,52 @@
 
             <div class="product-grid">
                 <c:forEach var="p" items="${featuredProducts}">
-                    <div class="product-card">
-                        <a href="${ctx}/products/${p.id}" class="product-image">
-                            <span class="fefo-product-tag"><i class="fi fi-rr-calendar"></i> FEFO Date Mới</span>
-                            <c:choose>
-                                <c:when test="${not empty p.imageUrl}">
-                                    <img src="${ctx}${p.imageUrl}" alt="${p.name}">
-                                </c:when>
-                                <c:otherwise><span>Ảnh sản phẩm</span></c:otherwise>
-                            </c:choose>
-                        </a>
-                        <div class="product-info">
-                            <h3><a href="${ctx}/products/${p.id}">${p.name}</a></h3>
-                            <p class="product-price"><fmt:formatNumber value="${p.price}" type="number"/> ₫</p>
-
-                            <div class="stock-status ${p.inStock ? '' : 'out-of-stock'}">
-                                <span class="stock-dot"></span>
-                                <span>${p.inStock ? 'Còn hàng trong kho' : 'Tạm hết hàng'}</span>
-                            </div>
-
-                            <c:choose>
-                                <c:when test="${p.inStock}">
-                                    <form action="${ctx}/cart/add" method="post">
-                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                        <input type="hidden" name="productId" value="${p.id}">
-                                        <input type="hidden" name="quantity" value="1">
-                                        <input type="hidden" name="returnUrl" value="/">
-                                        <button type="submit" class="add-cart-btn">
-                                            <i class="fi fi-rr-shopping-cart"></i> Thêm vào giỏ
-                                        </button>
-                                    </form>
-                                </c:when>
-                                <c:otherwise>
-                                    <button type="button" class="add-cart-btn" disabled style="background: #d5cbc5; cursor: not-allowed;">
-                                        Hết hàng
-                                    </button>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
+                    <article class="product-card ${p.inStock ? '' : 'out-of-stock'}">
+                        <c:choose>
+                            <c:when test="${p.inStock}">
+                                <a href="${ctx}/products/${p.id}" class="product-card-link" title="<c:out value='${p.name}'/>">
+                                    <div class="product-image">
+                                        <span class="fefo-product-tag"><i class="fi fi-rr-calendar"></i> FEFO Date Mới</span>
+                                        <c:choose>
+                                            <c:when test="${not empty p.imageUrl}">
+                                                <img src="${ctx}${p.imageUrl}" alt="<c:out value='${p.name}'/>" loading="lazy">
+                                            </c:when>
+                                            <c:otherwise><span class="no-img-text">Ảnh sản phẩm</span></c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="product-info">
+                                        <span class="product-card-brand"><c:out value="${empty p.brand ? 'PetFood Official' : p.brand}"/></span>
+                                        <h3 class="product-card-title"><c:out value="${p.name}"/></h3>
+                                        <div class="product-card-price-row">
+                                            <span class="product-price"><fmt:formatNumber value="${p.price}" type="number"/> ₫</span>
+                                            <span class="product-sold">Đã bán ${p.soldCount}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="product-card-disabled" title="Sản phẩm tạm hết hàng">
+                                    <div class="product-image">
+                                        <span class="badge-out-stock">Hết hàng</span>
+                                        <c:choose>
+                                            <c:when test="${not empty p.imageUrl}">
+                                                <img src="${ctx}${p.imageUrl}" alt="<c:out value='${p.name}'/>" loading="lazy">
+                                            </c:when>
+                                            <c:otherwise><span class="no-img-text">Ảnh sản phẩm</span></c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="product-info">
+                                        <span class="product-card-brand"><c:out value="${empty p.brand ? 'PetFood Official' : p.brand}"/></span>
+                                        <h3 class="product-card-title"><c:out value="${p.name}"/></h3>
+                                        <div class="product-card-price-row">
+                                            <span class="product-price"><fmt:formatNumber value="${p.price}" type="number"/> ₫</span>
+                                            <span class="product-sold">Đã bán ${p.soldCount}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </article>
                 </c:forEach>
             </div>
         </section>
@@ -223,11 +302,11 @@
                     <p>Hàng hóa được bọc chống sốc và túi hút ẩm chuyên dụng, giữ hạt giòn tan và pate tươi ngon suốt hành trình vận chuyển.</p>
                 </div>
 
-                <!-- Cột 4: Đồng hành thú y -->
+                <!-- Cột 4: Tư vấn khẩu phần dinh dưỡng -->
                 <div class="fefo-card">
-                    <div class="fefo-card-icon"><i class="fi fi-rr-stethoscope"></i></div>
-                    <h4>Bác sĩ thú y đồng hành</h4>
-                    <p>Tư vấn chế độ ăn chuẩn thể trạng cho từng giống loài, giải đáp thắc mắc về dị ứng, tăng cân hay kiểm soát búi lông hoàn toàn miễn phí.</p>
+                    <div class="fefo-card-icon"><i class="fi fi-rr-heart"></i></div>
+                    <h4>Tư vấn khẩu phần tận tâm</h4>
+                    <p>Hỗ trợ lựa chọn thức ăn hạt, pate và đồ ăn vặt chuẩn khẩu vị, độ tuổi và thể trạng cho từng boss, chăm sóc bữa ăn ngon miệng mỗi ngày.</p>
                 </div>
             </div>
         </section>

@@ -27,7 +27,6 @@ import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -170,7 +169,7 @@ public class SupportService {
             throw new BusinessRuleException("Chỉ đóng được yêu cầu đã trả lời khách.");
         }
         ticket.setStatus(SupportStatus.CLOSED);
-        ticket.setClosedAt(LocalDateTime.now());
+        ticket.setClosedAt(VnpayClient.nowVn());
     }
 
     // NEW / IN_PROGRESS -> SPAM
@@ -184,7 +183,7 @@ public class SupportService {
         if (ticket.getHandledBy() == null) {
             ticket.setHandledBy(employeeRepository.getReferenceById(employeeId));
         }
-        ticket.setClosedAt(LocalDateTime.now());
+        ticket.setClosedAt(VnpayClient.nowVn());
     }
 
     // ===== Phụ trợ =====
@@ -193,7 +192,7 @@ public class SupportService {
         try {
             mailer.sendReply(ticket, reply.getContent());
             reply.setSendStatus(SendStatus.SENT);
-            reply.setSentAt(LocalDateTime.now());           // CK_SupportReply_sent_at
+            reply.setSentAt(VnpayClient.nowVn());           // CK_SupportReply_sent_at
             if (ticket.getStatus() == SupportStatus.IN_PROGRESS) {
                 ticket.setStatus(SupportStatus.RESPONDED);
             }
