@@ -5,6 +5,7 @@ import com.isp392.petfood.entity.Order;
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.security.AccountPrincipal;
+import com.isp392.petfood.service.GhnShippingService;
 import com.isp392.petfood.service.OrderService;
 import com.isp392.petfood.service.ReturnService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final ReturnService returnService;
+    private final GhnShippingService ghnShippingService;
 
     @GetMapping
     public String list(@AuthenticationPrincipal AccountPrincipal user,
@@ -68,6 +70,8 @@ public class OrderController {
     @GetMapping("/{id}")
     public String detail(@AuthenticationPrincipal AccountPrincipal user, @PathVariable("id") Long id, Model model) {
         model.addAttribute("order", orderService.getForCustomer(user.getCustomerId(), id));
+        // Vận đơn GHN (mã vận đơn, trạng thái, ngày giao dự kiến); null nếu chưa cấu hình GHN hoặc đơn chưa giao
+        model.addAttribute("shipment", ghnShippingService.shipment(id).orElse(null));
         model.addAttribute("returns", returnService.listForOrder(user.getCustomerId(), id));
         model.addAttribute("canRequestReturn", returnService.canRequest(user.getCustomerId(), id));
         return "customer/order-detail";

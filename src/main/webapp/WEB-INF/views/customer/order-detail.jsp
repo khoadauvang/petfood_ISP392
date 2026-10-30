@@ -190,8 +190,21 @@
                             <i class="fi fi-rr-truck-side"></i> Đơn vị vận chuyển
                         </div>
                         <div class="info-card-content" style="font-size:13px; line-height:1.6;">
-                            <div>Đơn vị: <strong>PetFood Express Hỏa tốc 2H</strong></div>
-                            <div>Mã vận đơn: <strong>PFS-EXP-${order.id}</strong></div>
+                            <c:choose>
+                                <%-- Đơn đã tạo vận đơn GHN: mã vận đơn, trạng thái và ngày giao dự kiến lấy từ GHN --%>
+                                <c:when test="${not empty shipment and not empty shipment.orderCode}">
+                                    <div>Đơn vị: <strong>Giao Hàng Nhanh (GHN)</strong></div>
+                                    <div>Mã vận đơn: <strong><c:out value="${shipment.orderCode}"/></strong></div>
+                                    <div>Trạng thái: <strong><c:out value="${shipment.statusLabel}"/></strong></div>
+                                    <c:if test="${not empty shipment.expectedDelivery}">
+                                        <div>Dự kiến giao: <strong><c:out value="${shipment.expectedDelivery}"/></strong></div>
+                                    </c:if>
+                                </c:when>
+                                <c:otherwise>
+                                    <div>Đơn vị: <strong>PetFood Express Hỏa tốc 2H</strong></div>
+                                    <div>Mã vận đơn: <strong>PFS-EXP-${order.id}</strong></div>
+                                </c:otherwise>
+                            </c:choose>
                             <div class="shipping-guarantee-badge">
                                 <i class="fi fi-rr-shield-check" style="font-size: 14px;"></i> Cam kết giao đúng hẹn 100% (Hoàn phí nếu chậm trễ)
                             </div>

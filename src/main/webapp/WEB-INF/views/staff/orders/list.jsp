@@ -623,16 +623,46 @@
                                 </p>
                                 <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/ship">${csrf}
                                     <button type="submit" class="btn-flashsale" style="width:100%; justify-content:center; padding:10px 16px; font-size:13px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important">
-                                        <i class="ti ti-truck"></i>Bàn giao vận chuyển (Bắt đầu giao)
+                                        <i class="ti ti-truck"></i>${ghnEnabled ? 'Tạo vận đơn GHN (Bắt đầu giao)' : 'Bàn giao vận chuyển (Bắt đầu giao)'}
                                     </button>
                                 </form>
+                                <%-- GHN lỗi / đơn cũ có địa chỉ gõ tay: giao không qua GHN --%>
+                                <c:if test="${ghnEnabled}">
+                                    <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/ship-manual" style="margin-top:8px">${csrf}
+                                        <button type="submit" class="btn-pill-outline" style="width:100%; justify-content:center; padding:9px 16px; font-size:13px"
+                                                onclick="return confirm('Giao đơn này thủ công, không tạo vận đơn GHN?')">
+                                            <i class="ti ti-hand-move"></i>Giao thủ công (không qua GHN)
+                                        </button>
+                                    </form>
+                                </c:if>
                             </c:when>
 
                             <c:when test="${selectedOrder.status == 'SHIPPED'}">
                                 <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 10px 0">
                                     Đơn đang được giao đến khách hàng. Cập nhật kết quả giao nhận bên dưới:
                                 </p>
+                                <c:if test="${not empty shipment}">
+                                    <div style="font-size:12.5px; margin:0 0 10px 0; padding:8px 10px; border:1px dashed #93c5fd; border-radius:8px">
+                                        <c:choose>
+                                            <c:when test="${not empty shipment.orderCode}">
+                                                Vận đơn GHN <b><c:out value="${shipment.orderCode}"/></b>:
+                                                <c:out value="${shipment.statusLabel}"/>
+                                                <c:if test="${not empty shipment.expectedDelivery}"> · dự kiến giao <c:out value="${shipment.expectedDelivery}"/></c:if>
+                                            </c:when>
+                                            <c:otherwise>
+                                                Không có vận đơn GHN (<c:out value="${shipment.error}"/>)
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </c:if>
                                 <div style="display:flex; gap:8px; flex-direction:column">
+                                    <c:if test="${ghnEnabled}">
+                                        <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/ghn-sync">${csrf}
+                                            <button type="submit" class="btn-pill-outline" style="width:100%; justify-content:center; padding:9px 16px; font-size:13px">
+                                                <i class="ti ti-refresh"></i>Cập nhật trạng thái từ GHN
+                                            </button>
+                                        </form>
+                                    </c:if>
                                     <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/complete">${csrf}
                                         <button type="submit" class="btn-flashsale" style="width:100%; justify-content:center; padding:10px 16px; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%) !important">
                                             <i class="ti ti-circle-check"></i>Giao hàng thành công (Thu tiền COD)

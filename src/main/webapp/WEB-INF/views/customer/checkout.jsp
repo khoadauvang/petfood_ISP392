@@ -92,17 +92,52 @@
                                 </a>
                             </div>
 
-                            <div class="form-group">
+                            <%-- Đã cấu hình GHN: chọn tỉnh/thành, phường/xã theo danh mục GHN (mô hình 2 cấp), ô dưới chỉ ghi số nhà, đường --%>
+                            <c:if test="${ghnAddressPicker}">
+                                <div class="form-group" style="display:flex; gap:12px; flex-wrap:wrap">
+                                    <div style="flex:1; min-width:200px">
+                                        <label for="ghnProvince" class="form-label">Tỉnh / Thành phố</label>
+                                        <select id="ghnProvince" class="checkout-textarea" style="height:auto; padding:10px">
+                                            <option value="">-- Chọn tỉnh/thành --</option>
+                                        </select>
+                                        <form:hidden path="province" id="provinceName"/>
+                                        <form:errors path="province" cssClass="error-msg"/>
+                                    </div>
+                                    <div style="flex:1; min-width:200px">
+                                        <label for="ghnWard" class="form-label">Phường / Xã</label>
+                                        <select id="ghnWard" class="checkout-textarea" style="height:auto; padding:10px" disabled>
+                                            <option value="">-- Chọn phường/xã --</option>
+                                        </select>
+                                        <form:hidden path="ward" id="wardName"/>
+                                        <form:errors path="ward" cssClass="error-msg"/>
+                                    </div>
+                                </div>
+                            </c:if>
+
+                            <div class="form-group" style="position:relative">
                                 <label for="shippingAddress" class="form-label">
-                                    <i class="fi fi-rr-marker"></i> Địa chỉ giao hàng (số nhà, đường, phường, thành phố)
+                                    <i class="fi fi-rr-marker"></i>
+                                    ${ghnAddressPicker ? 'Số nhà, tên đường' : 'Địa chỉ giao hàng (số nhà, đường, phường, thành phố)'}
                                 </label>
                                 <form:textarea path="shippingAddress"
                                                id="shippingAddress"
                                                rows="3"
                                                maxlength="500"
                                                cssClass="checkout-textarea"
-                                               placeholder="Ví dụ: 124 Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh..."/>
+                                               placeholder="${ghnAddressPicker ? 'Ví dụ: 124 Nguyễn Thị Minh Khai' : 'Ví dụ: 124 Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh...'}"/>
                                 <form:errors path="shippingAddress" cssClass="error-msg"/>
+                                <%-- Gợi ý tên đường trong phường đã chọn (Geoapify), JS bên dưới đổ dữ liệu vào --%>
+                                <c:if test="${addressSuggest}">
+                                    <ul id="streetSuggest" class="street-suggest" role="listbox" hidden></ul>
+                                    <style>
+                                        .street-suggest { position:absolute; left:0; right:0; z-index:20; margin:4px 0 0; padding:4px 0;
+                                            list-style:none; background:#fff; border:1px solid #e5e0dc; border-radius:10px;
+                                            box-shadow:0 8px 24px rgba(0,0,0,.08); max-height:240px; overflow-y:auto; }
+                                        .street-suggest li { padding:9px 14px; cursor:pointer; font-size:14px; }
+                                        .street-suggest li:hover, .street-suggest li.active { background:#fff4ec; }
+                                        .street-suggest li small { color:#9a8f88; margin-left:6px; }
+                                    </style>
+                                </c:if>
                             </div>
 
                             <div class="shipping-quote-bar">
@@ -349,6 +384,170 @@
 
         <%-- 5. NÚT CHAT NỔI CHUNG --%>
         <%@ include file="/WEB-INF/views/common/_chat-widget.jspf" %>
+
+        <c:if test="${ghnAddressPicker}">
+        <script>
+            // Ô chọn địa chỉ theo danh mục GHN: giá trị gửi lên là tên chuẩn (input ẩn province / ward)
+            document.addEventListener('DOMContentLoaded', function () {
+                const base = '${ctx}/checkout/ghn';
+                const provinceSel = document.getElementById('ghnProvince');
+                const wardSel = document.getElementById('ghnWard');
+                const provinceInput = document.getElementById('provinceName');
+                const wardInput = document.getElementById('wardName');
+
+                function fill(select, items, placeholder, selectedName) {
+                    select.innerHTML = '';
+                    select.add(new Option(placeholder, ''));
+                    items.forEach(function (a) {
+                        const opt = new Option(a.name, a.name);
+                        opt.dataset.id = a.id;
+                        opt.selected = a.name === selectedName;
+                        select.add(opt);
+                    });
+                }
+
+                function loadWards(selectedWard) {
+                    const opt = provinceSel.selectedOptions[0];
+                    wardSel.disabled = true;
+                    fill(wardSel, [], '-- Chọn phường/xã --', '');
+                    if (!opt || !opt.dataset.id) {
+                        return;
+                    }
+                    fetch(base + '/wards?provinceId=' + opt.dataset.id)
+                        .then(function (r) { return r.json(); })
+                        .then(function (wards) {
+                            fill(wardSel, wards, '-- Chọn phường/xã --', selectedWard);
+                            wardSel.disabled = false;
+                            wardInput.value = wardSel.value;
+                        });
+                }
+
+                fetch(base + '/provinces')
+                    .then(function (r) { return r.json(); })
+                    .then(function (provinces) {
+                        fill(provinceSel, provinces, '-- Chọn tỉnh/thành --', provinceInput.value);
+                        if (provinceSel.value) {
+                            loadWards(wardInput.value);         // trang hiện lại sau lỗi / tính phí: giữ lựa chọn cũ
+                        }
+                    });
+
+                provinceSel.addEventListener('change', function () {
+                    provinceInput.value = provinceSel.value;
+                    wardInput.value = '';
+                    loadWards('');
+                });
+                wardSel.addEventListener('change', function () {
+                    wardInput.value = wardSel.value;
+                });
+            });
+        </script>
+        </c:if>
+
+        <c:if test="${addressSuggest}">
+        <script>
+            // Gợi ý tên đường khi gõ: chỉ đường thuộc phường/xã đã chọn. Số nhà ở đầu được giữ lại khi chọn gợi ý.
+            document.addEventListener('DOMContentLoaded', function () {
+                const input = document.getElementById('shippingAddress');
+                const list = document.getElementById('streetSuggest');
+                const wardInput = document.getElementById('wardName');
+                const provinceInput = document.getElementById('provinceName');
+                let timer = null;
+                let seq = 0;
+                let active = -1;
+
+                // "12/3 vo van" -> ["12/3", "vo van"]; không có số nhà -> ["", cả chuỗi]
+                function split(value) {
+                    const m = value.match(/^\s*(\S*\d\S*)\s+(.*)$/);
+                    return m ? [m[1], m[2]] : ['', value.trim()];
+                }
+
+                function hide() {
+                    list.hidden = true;
+                    list.innerHTML = '';
+                    active = -1;
+                }
+
+                function choose(street) {
+                    const number = split(input.value)[0];
+                    input.value = (number ? number + ' ' : '') + street;
+                    hide();
+                    input.focus();
+                }
+
+                function render(streets) {
+                    list.innerHTML = '';
+                    active = -1;
+                    streets.forEach(function (street) {
+                        const li = document.createElement('li');
+                        li.setAttribute('role', 'option');
+                        li.textContent = street;
+                        const ward = document.createElement('small');
+                        ward.textContent = wardInput.value;
+                        li.appendChild(ward);
+                        // mousedown chạy trước blur của ô nhập nên chọn được trước khi danh sách bị ẩn
+                        li.addEventListener('mousedown', function (e) {
+                            e.preventDefault();
+                            choose(street);
+                        });
+                        list.appendChild(li);
+                    });
+                    list.hidden = streets.length === 0;
+                }
+
+                function highlight(index) {
+                    const items = list.querySelectorAll('li');
+                    if (items.length === 0) {
+                        return;
+                    }
+                    active = (index + items.length) % items.length;
+                    items.forEach(function (li, i) { li.classList.toggle('active', i === active); });
+                }
+
+                input.addEventListener('input', function () {
+                    clearTimeout(timer);
+                    const query = split(input.value)[1];
+                    if (!wardInput.value || query.length < 2) {
+                        hide();
+                        return;
+                    }
+                    timer = setTimeout(function () {
+                        const mine = ++seq;
+                        const url = '${ctx}/checkout/address-suggest?q=' + encodeURIComponent(query)
+                            + '&ward=' + encodeURIComponent(wardInput.value)
+                            + '&province=' + encodeURIComponent(provinceInput.value);
+                        fetch(url)
+                            .then(function (r) { return r.ok ? r.json() : []; })
+                            .then(function (streets) {
+                                if (mine === seq) {         // bỏ kết quả của lần gõ cũ về trễ
+                                    render(streets);
+                                }
+                            })
+                            .catch(hide);
+                    }, 300);
+                });
+
+                input.addEventListener('keydown', function (e) {
+                    if (list.hidden) {
+                        return;
+                    }
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        highlight(active + (e.key === 'ArrowDown' ? 1 : -1));
+                    } else if (e.key === 'Enter' && active >= 0) {
+                        e.preventDefault();
+                        choose(list.querySelectorAll('li')[active].firstChild.textContent);
+                    } else if (e.key === 'Escape') {
+                        hide();
+                    }
+                });
+
+                input.addEventListener('blur', hide);
+                // đổi phường thì gợi ý cũ không còn đúng
+                document.getElementById('ghnWard').addEventListener('change', hide);
+                document.getElementById('ghnProvince').addEventListener('change', hide);
+            });
+        </script>
+        </c:if>
 
         <script>
             function highlightPaymentCard(cardEl, labelText) {

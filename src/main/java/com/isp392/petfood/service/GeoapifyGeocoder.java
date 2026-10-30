@@ -10,12 +10,16 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.net.http.HttpClient;
+import java.text.Normalizer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 // Đổi địa chỉ khách gõ thành toạ độ bằng Geoapify Geocoding API (chốt 16/10: gói miễn phí 3.000 request/ngày,
 // không cần thẻ; Nominatim/OSM bị nhà mạng chặn, Google cần gắn thanh toán).
@@ -27,6 +31,8 @@ public class GeoapifyGeocoder {
 
     private static final Logger log = LoggerFactory.getLogger(GeoapifyGeocoder.class);
     private static final String URL = "https://api.geoapify.com/v1/geocode/search";
+    private static final String AUTOCOMPLETE_URL = "https://api.geoapify.com/v1/geocode/autocomplete";
+    private static final int MAX_SUGGESTIONS = 6;
     private static final int CACHE_SIZE = 500;
 
     public record Location(double lat, double lng) {
@@ -92,6 +98,61 @@ public class GeoapifyGeocoder {
             // 401: key sai; 429: hết 3.000 request/ngày; lỗi mạng
             log.warn("Không gọi được Geoapify: {}", e.getMessage());
             return Optional.empty();
+        }
+    }
+
+    // Gợi ý tên đường khi khách gõ địa chỉ ở trang đặt hàng (Geoapify Autocomplete).
+    // Chỉ giữ các đường nằm trong phường/xã khách đã chọn (tên phường mới sau 01/07/2025, trùng danh mục GHN),
+    // để địa chỉ gửi GHN không bị "Địa chỉ nhận không hợp lệ". Ưu tiên kết quả quanh toạ độ của phường.
+    // Không có key / lỗi mạng / không có đường nào trong phường -> danh sách rỗng (khách vẫn tự gõ được).
+    public List<String> suggestStreets(String text, String ward, String province) {
+        if (!isConfigured() || text == null || text.isBlank() || ward == null || ward.isBlank()) {
+            return List.of();
+        }
+        String wardBias = locate(ward + (province == null || province.isBlank() ? "" : ", " + province))
+                .map(loc -> "proximity:" + loc.lng() + "," + loc.lat())
+                .orElse(bias);
+        try {
+            AutocompleteResponse response = restClient.get()
+                    .uri(AUTOCOMPLETE_URL + "?text={t}&type=street&filter=countrycode:vn&bias={b}&lang=vi&limit=20&format=json&apiKey={k}",
+                            text.trim(), wardBias, apiKey)
+                    .retrieve()
+                    .body(AutocompleteResponse.class);
+            if (response == null || response.results() == null) {
+                return List.of();
+            }
+            String wantedWard = normalize(ward);
+            // type=street: chỉ lấy đường, không lẫn xã/ấp trùng tên người (Xã Lê Lợi, Ấp Nguyễn Huệ...).
+            // Bỏ trùng theo tên không có chữ "Đường" ở đầu ("Đường Lê Lợi" và "Lê Lợi" là một).
+            Set<String> seen = new LinkedHashSet<>();
+            List<String> streets = new ArrayList<>();
+            for (AutocompleteResponse.Result r : response.results()) {
+                if (r.street() == null || r.street().isBlank()) {
+                    continue;
+                }
+                boolean inWard = wantedWard.equals(normalize(r.suburb())) || wantedWard.equals(normalize(r.district()));
+                if (inWard && seen.add(normalize(r.street()).replaceFirst("^đường\\s+", ""))) {
+                    streets.add(r.street().trim());
+                }
+                if (streets.size() >= MAX_SUGGESTIONS) {
+                    break;
+                }
+            }
+            return streets;
+        } catch (RestClientException e) {
+            log.warn("Không gọi được Geoapify Autocomplete: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private static String normalize(String s) {
+        return s == null ? "" : Normalizer.normalize(s.trim(), Normalizer.Form.NFC).toLowerCase(Locale.ROOT);
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record AutocompleteResponse(List<Result> results) {
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        record Result(String street, String suburb, String district) {
         }
     }
 

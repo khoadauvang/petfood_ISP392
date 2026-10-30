@@ -10,7 +10,7 @@
             <span class="chat-status-dot"></span>
             <div>
                 <strong>Hỗ trợ trực tuyến PetFood</strong>
-                <small>Thường phản hồi trong vài phút</small>
+                <small>Trợ lý AI · Trả lời tức thì</small>
             </div>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
@@ -331,12 +331,48 @@
 .chat-send-btn i {
     font-size: 15px;
 }
+
+.chat-send-btn:disabled,
+.chat-popup-footer input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Hiệu ứng "đang soạn tin" khi chờ Gemini trả lời */
+.chat-typing {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 12px 14px;
+}
+
+.chat-typing span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #F47721;
+    opacity: 0.4;
+    animation: chatTypingBlink 1.2s infinite ease-in-out;
+}
+
+.chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes chatTypingBlink {
+    0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-3px); }
+}
 </style>
 
 <script>
     const chatAppCtx = '${chatCtx}';
     const currentChatUserId = '${chatUserId}';
     const chatStorageKey = 'petfood_chat_messages_' + currentChatUserId;
+    const chatAiHistoryKey = 'petfood_chat_ai_history_' + currentChatUserId;
+    // CSRF token để POST /support/ai (Spring Security bật CSRF cho mọi POST)
+    const chatCsrfHeader = '${_csrf.headerName}';
+    const chatCsrfToken = '${_csrf.token}';
+    let chatAiBusy = false;
 
     function toggleChatBox() {
         const modal = document.getElementById('petFoodChatModal') || document.getElementById('chatBoxModal');
@@ -421,6 +457,7 @@
         if (confirm('Bạn có muốn bắt đầu cuộc trò chuyện mới không? Lịch sử chat hiện tại sẽ được làm mới.')) {
             try {
                 localStorage.removeItem(chatStorageKey);
+                localStorage.removeItem(chatAiHistoryKey);
             } catch(e) {}
             renderDefaultChatView();
         }
@@ -447,6 +484,9 @@
         appendChatMessage('user', userText);
 
         const reply = quickTopicAnswers[topicKey] || 'PetFood đã ghi nhận câu hỏi của bạn và sẽ phản hồi sớm nhất!';
+        // Ghi vào lịch sử AI để Gemini hiểu ngữ cảnh nếu khách hỏi tiếp
+        pushAiHistory('user', userText);
+        pushAiHistory('model', htmlToPlainText(reply));
         setTimeout(() => {
             appendChatMessage('bot', reply);
             showRestartOption();
@@ -455,7 +495,7 @@
 
     function sendChatMessage() {
         const input = document.getElementById('chatInputField');
-        if (!input) return;
+        if (!input || chatAiBusy) return;
 
         const text = input.value.trim();
         if (!text) return;
@@ -463,21 +503,117 @@
         appendChatMessage('user', escapeChatHtml(text));
         input.value = '';
 
-        setTimeout(() => {
-            const lower = text.toLowerCase();
-            let botReply = 'Cảm ơn bạn đã nhắn tin! Chuyên viên dinh dưỡng của PetFood đã nhận được tin nhắn và sẽ hỗ trợ giải đáp cho bạn ngay trong giây lát ạ! 🐶🐾';
-            
-            if (lower.includes('đơn') || lower.includes('hàng') || lower.includes('ship')) {
-                botReply = 'Bạn muốn kiểm tra đơn hàng đúng không ạ? Hãy truy cập vào <a href="' + chatAppCtx + '/orders">Đơn hàng của tôi</a> hoặc gửi mã đơn (#PFS-...) tại đây để tụi mình tra cứu giúp nhé!';
-            } else if (lower.includes('đổi') || lower.includes('trả') || lower.includes('lỗi')) {
-                botReply = 'PetFood hỗ trợ đổi trả miễn phí trong 3 ngày nếu sản phẩm có lỗi bao bì hay cận date. Bạn có thể xem chi tiết tại <a href="' + chatAppCtx + '/policies">Chính sách đổi trả</a> nha!';
-            } else if (lower.includes('hạn') || lower.includes('date') || lower.includes('fefo')) {
-                botReply = 'Mọi sản phẩm bán ra đều được cam kết hạn dùng tối thiểu 90 ngày theo chuẩn FEFO. Đảm bảo an toàn tuyệt đối cho các bé cưng!';
-            }
+        const history = getAiHistory();
+        pushAiHistory('user', text);
+        setChatBusy(true);
+        showTypingIndicator();
 
-            appendChatMessage('bot', botReply);
+        const headers = { 'Content-Type': 'application/json' };
+        if (chatCsrfHeader && chatCsrfToken) headers[chatCsrfHeader] = chatCsrfToken;
+
+        fetch(chatAppCtx + '/support/ai', {
+            method: 'POST',
+            headers: headers,
+            credentials: 'same-origin',
+            body: JSON.stringify({ message: text, history: history })
+        })
+        .then(res => res.ok ? res.json() : Promise.reject(res.status))
+        .then(data => {
+            if (data && data.reply) {
+                pushAiHistory('model', data.reply);
+                return renderAiMarkdown(data.reply);
+            }
+            return keywordFallbackReply(text);           // chưa cấu hình key / Gemini lỗi
+        })
+        .catch(err => {
+            console.warn('Chat AI lỗi, dùng câu trả lời mặc định:', err);
+            return keywordFallbackReply(text);
+        })
+        .then(replyHtml => {
+            hideTypingIndicator();
+            appendChatMessage('bot', replyHtml);
             showRestartOption();
-        }, 500);
+            setChatBusy(false);
+        });
+    }
+
+    // Câu trả lời theo từ khoá cũ, dùng khi AI không khả dụng
+    function keywordFallbackReply(text) {
+        const lower = text.toLowerCase();
+        let botReply = 'Cảm ơn bạn đã nhắn tin! Chuyên viên dinh dưỡng của PetFood đã nhận được tin nhắn và sẽ hỗ trợ giải đáp cho bạn ngay trong giây lát ạ! 🐶🐾';
+        if (lower.includes('đơn') || lower.includes('hàng') || lower.includes('ship')) {
+            botReply = 'Bạn muốn kiểm tra đơn hàng đúng không ạ? Hãy truy cập vào <a href="' + chatAppCtx + '/orders">Đơn hàng của tôi</a> hoặc gửi mã đơn (#PFS-...) tại đây để tụi mình tra cứu giúp nhé!';
+        } else if (lower.includes('đổi') || lower.includes('trả') || lower.includes('lỗi')) {
+            botReply = 'PetFood hỗ trợ đổi trả miễn phí trong 3 ngày nếu sản phẩm có lỗi bao bì hay cận date. Bạn có thể xem chi tiết tại <a href="' + chatAppCtx + '/policies">Chính sách đổi trả</a> nha!';
+        } else if (lower.includes('hạn') || lower.includes('date') || lower.includes('fefo')) {
+            botReply = 'Mọi sản phẩm bán ra đều được cam kết hạn dùng tối thiểu 90 ngày theo chuẩn FEFO. Đảm bảo an toàn tuyệt đối cho các bé cưng!';
+        }
+        return botReply;
+    }
+
+    // ===== Lịch sử hội thoại gửi kèm cho Gemini (văn bản thuần, tối đa 10 lượt gần nhất) =====
+    function getAiHistory() {
+        try {
+            const raw = localStorage.getItem(chatAiHistoryKey);
+            const arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr.slice(-10) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function pushAiHistory(role, text) {
+        try {
+            const arr = getAiHistory();
+            arr.push({ role: role, text: text });
+            localStorage.setItem(chatAiHistoryKey, JSON.stringify(arr.slice(-10)));
+        } catch (e) {}
+    }
+
+    function htmlToPlainText(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return (tmp.textContent || '').trim();
+    }
+
+    // Đổi Markdown đơn giản Gemini trả về thành HTML an toàn: escape trước, rồi mới thêm thẻ
+    function renderAiMarkdown(text) {
+        let html = escapeChatHtml(text).replace(/"/g, '&quot;');
+        // [chữ](/duong-dan) -> link nội bộ (chỉ chấp nhận đường dẫn bắt đầu bằng một "/"; "//site-khac" bị bỏ qua
+        // vì trình duyệt hiểu là link sang trang web khác)
+        html = html.replace(/\[([^\]]+)\]\((\/(?!\/)[A-Za-z0-9_\-\/?=.%]*)\)/g,
+            (m, label, path) => '<a href="' + chatAppCtx + path + '">' + label + '</a>');
+        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/^\s*[-*]\s+/gm, '• ');
+        html = html.replace(/\n/g, '<br>');
+        return html;
+    }
+
+    function setChatBusy(busy) {
+        chatAiBusy = busy;
+        const input = document.getElementById('chatInputField');
+        const btn = document.querySelector('.chat-send-btn');
+        if (input) input.disabled = busy;
+        if (btn) btn.disabled = busy;
+        if (!busy && input) input.focus();
+    }
+
+    function showTypingIndicator() {
+        const body = document.getElementById('chatMessageBody');
+        if (!body) return;
+        const restartBox = document.getElementById('chatRestartBox');
+        if (restartBox) restartBox.remove();
+        const div = document.createElement('div');
+        div.id = 'chatTypingIndicator';
+        div.className = 'chat-message-item bot';
+        div.innerHTML = '<div class="chat-bubble chat-typing"><span></span><span></span><span></span></div>';
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        const el = document.getElementById('chatTypingIndicator');
+        if (el) el.remove();
     }
 
     function appendChatMessage(type, htmlContent) {

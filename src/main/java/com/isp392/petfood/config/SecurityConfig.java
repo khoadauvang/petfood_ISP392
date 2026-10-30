@@ -71,6 +71,8 @@ public class SecurityConfig {
                 .requestMatchers("/support", "/support/**").permitAll()
                 // VNPay gọi về: không có phiên đăng nhập, chỉ tin dữ liệu có chữ ký đúng (BR-24)
                 .requestMatchers("/payment/vnpay-return", "/payment/vnpay-ipn").permitAll()
+                // GHN gọi webhook trạng thái vận đơn: không có phiên, trạng thái được tra lại bằng API GHN
+                .requestMatchers(HttpMethod.POST, "/ghn/webhook").permitAll()
                 // (4) Theo vai tro
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // Flash Sale: Staff chỉ xem danh sách / chi tiết; tạo, sửa, xoá, thêm/xoá suất, chuyển trạng thái chỉ Admin (chốt 22/10)
@@ -103,7 +105,9 @@ public class SecurityConfig {
                 .sessionRegistry(sessionRegistry())
                 .expiredUrl("/login?expired")
             )
-            .exceptionHandling(ex -> ex.accessDeniedPage("/403"));
+            .exceptionHandling(ex -> ex.accessDeniedPage("/403"))
+            // GHN gửi webhook từ máy chủ của họ nên không có CSRF token
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/ghn/webhook"));
 
         // Đăng nhập Google (tùy chọn, chỉ cho khách - BR-05). Nút bắt đầu ở /oauth2/authorization/google.
         // Google trả về OidcUser (scope có "openid") hoặc OAuth2User (không có "openid"); cả hai đều được đổi thành

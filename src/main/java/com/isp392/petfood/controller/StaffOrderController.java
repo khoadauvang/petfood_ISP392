@@ -5,6 +5,9 @@ import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.NotFoundException;
 import com.isp392.petfood.security.AccountPrincipal;
+import com.isp392.petfood.service.GhnClient.GhnException;
+import com.isp392.petfood.service.GhnShippingService;
+import com.isp392.petfood.service.GhnShippingService.ShipResult;
 import com.isp392.petfood.service.MembershipService;
 import com.isp392.petfood.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +28,9 @@ import java.util.function.Supplier;
 // Xử lý đơn cho STAFF và ADMIN (/staff/**). Mỗi nút chuyển đúng một bước (BR-17):
 //   POST /staff/orders/{id}/confirm          PENDING -> CONFIRMED (ghi confirmed_by)
 //   POST /staff/orders/{id}/pack             CONFIRMED -> PROCESSING (ghi packed_by)
-//   POST /staff/orders/{id}/ship             PROCESSING -> SHIPPED
+//   POST /staff/orders/{id}/ship             PROCESSING -> SHIPPED, đã cấu hình GHN thì tạo vận đơn GHN
+//   POST /staff/orders/{id}/ship-manual      PROCESSING -> SHIPPED không qua GHN (GHN lỗi / địa chỉ cũ gõ tay)
+//   POST /staff/orders/{id}/ghn-sync         hỏi GHN: giao xong -> COMPLETED, trả về shop -> RETURNED
 //   POST /staff/orders/{id}/complete         SHIPPED -> COMPLETED (COD -> PAID)
 //   POST /staff/orders/{id}/returned         SHIPPED -> RETURNED (khách không nhận hàng)
 //   POST /staff/orders/{id}/cancel           huỷ đơn chưa giao, bắt buộc lý do
@@ -40,6 +45,7 @@ public class StaffOrderController {
 
     private final OrderService orderService;
     private final MembershipService membershipService;
+    private final GhnShippingService ghnShippingService;
 
     @GetMapping("/staff/orders")
     public String list(@RequestParam(name = "status", required = false) OrderStatus status,
@@ -60,6 +66,7 @@ public class StaffOrderController {
         model.addAttribute("filterQuery", QueryStrings.of("status", status,
                 "cancelRequested", cancelRequested ? "true" : null, "keyword", keyword));
         model.addAttribute("cancelRequestCount", orderService.countCancelRequests());
+        model.addAttribute("ghnEnabled", ghnShippingService.isEnabled());
         // Số đếm cho các ô thống kê đầu trang (không phụ thuộc bộ lọc)
         model.addAttribute("totalAllOrders", orderService.countAll());
         model.addAttribute("pendingOrdersCount", orderService.countByStatus(OrderStatus.PENDING));
@@ -76,6 +83,8 @@ public class StaffOrderController {
                 com.isp392.petfood.dto.OrderDetailDto detail = orderService.getForStaff(activeId);
                 model.addAttribute("selectedOrder", detail);
                 model.addAttribute("selectedOrderId", activeId);
+                // Vận đơn GHN (null nếu chưa cấu hình GHN hoặc đơn chưa giao)
+                model.addAttribute("shipment", ghnShippingService.shipment(activeId).orElse(null));
             } catch (NotFoundException e) {
                 model.addAttribute("errorMessage", e.getMessage());     // gõ sai mã đơn: danh sách vẫn hiện
             } catch (RuntimeException e) {
@@ -106,7 +115,36 @@ public class StaffOrderController {
 
     @PostMapping("/staff/orders/{id}/ship")
     public String ship(@PathVariable("id") Long id, RedirectAttributes redirect) {
-        return act(id, redirect, "Đơn #" + id + " đang được giao", () -> orderService.ship(id));
+        try {
+            ShipResult result = ghnShippingService.ship(id);
+            redirect.addFlashAttribute("successMessage", result.ghnOrderCode() == null
+                    ? "Đơn #" + id + " đang được giao."
+                    : "Đơn #" + id + " đã tạo vận đơn GHN " + result.ghnOrderCode()
+                            + (result.expectedDelivery() == null ? "" : ", dự kiến giao " + result.expectedDelivery()) + ".");
+        } catch (GhnException e) {
+            // đơn vẫn PROCESSING: staff sửa thông tin rồi thử lại, hoặc bấm "Giao thủ công"
+            redirect.addFlashAttribute("errorMessage", "Không tạo được vận đơn GHN: " + e.getMessage()
+                    + " Có thể bấm \"Giao thủ công\" để giao không qua GHN.");
+        } catch (BusinessRuleException e) {
+            redirect.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/staff/orders?orderId=" + id;
+    }
+
+    @PostMapping("/staff/orders/{id}/ship-manual")
+    public String shipManually(@PathVariable("id") Long id, RedirectAttributes redirect) {
+        return act(id, redirect, "Đơn #" + id + " đang được giao (thủ công, không qua GHN)",
+                () -> { ghnShippingService.shipManually(id); return null; });
+    }
+
+    @PostMapping("/staff/orders/{id}/ghn-sync")
+    public String syncGhn(@PathVariable("id") Long id, RedirectAttributes redirect) {
+        try {
+            redirect.addFlashAttribute("successMessage", ghnShippingService.sync(id));
+        } catch (GhnException | BusinessRuleException e) {
+            redirect.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/staff/orders?orderId=" + id;
     }
 
     @PostMapping("/staff/orders/{id}/complete")

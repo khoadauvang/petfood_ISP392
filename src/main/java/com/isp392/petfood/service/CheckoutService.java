@@ -106,7 +106,7 @@ public class CheckoutService {
         }
 
         Pricing pricing = price(items, customer);
-        String address = form.getShippingAddress().trim();
+        String address = form.getFullAddress().trim();
         ShippingQuote quote = shippingFeeService.quote(address, pricing.goodsTotal());
 
         Order order = new Order();
