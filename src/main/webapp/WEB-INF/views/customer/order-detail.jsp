@@ -201,7 +201,7 @@
                                     </c:if>
                                 </c:when>
                                 <c:otherwise>
-                                    <div>Đơn vị: <strong>Giao Hàng Nhanh Expressbán</strong></div>
+                                    <div>Đơn vị: <strong>Giao Hàng Nhanh Express</strong></div>
                                     <div>Mã vận đơn: <strong>PFS-EXP-${order.id}</strong></div>
                                 </c:otherwise>
                             </c:choose>

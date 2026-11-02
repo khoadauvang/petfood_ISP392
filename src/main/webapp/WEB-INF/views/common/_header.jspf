@@ -691,6 +691,331 @@
 
 
 
+/* ================= TÌM KIẾM BẰNG HÌNH ẢNH (AI VISION) ================= */
+.search-camera-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    opacity: 0.85;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    flex-shrink: 0;
+}
+.search-camera-btn:hover {
+    opacity: 1;
+    transform: scale(1.15);
+    color: #F47721;
+}
+.header:not(.header-transparent) .search-camera-btn:hover {
+    color: #FFFFFF;
+}
+.search-camera-btn i {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.petfood-img-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(18, 14, 11, 0.72);
+    backdrop-filter: blur(5px);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+}
+.petfood-img-modal-backdrop.active {
+    display: flex;
+}
+.petfood-img-modal-card {
+    background: #FFFFFF;
+    width: 100%;
+    max-width: 480px;
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #EFEAE5;
+    animation: imgModalIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes imgModalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(16px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.petfood-img-modal-header {
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #F3EDE7;
+    background: linear-gradient(135deg, #FFFDF9 0%, #FFFFFF 100%);
+}
+.petfood-img-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.petfood-img-modal-title .modal-icon-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #FFF3E6 0%, #FFE6CC 100%);
+    color: #F47721;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(244, 119, 33, 0.15);
+}
+.petfood-img-modal-title h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #3D3028;
+}
+.petfood-img-modal-title p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #817872;
+}
+.petfood-img-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    color: #817872;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.petfood-img-modal-close:hover {
+    background: #F3EDE7;
+    color: #D9381E;
+}
+.petfood-img-modal-body {
+    padding: 20px;
+}
+.img-search-dropzone {
+    border: 2px dashed #E5DCD3;
+    border-radius: 16px;
+    padding: 28px 16px;
+    text-align: center;
+    background: #FAF7F4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.img-search-dropzone:hover,
+.img-search-dropzone.dragover {
+    border-color: #F47721;
+    background: #FFF7F0;
+    transform: translateY(-1px);
+}
+.img-search-dropzone i.upload-main-icon {
+    font-size: 44px;
+    color: #F47721;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+.img-search-dropzone .dz-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #3D3028;
+    margin-bottom: 4px;
+}
+.img-search-dropzone .dz-subtitle {
+    font-size: 12px;
+    color: #817872;
+    margin-bottom: 8px;
+}
+.img-search-dropzone .dz-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #FFFFFF;
+    border: 1px solid #EFEAE5;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: #5C4E43;
+    font-weight: 600;
+}
+.img-search-divider {
+    display: flex;
+    align-items: center;
+    margin: 16px 0;
+    color: #A39990;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.img-search-divider::before,
+.img-search-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #EFEAE5;
+}
+.img-search-divider span {
+    padding: 0 12px;
+}
+.btn-open-camera {
+    width: 100%;
+    height: 44px;
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1.5px solid #F47721;
+    color: #F47721;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-open-camera:hover {
+    background: #F47721;
+    color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(244, 119, 33, 0.25);
+}
+.webcam-panel {
+    display: none;
+    text-align: center;
+}
+.webcam-panel.active {
+    display: block;
+}
+.webcam-video-wrap {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000000;
+}
+.webcam-video-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.webcam-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+.btn-snap-photo {
+    flex: 1;
+    height: 42px;
+    border-radius: 12px;
+    background: #266A3C;
+    border: none;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 13.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+.btn-snap-photo:hover {
+    background: #1E542F;
+}
+.btn-close-webcam {
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 12px;
+    background: #F3EDE7;
+    border: none;
+    color: #5C4E43;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+}
+.btn-close-webcam:hover {
+    background: #E5DCD3;
+}
+.scanner-loading-panel {
+    display: none;
+    text-align: center;
+    padding: 16px 0;
+}
+.scanner-loading-panel.active {
+    display: block;
+}
+.scanner-preview-wrap {
+    position: relative;
+    width: 190px;
+    height: 190px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 3px solid #F47721;
+    box-shadow: 0 12px 30px rgba(244, 119, 33, 0.25);
+    background: #000000;
+}
+.scanner-preview-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.scanner-laser {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 3px;
+    background: #00E676;
+    box-shadow: 0 0 12px #00E676, 0 0 20px #00E676;
+    animation: laserScan 1.6s ease-in-out infinite;
+}
+@keyframes laserScan {
+    0% { top: 0%; }
+    50% { top: calc(100% - 3px); }
+    100% { top: 0%; }
+}
+.scanner-status-text {
+    font-size: 15px;
+    font-weight: 800;
+    color: #3D3028;
+    margin-bottom: 4px;
+}
+.scanner-status-sub {
+    font-size: 12px;
+    color: #817872;
+}
+.scanner-error-box {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #FFF3F0;
+    border: 1px solid #FCDAD5;
+    color: #D9381E;
+    font-size: 12.5px;
+    text-align: left;
+}
+.scanner-error-box.active {
+    display: block;
+}
+
 </style>
 
 <header class="header ${activePage == 'home' || activePage == 'login' ? 'header-transparent' : ''}">
@@ -716,6 +1041,9 @@
                        placeholder="Tìm thương hiệu, thức ăn..."
                        aria-label="Tìm kiếm sản phẩm"
                        autocomplete="off">
+                <button type="button" class="search-camera-btn" id="headerCameraBtn" onclick="openPetfoodImageSearchModal(event)" title="Tìm kiếm bằng hình ảnh (AI Vision)" aria-label="Tìm kiếm bằng hình ảnh">
+                    <i class="fi fi-rr-camera"></i>
+                </button>
             </form>
 
             <!-- HỘP GỢI Ý NHỎ VỪA ĐỦ KHI TÌM KIẾM -->
@@ -845,9 +1173,73 @@
     </c:if>
 </div>
 
+<!-- ================= MODAL TÌM KIẾM BẰNG HÌNH ẢNH (AI VISION) ================= -->
+<div id="petfoodImageSearchModal" class="petfood-img-modal-backdrop" onclick="handleImageModalBackdropClick(event)">
+    <div class="petfood-img-modal-card">
+        <div class="petfood-img-modal-header">
+            <div class="petfood-img-modal-title">
+                <div class="modal-icon-badge">
+                    <i class="fi fi-rr-camera"></i>
+                </div>
+                <div>
+                    <h3>Tìm kiếm bằng hình ảnh</h3>
+                    <p>Chụp bao bì hoặc tải ảnh lên</p>
+                </div>
+            </div>
+            <button type="button" class="petfood-img-modal-close" onclick="closePetfoodImageSearchModal()" aria-label="Đóng">&times;</button>
+        </div>
 
+        <div class="petfood-img-modal-body">
+            <!-- VÙNG 1: MẶC ĐỊNH (KÉO THẢ / CHỌN FILE / NÚT WEBCAM) -->
+            <div id="pfsImgDefaultPanel">
+                <div class="img-search-dropzone" id="pfsImgDropzone" onclick="document.getElementById('pfsImageFileInput').click()">
+                    <i class="fi fi-rr-cloud-upload upload-main-icon"></i>
+                    <div class="dz-title">Kéo thả ảnh bao bì vào đây</div>
+                    <div class="dz-subtitle">hoặc bấm vào để chọn ảnh từ thiết bị</div>
+          
+                    <input type="file" id="pfsImageFileInput" accept="image/*" style="display:none;" onchange="handlePfsFileInput(this)">
+                </div>
 
+                <div class="img-search-divider">
+                    <span>HOẶC</span>
+                </div>
 
+                <button type="button" class="btn-open-camera" onclick="startPfsWebcam()">
+                    <i class="fi fi-rr-camera"></i> Mở Camera máy tính
+                </button>
+            </div>
+
+            <!-- VÙNG 2: XEM VÀ CHỤP TỪ WEBCAM -->
+            <div id="pfsImgWebcamPanel" class="webcam-panel">
+                <div class="webcam-video-wrap">
+                    <video id="pfsWebcamVideo" autoplay playsinline muted></video>
+                </div>
+                <div class="webcam-controls">
+                    <button type="button" class="btn-snap-photo" onclick="capturePfsSnapshot()">
+                        <i class="fi fi-rr-camera"></i> Chụp ảnh này &amp; Tìm
+                    </button>
+                    <button type="button" class="btn-close-webcam" onclick="stopPfsWebcam()">
+                        Hủy
+                    </button>
+                </div>
+                <canvas id="pfsWebcamCanvas" style="display:none;"></canvas>
+            </div>
+
+            <!-- VÙNG 3: TRẠNG THÁI QUÉT AI SCANNER VÀ LOADING -->
+            <div id="pfsImgScannerPanel" class="scanner-loading-panel">
+                <div class="scanner-preview-wrap">
+                    <img id="pfsScannerPreviewImg" src="" alt="Ảnh sản phẩm">
+                    <div class="scanner-laser"></div>
+                </div>
+                <div class="scanner-status-text">Đang nhận diện sản phẩm...</div>
+                <div class="scanner-status-sub">Đang trích xuất thương hiệu và phân loại thức ăn</div>
+            </div>
+
+            <!-- HỘP THÔNG BÁO LỖI -->
+            <div id="pfsImgErrorBox" class="scanner-error-box"></div>
+        </div>
+    </div>
+</div>
 
 <%@ include file="/WEB-INF/views/common/_mask-url.jspf" %>
 
@@ -1001,4 +1393,213 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
+
+// ==========================================
+// TÍNH NĂNG TÌM KIẾM BẰNG HÌNH ẢNH (AI VISION)
+// ==========================================
+let pfsWebcamStream = null;
+const pfsCsrfHeader = '${_csrf.headerName}';
+const pfsCsrfToken = '${_csrf.token}';
+const pfsCtx = '${ctx}';
+
+function openPetfoodImageSearchModal(event) {
+    if (event) event.preventDefault();
+    const modal = document.getElementById('petfoodImageSearchModal');
+    if (modal) {
+        resetPfsModalState();
+        modal.classList.add('active');
+    }
+}
+
+function closePetfoodImageSearchModal() {
+    const modal = document.getElementById('petfoodImageSearchModal');
+    if (modal) {
+        modal.classList.remove('active');
+        stopPfsWebcam();
+    }
+}
+
+function handleImageModalBackdropClick(e) {
+    if (e.target.id === 'petfoodImageSearchModal') {
+        closePetfoodImageSearchModal();
+    }
+}
+
+function resetPfsModalState() {
+    stopPfsWebcam();
+    const defPanel = document.getElementById('pfsImgDefaultPanel');
+    const camPanel = document.getElementById('pfsImgWebcamPanel');
+    const scanPanel = document.getElementById('pfsImgScannerPanel');
+    const errBox = document.getElementById('pfsImgErrorBox');
+    if (defPanel) defPanel.style.display = 'block';
+    if (camPanel) camPanel.classList.remove('active');
+    if (scanPanel) scanPanel.classList.remove('active');
+    if (errBox) {
+        errBox.classList.remove('active');
+        errBox.textContent = '';
+    }
+    const fileInput = document.getElementById('pfsImageFileInput');
+    if (fileInput) fileInput.value = '';
+}
+
+function showPfsError(message) {
+    const defPanel = document.getElementById('pfsImgDefaultPanel');
+    const scanPanel = document.getElementById('pfsImgScannerPanel');
+    const camPanel = document.getElementById('pfsImgWebcamPanel');
+    const errBox = document.getElementById('pfsImgErrorBox');
+    if (defPanel) defPanel.style.display = 'block';
+    if (scanPanel) scanPanel.classList.remove('active');
+    if (camPanel) camPanel.classList.remove('active');
+    if (errBox) {
+        errBox.textContent = message;
+        errBox.classList.add('active');
+    }
+}
+
+// Bắt sự kiện Drag & Drop ảnh vào Dropzone
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzone = document.getElementById('pfsImgDropzone');
+    if (!dropzone) return;
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.remove('dragover');
+        });
+    });
+
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+            handlePfsImageFile(dt.files[0]);
+        }
+    });
+});
+
+// Bắt sự kiện Paste (Ctrl + V) trên trang web
+window.addEventListener('paste', function(e) {
+    const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const blob = items[i].getAsFile();
+            if (blob) {
+                openPetfoodImageSearchModal();
+                handlePfsImageFile(blob);
+                break;
+            }
+        }
+    }
+});
+
+function handlePfsFileInput(input) {
+    if (input.files && input.files[0]) {
+        handlePfsImageFile(input.files[0]);
+    }
+}
+
+// Mở Webcam
+async function startPfsWebcam() {
+    const errBox = document.getElementById('pfsImgErrorBox');
+    if (errBox) errBox.classList.remove('active');
+    try {
+        pfsWebcamStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        const video = document.getElementById('pfsWebcamVideo');
+        video.srcObject = pfsWebcamStream;
+        document.getElementById('pfsImgDefaultPanel').style.display = 'none';
+        document.getElementById('pfsImgWebcamPanel').classList.add('active');
+    } catch (err) {
+        showPfsError('Không thể mở camera. Vui lòng cấp quyền truy cập camera trên trình duyệt hoặc tải file ảnh lên!');
+    }
+}
+
+function stopPfsWebcam() {
+    if (pfsWebcamStream) {
+        pfsWebcamStream.getTracks().forEach(track => track.stop());
+        pfsWebcamStream = null;
+    }
+    const panel = document.getElementById('pfsImgWebcamPanel');
+    if (panel) panel.classList.remove('active');
+}
+
+function capturePfsSnapshot() {
+    const video = document.getElementById('pfsWebcamVideo');
+    const canvas = document.getElementById('pfsWebcamCanvas');
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(function(blob) {
+        stopPfsWebcam();
+        if (blob) {
+            handlePfsImageFile(blob);
+        }
+    }, 'image/jpeg', 0.92);
+}
+
+// Xử lý gửi ảnh lên Server Spring Boot
+function handlePfsImageFile(fileBlob) {
+    if (!fileBlob) return;
+
+    // Hiển thị khung xem trước và hiệu ứng quét laser
+    const previewImg = document.getElementById('pfsScannerPreviewImg');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        if (previewImg) previewImg.src = e.target.result;
+    };
+    reader.readAsDataURL(fileBlob);
+
+    const defPanel = document.getElementById('pfsImgDefaultPanel');
+    const camPanel = document.getElementById('pfsImgWebcamPanel');
+    const scanPanel = document.getElementById('pfsImgScannerPanel');
+    const errBox = document.getElementById('pfsImgErrorBox');
+
+    if (defPanel) defPanel.style.display = 'none';
+    if (camPanel) camPanel.classList.remove('active');
+    if (scanPanel) scanPanel.classList.add('active');
+    if (errBox) errBox.classList.remove('active');
+
+    const formData = new FormData();
+    formData.append('image', fileBlob, 'petfood-search.jpg');
+
+    const headers = {};
+    if (pfsCsrfHeader && pfsCsrfToken) {
+        headers[pfsCsrfHeader] = pfsCsrfToken;
+    }
+
+    fetch(pfsCtx + '/products/search-by-image', {
+        method: 'POST',
+        headers: headers,
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok && data.redirectUrl) {
+            window.location.href = pfsCtx + data.redirectUrl;
+        } else {
+            showPfsError(data.message || 'Không nhận diện được sản phẩm thú cưng từ ảnh này.');
+        }
+    })
+    .catch(err => {
+        console.error('Lỗi tìm kiếm bằng ảnh:', err);
+        showPfsError('Có lỗi kết nối đến máy chủ. Vui lòng thử lại!');
+    });
+}
 </script>

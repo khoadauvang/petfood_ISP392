@@ -106,8 +106,8 @@ public class SecurityConfig {
                 .expiredUrl("/login?expired")
             )
             .exceptionHandling(ex -> ex.accessDeniedPage("/403"))
-            // GHN gửi webhook từ máy chủ của họ nên không có CSRF token
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/ghn/webhook"));
+            // GHN gửi webhook và API tìm kiếm bằng hình ảnh không cần CSRF token
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/ghn/webhook", "/products/search-by-image"));
 
         // Đăng nhập Google (tùy chọn, chỉ cho khách - BR-05). Nút bắt đầu ở /oauth2/authorization/google.
         // Google trả về OidcUser (scope có "openid") hoặc OAuth2User (không có "openid"); cả hai đều được đổi thành
