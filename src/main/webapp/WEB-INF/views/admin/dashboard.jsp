@@ -683,10 +683,7 @@
                     </div>
                 </div>
 
-                <div class="note" style="background:#fff7ee; color:#9a3412; border:1px solid #fed7aa; margin-top:16px">
-                    <i class="ti ti-truck-delivery" style="color:#ea580c"></i>
-                    <div><b>Đặc quyền Kim Cương:</b> Miễn phí vận chuyển cho mọi đơn hàng không giới hạn giá trị.</div>
-                </div>
+
 
                 <div class="panel-foot">
                     <a class="link-more" href="javascript:switchAdminTab('tab-members')">Xem quyền lợi &amp; Cài đặt hạng <i class="ti ti-arrow-right"></i></a>
@@ -846,9 +843,9 @@
                     <%-- Chọn khoảng ngày Từ ngày -> Đến ngày --%>
                     <div class="filter-date-group" title="Khoảng thời gian báo cáo">
                         <i class="ti ti-calendar filter-cal-icon"></i>
-                        <input type="date" class="filter-date-input" id="screen12FilterFrom" value="2026-10-01" onchange="onScreen12DateChange()" title="Từ ngày">
+                        <input type="date" class="filter-date-input" id="screen12FilterFrom" value="${filterFrom}" onchange="onScreen12DateChange()" title="Từ ngày">
                         <span class="filter-arrow-sep">&rarr;</span>
-                        <input type="date" class="filter-date-input" id="screen12FilterTo" value="2026-10-31" onchange="onScreen12DateChange()" title="Đến ngày">
+                        <input type="date" class="filter-date-input" id="screen12FilterTo" value="${filterTo}" onchange="onScreen12DateChange()" title="Đến ngày">
                     </div>
 
                     <div class="filter-sep-line"></div>
@@ -1497,9 +1494,9 @@
                     <%-- Chọn khoảng ngày Từ ngày -> Đến ngày --%>
                     <div class="filter-date-group" title="Khoảng thời gian báo cáo">
                         <i class="ti ti-calendar filter-cal-icon"></i>
-                        <input type="date" class="filter-date-input" id="s13FilterFrom" value="2026-10-01" onchange="onScreen13DateChange()" title="Từ ngày">
+                        <input type="date" class="filter-date-input" id="s13FilterFrom" value="${filterFrom}" onchange="onScreen13DateChange()" title="Từ ngày">
                         <span class="filter-arrow-sep">&rarr;</span>
-                        <input type="date" class="filter-date-input" id="s13FilterTo" value="2026-10-31" onchange="onScreen13DateChange()" title="Đến ngày">
+                        <input type="date" class="filter-date-input" id="s13FilterTo" value="${filterTo}" onchange="onScreen13DateChange()" title="Đến ngày">
                     </div>
 
                     <div class="filter-sep-line"></div>
@@ -2369,10 +2366,9 @@
             let fromVal = fromInput ? fromInput.value : '';
             let toVal = toInput ? toInput.value : '';
 
-            // Mặc định tháng 10/2026 nếu trống
             if (!fromVal || !toVal) {
-                fromVal = '2026-10-01';
-                toVal = '2026-10-31';
+                fromVal = '${filterFrom}';
+                toVal = '${filterTo}';
             }
 
             const startDate = new Date(fromVal + 'T00:00:00');
@@ -2602,8 +2598,8 @@
         let fromVal = fromInput ? fromInput.value : '';
         let toVal = toInput ? toInput.value : '';
         if (!fromVal || !toVal) {
-            fromVal = '2026-10-01';
-            toVal = '2026-10-31';
+            fromVal = '${filterFrom}';
+            toVal = '${filterTo}';
         }
 
         const startDate = new Date(fromVal + 'T00:00:00');
@@ -3092,8 +3088,8 @@
         if (!revGrowthEl || !ordGrowthEl || !aovGrowthEl) return;
 
         if (!fromVal || !toVal) {
-            fromVal = '2026-10-01';
-            toVal = '2026-10-31';
+            fromVal = '${filterFrom}';
+            toVal = '${filterTo}';
         }
 
         const startDate = new Date(fromVal + 'T00:00:00');
@@ -3214,7 +3210,7 @@
             document.getElementById('chip-today')?.classList.add('active');
         } else if (fromVal === weekFromIso && toVal === weekToIso) {
             document.getElementById('chip-week')?.classList.add('active');
-        } else if ((fromVal === monthFromIso && toVal === monthToIso) || (fromVal === '2026-10-01' && toVal === '2026-10-31')) {
+        } else if (fromVal === monthFromIso && toVal === monthToIso) {
             document.getElementById('chip-month')?.classList.add('active');
         } else if (fromVal === yearFromIso && toVal === yearToIso) {
             document.getElementById('chip-year')?.classList.add('active');
@@ -3266,8 +3262,14 @@
         const fromInput = document.getElementById('screen12FilterFrom');
         const toInput = document.getElementById('screen12FilterTo');
 
-        if (fromInput) fromInput.value = '2026-10-01';
-        if (toInput) toInput.value = '2026-10-31';
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        if (fromInput) fromInput.value = '${filterFrom}' || toIso(startOfMonth);
+        if (toInput) toInput.value = '${filterTo}' || toIso(endOfMonth);
 
         document.querySelectorAll('.rev-quick-chip').forEach(c => c.classList.remove('active'));
         const monthChip = document.getElementById('chip-month') || document.querySelectorAll('.rev-quick-chip')[2];
@@ -3293,7 +3295,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'Tong_hop_doanh_so_hang_ngay_' + (document.getElementById('screen12FilterFrom')?.value || '2026-10-01') + '_den_' + (document.getElementById('screen12FilterTo')?.value || '2026-10-31') + '.csv';
+        a.download = 'Tong_hop_doanh_so_hang_ngay_' + (document.getElementById('screen12FilterFrom')?.value || '${filterFrom}') + '_den_' + (document.getElementById('screen12FilterTo')?.value || '${filterTo}') + '.csv';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -3623,8 +3625,8 @@
     }
 
     function exportScreen13CustomerSpendingCsv() {
-        const fromRaw = document.getElementById('s13FilterFrom')?.value || '2026-10-01';
-        const toRaw = document.getElementById('s13FilterTo')?.value || '2026-10-31';
+        const fromRaw = document.getElementById('s13FilterFrom')?.value || '${filterFrom}';
+        const toRaw = document.getElementById('s13FilterTo')?.value || '${filterTo}';
 
         let list = s13CustMasterList;
         if (s13CustSearchQuery) {
@@ -3787,8 +3789,45 @@
         return val;
     }
 
-    function onScreen13DateChange() {
+    function syncScreen13QuickChips() {
+        const fromInput = document.getElementById('s13FilterFrom');
+        const toInput = document.getElementById('s13FilterTo');
+        if (!fromInput || !toInput) return;
+
+        const fromVal = fromInput.value;
+        const toVal = toInput.value;
+
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
+        const startOfWeek = new Date(now);
+        const dayOfWeek = (startOfWeek.getDay() + 6) % 7;
+        startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
         document.querySelectorAll('.s13-chip').forEach(c => c.classList.remove('active'));
+
+        if (fromVal === toIso(startOfWeek) && toVal === toIso(endOfWeek)) {
+            document.getElementById('s13-chip-week')?.classList.add('active');
+        } else if (fromVal === toIso(startOfMonth) && toVal === toIso(endOfMonth)) {
+            document.getElementById('s13-chip-month')?.classList.add('active');
+        } else if (fromVal === toIso(startOfPrevMonth) && toVal === toIso(endOfPrevMonth)) {
+            document.getElementById('s13-chip-prevmonth')?.classList.add('active');
+        } else if (fromVal === (now.getFullYear() + '-01-01') && toVal === (now.getFullYear() + '-12-31')) {
+            document.getElementById('s13-chip-year')?.classList.add('active');
+        }
+    }
+
+    function onScreen13DateChange() {
+        syncScreen13QuickChips();
         applyScreen13Filter();
     }
 
@@ -3800,18 +3839,31 @@
         const toInput = document.getElementById('s13FilterTo');
         if (!fromInput || !toInput) return;
 
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+
         if (type === 'week') {
-            fromInput.value = '2026-10-19';
-            toInput.value = '2026-10-25';
+            const startOfWeek = new Date(now);
+            const dayOfWeek = (startOfWeek.getDay() + 6) % 7; // Monday = 0
+            startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+            fromInput.value = toIso(startOfWeek);
+            toInput.value = toIso(endOfWeek);
         } else if (type === 'month') {
-            fromInput.value = '2026-10-01';
-            toInput.value = '2026-10-31';
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            fromInput.value = toIso(startOfMonth);
+            toInput.value = toIso(endOfMonth);
         } else if (type === 'prevmonth') {
-            fromInput.value = '2026-09-01';
-            toInput.value = '2026-09-30';
+            const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+            fromInput.value = toIso(startOfPrevMonth);
+            toInput.value = toIso(endOfPrevMonth);
         } else if (type === 'year') {
-            fromInput.value = '2026-01-01';
-            toInput.value = '2026-12-31';
+            fromInput.value = now.getFullYear() + '-01-01';
+            toInput.value = now.getFullYear() + '-12-31';
         }
         applyScreen13Filter();
     }
@@ -3825,16 +3877,22 @@
         const toInput = document.getElementById('s13FilterTo');
         const tierSelect = document.getElementById('s13FilterTier');
 
-        if (fromInput) fromInput.value = '2026-10-01';
-        if (toInput) toInput.value = '2026-10-31';
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        if (fromInput) fromInput.value = '${filterFrom}' || toIso(startOfMonth);
+        if (toInput) toInput.value = '${filterTo}' || toIso(endOfMonth);
         if (tierSelect) tierSelect.value = '';
 
         applyScreen13Filter();
     }
 
     function applyScreen13Filter() {
-        const fromRaw = document.getElementById('s13FilterFrom')?.value || '2026-10-01';
-        const toRaw = document.getElementById('s13FilterTo')?.value || '2026-10-31';
+        const fromRaw = document.getElementById('s13FilterFrom')?.value || '${filterFrom}';
+        const toRaw = document.getElementById('s13FilterTo')?.value || '${filterTo}';
         const tierVal = document.getElementById('s13FilterTier')?.value || '';
 
         const fromDisplay = formatVnDate(fromRaw);
@@ -4378,8 +4436,8 @@
     }
 
     function exportScreen13TableCsv() {
-        const fromRaw = document.getElementById('s13FilterFrom')?.value || '2026-10-01';
-        const toRaw = document.getElementById('s13FilterTo')?.value || '2026-10-31';
+        const fromRaw = document.getElementById('s13FilterFrom')?.value || '${filterFrom}';
+        const toRaw = document.getElementById('s13FilterTo')?.value || '${filterTo}';
         const fromVal = formatVnDate(fromRaw);
         const toVal = formatVnDate(toRaw);
 
@@ -4634,7 +4692,6 @@
                     }
                 } else if (p === 'month') {
                     if ((fromInput.value === monthFromIso && toInput.value === monthToIso) ||
-                        (fromInput.value === '2026-10-01' && toInput.value === '2026-10-31') ||
                         (d1.getDate() === 1 && d2.getDate() === new Date(d2.getFullYear(), d2.getMonth() + 1, 0).getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear())) {
                         btn.classList.add('on');
                     } else {
@@ -4697,18 +4754,11 @@
         renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
 
         // 2, 3: Khởi tạo và áp dụng dữ liệu thực tế cho Báo cáo doanh thu (Screen 12)
-        const s12From = document.getElementById('screen12FilterFrom');
-        const s12To = document.getElementById('screen12FilterTo');
-        if (s12From && (!s12From.value || s12From.value !== '2026-10-01')) {
-            s12From.value = '2026-10-01';
-        }
-        if (s12To && (!s12To.value || s12To.value !== '2026-10-31')) {
-            s12To.value = '2026-10-31';
-        }
         if (typeof syncScreen12QuickChips === 'function') syncScreen12QuickChips();
         applyScreen12Filter();
 
         // Screen 13: Báo cáo hội viên
+        if (typeof syncScreen13QuickChips === 'function') syncScreen13QuickChips();
         applyScreen13Filter();
 
         // 4. Render biểu đồ tròn trạng thái đơn

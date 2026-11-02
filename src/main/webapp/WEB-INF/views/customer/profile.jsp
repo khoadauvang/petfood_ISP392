@@ -232,7 +232,7 @@
                             <c:if test="${profile.tierLabel == 'Kim cương'}"><span class="tier-badge-label">HẠNG HIỆN TẠI</span></c:if>
                             <h4 style="font-size:15px;font-weight:700;">Kim Cương</h4>
                             <div style="color:var(--text-secondary);margin-bottom:8px;font-size:11px;">Chi tiêu từ 10.000.000₫</div>
-                            <p><i class="fi fi-rr-check"></i> Giảm 10% giá thường<br><i class="fi fi-rr-check"></i> Miễn phí ship đặc quyền<br><i class="fi fi-rr-check"></i> Quà sinh nhật thú cưng</p>
+                            <p><i class="fi fi-rr-check"></i> Giảm 10% giá thường<br><i class="fi fi-rr-check"></i> CSKH VIP riêng biệt<br><i class="fi fi-rr-check"></i> Quà sinh nhật thú cưng</p>
                         </div>
                     </div>
 
