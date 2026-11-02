@@ -554,8 +554,8 @@
             </div>
         </section>
 
-        <%-- Cảnh báo tồn kho & Chương trình hội viên --%>
-        <section class="grid g-1-1">
+        <%-- Cảnh báo tồn kho: một hàng riêng, chiếm hết chiều ngang --%>
+        <section class="grid">
             <%-- Cảnh báo tồn kho --%>
             <div class="panel">
                 <div class="panel-head">
@@ -608,7 +608,7 @@
                                         </c:choose>
                                     </td>
                                     <td>
-                                        <a href="${ctx}/staff/lots/new" class="act-icon" title="Nhập thêm hàng" style="background:#ea580c; color:#fff; width:auto; padding:4px 8px; font-size:12px; font-weight:700; border-radius:8px; text-decoration:none">Nhập thêm</a>
+                                        <a href="${ctx}/staff/lots/new?productId=${item.productId}" class="act-icon" title="Nhập thêm hàng" style="background:#ea580c; color:#fff; width:auto; padding:4px 8px; font-size:12px; font-weight:700; border-radius:8px; text-decoration:none">Nhập thêm</a>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -629,7 +629,10 @@
                     <a class="link-more" href="${ctx}/staff/alerts">Quản lý tồn kho nâng cao <i class="ti ti-arrow-right"></i></a>
                 </div>
             </div>
+        </section>
 
+        <%-- Chương trình hội viên (hẹp, các hạng xếp dọc) & Sản phẩm bán chạy nhất --%>
+        <section class="grid g-1-2">
             <%-- Chương trình hội viên --%>
             <div class="panel">
                 <div class="panel-head">
@@ -660,7 +663,7 @@
                     <span id="tier-bar-diamond" style="width:10%; background:#0284c7" title="Kim Cương"></span>
                 </div>
 
-                <div class="tiles">
+                <div class="tiles" style="grid-template-columns:1fr;">
                     <div class="tile" style="border-left:4px solid #b45309">
                         <div class="tile-top"><span>🥉 Đồng (Bronze)</span><span class="tile-sub">Hạng khởi đầu</span></div>
                         <div class="tile-val" id="tier-val-bronze"><c:out value="${not empty stats.customersByTier ? stats.customersByTier[0].count : '0'}"/></div>
@@ -690,10 +693,7 @@
                     <span class="hint">Cập nhật thời gian thực</span>
                 </div>
             </div>
-        </section>
 
-        <%-- Sản phẩm bán chạy & Đơn hàng gần đây --%>
-        <section class="grid g-1-1">
             <%-- Bán chạy nhất --%>
             <div class="panel">
                 <div class="panel-head">
@@ -740,70 +740,6 @@
 
                 <div class="panel-foot">
                     <span>Hiển thị <c:out value="${not empty stats.topProducts ? stats.topProducts.size() : 0}"/> sản phẩm bán chạy</span>
-                </div>
-            </div>
-
-            <%-- Đơn hàng gần đây --%>
-            <div class="panel">
-                <div class="panel-head">
-                    <div>
-                        <h3>Đơn hàng gần đây</h3>
-                        <p>Lượng giao dịch đơn hàng mới theo thời gian thực</p>
-                    </div>
-                </div>
-
-                <table>
-                    <thead>
-                    <tr>
-                        <th>MÃ ĐƠN</th>
-                        <th>KHÁCH HÀNG</th>
-                        <th>NGÀY &amp; GIỜ</th>
-                        <th class="num">TỔNG TIỀN</th>
-                        <th>THANH TOÁN</th>
-                        <th>TRẠNG THÁI</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:choose>
-                        <c:when test="${not empty recentOrders}">
-                            <c:forEach var="o" items="${recentOrders}">
-                                <tr>
-                                    <td><a href="${ctx}/staff/orders" style="font-weight:800; color:#ea580c">#ORD-${o.id}</a></td>
-                                    <td>
-                                        <b><c:out value="${empty o.customerName ? 'Khách hàng #' += o.id : o.customerName}"/></b><br>
-                                        <small style="color:var(--text-muted)"><c:out value="${empty o.customerEmail ? 'N/A' : o.customerEmail}"/></small>
-                                    </td>
-                                    <td>${o.createdAtText}</td>
-                                    <td class="num"><b>₫<fmt:formatNumber value="${o.totalAmount}" type="number"/></b></td>
-                                    <td>
-                                        <span class="pill-badge ${o.paymentMethodLabel == 'VNPay' ? 'green' : 'orange'}">
-                                            ${o.paymentMethodLabel}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="pill-badge ${o.status == 'COMPLETED' ? 'green' : (o.status == 'SHIPPED' or o.status == 'PROCESSING' ? 'blue' : (o.status == 'CONFIRMED' ? 'gold' : (o.status == 'CANCELLED' ? 'red' : 'gray')))}">
-                                            ${o.status.label}
-                                        </span>
-                                    </td>
-                                    <td><a href="${ctx}/staff/orders" class="act-icon"><i class="ti ti-eye"></i></a></td>
-                                </tr>
-                            </c:forEach>
-                        </c:when>
-                        <c:otherwise>
-                            <tr>
-                                <td colspan="7" style="text-align:center; padding:28px; color:var(--text-muted)">
-                                    Chưa có đơn hàng nào phát sinh
-                                </td>
-                            </tr>
-                        </c:otherwise>
-                    </c:choose>
-                    </tbody>
-                </table>
-
-                <div class="panel-foot">
-                    <span>Hiển thị <c:out value="${not empty recentOrders ? recentOrders.size() : 0}"/> đơn hàng gần đây</span>
-                    <a class="link-more" href="${ctx}/staff/orders">Quản lý toàn bộ đơn hàng <i class="ti ti-arrow-right"></i></a>
                 </div>
             </div>
         </section>
@@ -1428,6 +1364,7 @@
                         <th style="text-align:right; background:#f8fafc;">ĐÃ HỦY</th>
                         <th style="text-align:right; background:#f8fafc;">DOANH THU (VND)</th>
                         <th style="text-align:right; background:#f8fafc;">GIÁ TRỊ TRUNG BÌNH ĐƠN (AOV)</th>
+                        <th style="text-align:center; background:#f8fafc; width:110px;">CHI TIẾT</th>
                     </tr>
                     </thead>
                     <tbody id="screen12AuditTbody">
@@ -1441,6 +1378,7 @@
                         <td style="text-align:right; color:#ef4444; background:#fffbeb;" id="screen12FooterCancelledOrders">4</td>
                         <td style="text-align:right; color:#1e293b; font-size:14px; background:#fffbeb;" id="screen12FooterRevenue">₫35,616,708</td>
                         <td style="text-align:right; color:#1e293b; background:#fffbeb;" id="screen12FooterAov">₫636,013</td>
+                        <td style="background:#fffbeb;"></td>
                     </tr>
                     </tfoot>
                 </table>
@@ -2183,6 +2121,54 @@
             </div>
         </div>
 
+        <%-- Modal Popup: Chi tiết các đơn hàng của một ngày (bảng Tổng hợp doanh số hàng ngày) --%>
+        <div id="dayOrdersModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;" onclick="closeDayOrdersModal()">
+            <div style="background:#fff; border-radius:18px; width:100%; max-width:860px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); border:1px solid #fed7aa; overflow:hidden;" onclick="event.stopPropagation();">
+                <div style="padding:16px 22px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:#fffaf5;">
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:800; color:#1e293b; display:flex; align-items:center; gap:8px;">
+                            <i class="ti ti-calendar-event" style="color:#ea580c; font-size:20px;"></i>
+                            ĐƠN HÀNG NGÀY <span id="dayOrdersModalDate" style="color:#ea580c;">--</span>
+                        </h3>
+                        <p id="dayOrdersModalSub" style="margin:4px 0 0 0; font-size:12px; color:#64748b;">--</p>
+                    </div>
+                    <button type="button" onclick="closeDayOrdersModal()" style="background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:8px; line-height:1;" title="Đóng cửa sổ">
+                        &times;
+                    </button>
+                </div>
+
+                <div id="dayOrdersStatusChips" style="padding:12px 22px 0; display:flex; flex-wrap:wrap; gap:8px;">
+                    <%-- Render bởi renderDayOrdersTable() --%>
+                </div>
+
+                <div style="padding:18px 22px; overflow-y:auto; flex:1;">
+                    <div style="overflow-x:auto;">
+                        <table class="rev-table" style="margin-bottom:0; font-size:13px;">
+                            <thead>
+                                <tr>
+                                    <th style="width:110px; text-align:center;">MÃ ĐƠN</th>
+                                    <th>KHÁCH HÀNG</th>
+                                    <th style="width:140px; text-align:center;">NGÀY ĐẶT</th>
+                                    <th style="width:140px; text-align:center;">NGÀY HOÀN THÀNH</th>
+                                    <th style="width:140px; text-align:right;">TỔNG TIỀN (VNĐ)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dayOrdersModalTbody">
+                                <%-- Render bởi openDayOrdersModal() --%>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="padding:12px 22px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:#fafafa; font-size:12.5px;">
+                    <div id="dayOrdersModalSummary" style="color:#64748b; font-weight:600;">Tổng cộng: 0 đơn hàng</div>
+                    <button type="button" onclick="closeDayOrdersModal()" style="padding:6px 18px; border-radius:8px; background:#fff; border:1px solid #cbd5e1; font-size:12.5px; font-weight:700; color:#475569; cursor:pointer;">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <%-- Modal Popup: Lịch sử đơn hàng của hội viên (Phương án 2 - Bảo mật tối đa) --%>
         <div id="custOrdersHistoryModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;" onclick="closeCustOrdersModal()">
             <div style="background:#fff; border-radius:18px; width:100%; max-width:880px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); border:1px solid #fed7aa; overflow:hidden;" onclick="event.stopPropagation();">
@@ -2345,7 +2331,7 @@
     let ALL_ORDERS_DATA = [
         <c:if test="${not empty stats.allOrders}">
             <c:forEach var="o" items="${stats.allOrders}" varStatus="loop">
-                { id: ${o.id}, customerId: ${o.customerId != null ? o.customerId : 'null'}, tier: '${o.customerTier}', customerTier: '${o.customerTier}', date: '${o.date}', dayText: '${o.dayText}', status: '${o.status}', pay: '${o.pay}', total: ${o.total}, discount: ${o.discount}, cats: ${o.catsJson} }<c:if test="${!loop.last}">,</c:if>
+                { id: ${o.id}, customerId: ${o.customerId != null ? o.customerId : 'null'}, tier: '${o.customerTier}', customerTier: '${o.customerTier}', date: '${o.date}', dayText: '${o.dayText}', orderedAt: '${o.orderedAt}', completedAt: '${o.completedAt}', status: '${o.status}', pay: '${o.pay}', total: ${o.total}, discount: ${o.discount}, cats: ${o.catsJson} }<c:if test="${!loop.last}">,</c:if>
             </c:forEach>
         </c:if>
     ];
@@ -2806,17 +2792,17 @@
 
         let list = [...currentScreen12MasterDays];
         if (currentScreen12Sort === 'asc') {
-            list.sort((a, b) => a.dayNum - b.dayNum);
+            list.sort((a, b) => a.rawDate.localeCompare(b.rawDate));
         } else if (currentScreen12Sort === 'revenue') {
-            list.sort((a, b) => b.revenue - a.revenue);
+            list.sort((a, b) => (b.revenue - a.revenue) || b.rawDate.localeCompare(a.rawDate));
         } else {
-            list.sort((a, b) => b.dayNum - a.dayNum);
+            list.sort((a, b) => b.rawDate.localeCompare(a.rawDate));
         }
 
         const totalItems = list.length;
 
         if (totalItems === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">Không có giao dịch nào phù hợp với bộ lọc đã chọn</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">Không có giao dịch nào phù hợp với bộ lọc đã chọn</td></tr>';
             if (infoEl) infoEl.innerText = 'Không có giao dịch nào';
             return;
         }
@@ -2837,6 +2823,11 @@
                 '  <td style="text-align:right; font-weight:600; color:' + (item.cancelled > 0 ? '#ef4444' : '#94a3b8') + ';">' + item.cancelled + '</td>' +
                 '  <td style="text-align:right; font-weight:800; color:#1e293b;">' + formatCurrency(item.revenue) + '</td>' +
                 '  <td style="text-align:right; font-weight:600; color:#475569;">' + formatCurrency(item.aov) + '</td>' +
+                '  <td style="text-align:center;">' +
+                '    <button type="button" onclick="openDayOrdersModal(\'' + item.rawDate + '\')" style="display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:#ea580c; background:#fff7ed; border:1px solid #fed7aa; padding:4px 10px; border-radius:6px; cursor:pointer; font-family:inherit;" title="Xem các đơn hàng ngày ' + item.date + '">' +
+                '      <i class="ti ti-list-details" style="font-size:13px;"></i> Xem đơn' +
+                '    </button>' +
+                '  </td>' +
                 '</tr>';
         });
 
@@ -2845,6 +2836,116 @@
         if (infoEl) {
             infoEl.innerText = 'Hiển thị toàn bộ ' + totalItems + ' ngày giao dịch';
         }
+    }
+
+    // Popup chi tiết đơn hàng của một ngày; rawDate = yyyy-MM-dd (cùng khoá gom nhóm với bảng)
+    function formatVnDateTime(val) {
+        if (!val || val === 'null') return '';
+        const [d, t] = val.split(' ');
+        return formatVnDate(d) + (t ? ' ' + t : '');
+    }
+
+    function decodeHtmlText(str) {
+        const el = document.createElement('textarea');
+        el.innerHTML = str || '';
+        return el.value;
+    }
+
+    // Trạng thái đơn theo thứ tự hiển thị trên thanh lọc của popup
+    const DAY_ORDER_STATUS_LABELS = {
+        COMPLETED: 'Hoàn thành', PENDING: 'Chờ xác nhận', CONFIRMED: 'Đã xác nhận', PROCESSING: 'Đang xử lý',
+        SHIPPED: 'Đang giao', CANCELLED: 'Đã hủy', RETURNED: 'Trả hàng'
+    };
+    let dayOrdersCurrent = [];
+    let dayOrdersFilter = 'ALL';
+
+    function openDayOrdersModal(rawDate) {
+        const modal = document.getElementById('dayOrdersModal');
+        const subEl = document.getElementById('dayOrdersModalSub');
+        if (!modal) return;
+        // Modal nằm trong tab Hội viên (bị display:none khi đang ở tab Doanh thu) nên đưa ra <body> để hiện được
+        if (modal.parentElement !== document.body) document.body.appendChild(modal);
+
+        dayOrdersCurrent = ALL_ORDERS_DATA.filter(o => o.date === rawDate);
+        dayOrdersCurrent.sort((a, b) => (b.orderedAt || '').localeCompare(a.orderedAt || '') || (b.id - a.id));
+        dayOrdersFilter = 'ALL';
+
+        document.getElementById('dayOrdersModalDate').innerText = formatVnDate(rawDate);
+        const completedCount = dayOrdersCurrent.filter(o => o.status === 'COMPLETED').length;
+        const cancelledCount = dayOrdersCurrent.filter(o => o.status === 'CANCELLED').length;
+        if (subEl) subEl.innerText = dayOrdersCurrent.length + ' đơn • ' + completedCount + ' hoàn thành • ' + cancelledCount + ' đã hủy';
+
+        renderDayOrdersTable();
+        modal.style.display = 'flex';
+    }
+
+    function setDayOrdersFilter(status) {
+        dayOrdersFilter = status;
+        renderDayOrdersTable();
+    }
+
+    // Vẽ thanh lọc trạng thái (chỉ các trạng thái có trong ngày, kèm số đơn) và bảng đơn theo bộ lọc đang chọn
+    function renderDayOrdersTable() {
+        const tbody = document.getElementById('dayOrdersModalTbody');
+        const chipsEl = document.getElementById('dayOrdersStatusChips');
+        const summaryEl = document.getElementById('dayOrdersModalSummary');
+        if (!tbody) return;
+
+        const counts = {};
+        dayOrdersCurrent.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+        const statuses = Object.keys(DAY_ORDER_STATUS_LABELS).filter(st => counts[st])
+            .concat(Object.keys(counts).filter(st => !DAY_ORDER_STATUS_LABELS[st]));
+        if (dayOrdersFilter !== 'ALL' && !counts[dayOrdersFilter]) dayOrdersFilter = 'ALL';
+
+        if (chipsEl) {
+            const chip = (value, label, count) => {
+                const on = dayOrdersFilter === value;
+                return '<button type="button" onclick="setDayOrdersFilter(\'' + value + '\')" style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s ease; '
+                    + (on ? 'background:#ea580c; color:#fff; border:1px solid #ea580c;' : 'background:#fff; color:#475569; border:1px solid #cbd5e1;') + '">'
+                    + label + ' <span style="font-size:11px; padding:0 6px; border-radius:99px; ' + (on ? 'background:rgba(255,255,255,0.25);' : 'background:#f1f5f9; color:#64748b;') + '">' + count + '</span></button>';
+            };
+            chipsEl.innerHTML = chip('ALL', 'Tất cả', dayOrdersCurrent.length)
+                + statuses.map(st => chip(st, DAY_ORDER_STATUS_LABELS[st] || st, counts[st])).join('');
+        }
+
+        const custNames = {};
+        ALL_CUSTOMERS_DATA.forEach(c => { custNames[c.id] = decodeHtmlText(c.name); });
+
+        const orders = dayOrdersFilter === 'ALL' ? dayOrdersCurrent : dayOrdersCurrent.filter(o => o.status === dayOrdersFilter);
+
+        if (orders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:#94a3b8; font-weight:600;"><i class="ti ti-package-off" style="font-size:22px; vertical-align:middle; margin-right:6px;"></i>Không có đơn hàng nào phù hợp</td></tr>';
+        } else {
+            let rowsHtml = '';
+            orders.forEach(o => {
+                const name = custNames[o.customerId] || 'Khách hàng';
+                const completed = formatVnDateTime(o.completedAt);
+                rowsHtml += '<tr>' +
+                    '  <td style="text-align:center;"><b style="color:#1e293b;">#ORD-' + o.id + '</b></td>' +
+                    '  <td style="font-weight:600; color:#334155;">' + escapeHtml(name) + '</td>' +
+                    '  <td style="text-align:center; color:#475569; font-weight:600;">' + (formatVnDateTime(o.orderedAt) || formatVnDate(o.date)) + '</td>' +
+                    '  <td style="text-align:center; font-weight:600;">' + (completed
+                        ? '<span style="color:#16a34a;">' + completed + '</span>'
+                        : getOrderStatusBadge(o.status)) + '</td>' +
+                    '  <td style="text-align:right; font-weight:800; color:' + (o.status === 'CANCELLED' ? '#94a3b8; text-decoration:line-through' : '#1e293b') + ';">' + formatCurrency(o.total) + '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = rowsHtml;
+        }
+
+        if (summaryEl) {
+            const shownTotal = orders.filter(o => o.status !== 'CANCELLED').reduce((s, o) => s + (Number(o.total) || 0), 0);
+            const revenue = dayOrdersCurrent.filter(o => o.status === 'COMPLETED').reduce((s, o) => s + (Number(o.total) || 0), 0);
+            summaryEl.innerHTML = dayOrdersFilter === 'ALL'
+                ? 'Tổng cộng: <b>' + orders.length + ' đơn hàng</b> &bull; Doanh thu (đơn hoàn thành): <b style="color:#ea580c;">' + formatCurrency(revenue) + '</b>'
+                : 'Đang lọc <b>' + (DAY_ORDER_STATUS_LABELS[dayOrdersFilter] || dayOrdersFilter) + '</b>: <b>' + orders.length + '/' + dayOrdersCurrent.length + ' đơn</b>'
+                    + (dayOrdersFilter === 'CANCELLED' ? '' : ' &bull; Tổng tiền: <b style="color:#ea580c;">' + formatCurrency(shownTotal) + '</b>');
+        }
+    }
+
+    function closeDayOrdersModal() {
+        const modal = document.getElementById('dayOrdersModal');
+        if (modal) modal.style.display = 'none';
     }
 
     function changeDailyAuditSort(val) {
@@ -3766,7 +3867,7 @@
     }
 
     window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeCustOrdersModal();
+        if (e.key === 'Escape') { closeCustOrdersModal(); closeDayOrdersModal(); }
     });
 
 

@@ -56,4 +56,19 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             order by sum(i.quantity) desc
             """)
     List<Long> findBestSellerIds(Pageable pageable);
+
+    // Số lượng đã bán của nhiều sản phẩm (thẻ sản phẩm "Đã bán n"): cùng định nghĩa với bán chạy, chỉ đơn COMPLETED
+    interface SoldCountRow {
+        Long getProductId();
+        Long getSoldQty();
+    }
+
+    @Query("""
+            select i.product.id as productId, sum(i.quantity) as soldQty
+            from OrderItem i
+            where i.order.status = com.isp392.petfood.enums.OrderStatus.COMPLETED
+              and i.product.id in :productIds
+            group by i.product.id
+            """)
+    List<SoldCountRow> sumSoldQuantity(@Param("productIds") Collection<Long> productIds);
 }

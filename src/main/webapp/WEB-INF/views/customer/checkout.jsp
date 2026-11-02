@@ -96,7 +96,7 @@
                             <c:if test="${ghnAddressPicker}">
                                 <div class="form-group" style="display:flex; gap:12px; flex-wrap:wrap">
                                     <div style="flex:1; min-width:200px">
-                                        <label for="ghnProvince" class="form-label">Tỉnh / Thành phố</label>
+                                        <label for="ghnProvinceSearch" class="form-label">Tỉnh / Thành phố</label>
                                         <select id="ghnProvince" class="checkout-textarea" style="height:auto; padding:10px">
                                             <option value="">-- Chọn tỉnh/thành --</option>
                                         </select>
@@ -104,7 +104,7 @@
                                         <form:errors path="province" cssClass="error-msg"/>
                                     </div>
                                     <div style="flex:1; min-width:200px">
-                                        <label for="ghnWard" class="form-label">Phường / Xã</label>
+                                        <label for="ghnWardSearch" class="form-label">Phường / Xã</label>
                                         <select id="ghnWard" class="checkout-textarea" style="height:auto; padding:10px" disabled>
                                             <option value="">-- Chọn phường/xã --</option>
                                         </select>
@@ -112,6 +112,19 @@
                                         <form:errors path="ward" cssClass="error-msg"/>
                                     </div>
                                 </div>
+                                <style>
+                                    .addr-combo { position:relative; }
+                                    .addr-combo input { height:auto; padding:10px 34px 10px 10px; width:100%; box-sizing:border-box; }
+                                    .addr-combo::after { content:'\25BE'; position:absolute; right:12px; top:50%; transform:translateY(-50%);
+                                        color:#9a8f88; pointer-events:none; font-size:13px; }
+                                    .addr-combo-list { position:absolute; left:0; right:0; z-index:25; margin:4px 0 0; padding:4px 0;
+                                        list-style:none; background:#fff; border:1px solid #e5e0dc; border-radius:10px;
+                                        box-shadow:0 8px 24px rgba(0,0,0,.08); max-height:260px; overflow-y:auto; }
+                                    .addr-combo-list li { padding:9px 14px; cursor:pointer; font-size:14px; }
+                                    .addr-combo-list li:hover, .addr-combo-list li.active { background:#fff4ec; }
+                                    .addr-combo-list li.selected { font-weight:700; color:#ea580c; }
+                                    .addr-combo-list li.empty { color:#9a8f88; cursor:default; background:none; }
+                                </style>
                             </c:if>
 
                             <div class="form-group" style="position:relative">
@@ -395,6 +408,145 @@
                 const provinceInput = document.getElementById('provinceName');
                 const wardInput = document.getElementById('wardName');
 
+                // Bỏ dấu để gõ "phu nhuan" vẫn ra "Phường Phú Nhuận"
+                function normalize(str) {
+                    return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                        .replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
+                }
+
+                // Biến <select> thành ô gõ để lọc + chọn gợi ý. <select> vẫn giữ giá trị và phát sự kiện change như cũ,
+                // khách bắt buộc bấm một gợi ý (rời ô mà chưa chọn thì ô trả về lựa chọn hiện tại).
+                function makeSearchable(select, placeholder) {
+                    const box = document.createElement('div');
+                    box.className = 'addr-combo';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = select.id + 'Search';
+                    input.className = 'checkout-textarea';
+                    input.placeholder = placeholder;
+                    input.autocomplete = 'off';
+                    input.setAttribute('role', 'combobox');
+                    const list = document.createElement('ul');
+                    list.className = 'addr-combo-list';
+                    list.setAttribute('role', 'listbox');
+                    list.hidden = true;
+                    box.appendChild(input);
+                    box.appendChild(list);
+                    select.parentNode.insertBefore(box, select);
+                    select.hidden = true;
+
+                    let matches = [];
+                    let active = -1;
+
+                    function hide() {
+                        list.hidden = true;
+                        list.innerHTML = '';
+                        active = -1;
+                    }
+
+                    function highlight(index) {
+                        const items = list.querySelectorAll('li[data-i]');
+                        if (items.length === 0) {
+                            return;
+                        }
+                        active = (index + items.length) % items.length;
+                        items.forEach(function (li, i) { li.classList.toggle('active', i === active); });
+                        items[active].scrollIntoView({ block: 'nearest' });
+                    }
+
+                    function pick(opt) {
+                        input.value = opt.text;
+                        hide();
+                        if (select.value !== opt.value) {
+                            select.value = opt.value;
+                            select.dispatchEvent(new Event('change'));
+                        }
+                    }
+
+                    function render(query) {
+                        const tokens = normalize(query).split(/\s+/).filter(Boolean);
+                        matches = Array.from(select.options).filter(function (o) {
+                            if (!o.value) {
+                                return false;
+                            }
+                            const name = normalize(o.text);
+                            return tokens.every(function (t) { return name.includes(t); });
+                        });
+                        list.innerHTML = '';
+                        active = -1;
+                        if (matches.length === 0) {
+                            const li = document.createElement('li');
+                            li.className = 'empty';
+                            li.textContent = 'Không tìm thấy kết quả phù hợp';
+                            list.appendChild(li);
+                        }
+                        matches.forEach(function (opt, i) {
+                            const li = document.createElement('li');
+                            li.setAttribute('role', 'option');
+                            li.dataset.i = i;
+                            li.textContent = opt.text;
+                            if (opt.value === select.value) {
+                                li.classList.add('selected');
+                            }
+                            // mousedown chạy trước blur của ô nhập nên chọn được trước khi danh sách bị ẩn
+                            li.addEventListener('mousedown', function (e) {
+                                e.preventDefault();
+                                pick(opt);
+                            });
+                            list.appendChild(li);
+                        });
+                        list.hidden = false;
+                        if (tokens.length > 0) {
+                            highlight(0);
+                        }
+                    }
+
+                    input.addEventListener('focus', function () {
+                        input.select();
+                        render('');
+                    });
+                    input.addEventListener('click', function () {
+                        if (list.hidden) {
+                            render('');
+                        }
+                    });
+                    input.addEventListener('input', function () { render(input.value); });
+                    input.addEventListener('keydown', function (e) {
+                        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            if (list.hidden) {
+                                render(input.value);
+                            }
+                            highlight(active + (e.key === 'ArrowDown' ? 1 : -1));
+                        } else if (e.key === 'Enter') {
+                            if (!list.hidden) {
+                                e.preventDefault();         // không submit form khi đang chọn gợi ý
+                                if (active >= 0 && matches[active]) {
+                                    pick(matches[active]);
+                                }
+                            }
+                        } else if (e.key === 'Escape') {
+                            hide();
+                        }
+                    });
+                    input.addEventListener('blur', function () {
+                        hide();
+                        sync();
+                    });
+
+                    // Đồng bộ ô gõ theo <select> (sau khi nạp lại danh sách / bật-tắt)
+                    function sync() {
+                        const opt = select.selectedOptions[0];
+                        input.value = opt && opt.value ? opt.text : '';
+                        input.disabled = select.disabled;
+                    }
+                    sync();
+                    return sync;
+                }
+
+                const syncProvince = makeSearchable(provinceSel, 'Gõ để tìm tỉnh/thành...');
+                const syncWard = makeSearchable(wardSel, 'Gõ để tìm phường/xã...');
+
                 function fill(select, items, placeholder, selectedName) {
                     select.innerHTML = '';
                     select.add(new Option(placeholder, ''));
@@ -410,6 +562,7 @@
                     const opt = provinceSel.selectedOptions[0];
                     wardSel.disabled = true;
                     fill(wardSel, [], '-- Chọn phường/xã --', '');
+                    syncWard();
                     if (!opt || !opt.dataset.id) {
                         return;
                     }
@@ -419,6 +572,7 @@
                             fill(wardSel, wards, '-- Chọn phường/xã --', selectedWard);
                             wardSel.disabled = false;
                             wardInput.value = wardSel.value;
+                            syncWard();
                         });
                 }
 
@@ -426,6 +580,7 @@
                     .then(function (r) { return r.json(); })
                     .then(function (provinces) {
                         fill(provinceSel, provinces, '-- Chọn tỉnh/thành --', provinceInput.value);
+                        syncProvince();
                         if (provinceSel.value) {
                             loadWards(wardInput.value);         // trang hiện lại sau lỗi / tính phí: giữ lựa chọn cũ
                         }

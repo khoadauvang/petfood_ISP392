@@ -71,11 +71,12 @@ public class ProductService {
                 filter.getMaxPrice(),
                 pageable);
 
-        Map<Long, StockRow> stockByProductId = loadSellableStock(
-                products.getContent().stream().map(Product::getId).toList());
+        List<Long> pageIds = products.getContent().stream().map(Product::getId).toList();
+        Map<Long, StockRow> stockByProductId = loadSellableStock(pageIds);
+        Map<Long, Long> soldByProductId = loadSoldCounts(pageIds);
 
         // Page.map giữ nguyên thông tin phân trang, chỉ đổi kiểu phần tử Product -> ProductCardDto
-        return products.map(p -> toCard(p, stockByProductId.get(p.getId())));
+        return products.map(p -> toCard(p, stockByProductId.get(p.getId()), soldByProductId.getOrDefault(p.getId(), 0L)));
     }
 
     // Trang chủ "Sản phẩm bán chạy & Mới về": sản phẩm bán nhiều nhất (theo số lượng trên đơn đã giao thành công)
@@ -90,10 +91,11 @@ public class ProductService {
         Map<Long, Product> byId = productRepository.findAllById(ids).stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
         Map<Long, StockRow> stockByProductId = loadSellableStock(List.copyOf(ids));
+        Map<Long, Long> soldByProductId = loadSoldCounts(List.copyOf(ids));
         List<ProductCardDto> cards = ids.stream()
                 .map(byId::get)
                 .filter(Objects::nonNull)
-                .map(p -> toCard(p, stockByProductId.get(p.getId())))
+                .map(p -> toCard(p, stockByProductId.get(p.getId()), soldByProductId.getOrDefault(p.getId(), 0L)))
                 .toList();
         return Stream.concat(cards.stream().filter(ProductCardDto::isInStock),
                         cards.stream().filter(c -> !c.isInStock()))
@@ -189,7 +191,17 @@ public class ProductService {
                 .collect(Collectors.toMap(StockRow::getProductId, Function.identity()));
     }
 
-    private static ProductCardDto toCard(Product p, StockRow stock) {
+    // productId -> tổng số lượng đã bán (đơn COMPLETED). Sản phẩm chưa bán thì không có trong map.
+    private Map<Long, Long> loadSoldCounts(List<Long> productIds) {
+        if (productIds.isEmpty()) {
+            return Map.of();
+        }
+        return orderItemRepository.sumSoldQuantity(productIds).stream()
+                .collect(Collectors.toMap(OrderItemRepository.SoldCountRow::getProductId,
+                        OrderItemRepository.SoldCountRow::getSoldQty));
+    }
+
+    private static ProductCardDto toCard(Product p, StockRow stock, long soldCount) {
         boolean inStock = stock != null && stock.getQuantity() > 0;
         return new ProductCardDto(
                 p.getId(),
@@ -199,7 +211,8 @@ public class ProductService {
                 p.getSellingPrice(),
                 p.getImageUrl(),
                 inStock,
-                inStock ? stock.getNearestExpiry().format(DATE) : null);
+                inStock ? stock.getNearestExpiry().format(DATE) : null,
+                soldCount);
     }
 
     private static String blankToNull(String value) {

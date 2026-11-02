@@ -101,6 +101,8 @@ public interface DashboardRepository extends Repository<Order, Long> {
         Long getCustomerId();
         String getCustomerTier();
         String getDate();
+        String getOrderedAt();      // yyyy-MM-dd HH:mm
+        String getCompletedAt();    // yyyy-MM-dd HH:mm, null nếu chưa hoàn thành
         String getStatus();
         String getPay();
         BigDecimal getTotal();
@@ -128,7 +130,9 @@ public interface DashboardRepository extends Repository<Order, Long> {
     // total = tiền hàng thực thu đã trừ tiền hoàn trả hàng REFUNDED (để khớp thống kê chi tiêu và doanh thu thuần).
     @Query(value = """
             SELECT o.order_id AS id, o.customer_id AS customerId, c.membership_tier AS customerTier,
-                   CONVERT(char(10), COALESCE(o.completed_at, o.created_at), 23) AS date, o.order_status AS status,
+                   CONVERT(char(10), COALESCE(o.completed_at, o.created_at), 23) AS date,
+                   CONVERT(char(16), o.created_at, 120) AS orderedAt, CONVERT(char(16), o.completed_at, 120) AS completedAt,
+                   o.order_status AS status,
                    o.payment_method AS pay,
                    (o.total_amount - COALESCE((
                        SELECT SUM(ri.refund_amount)

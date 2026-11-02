@@ -91,7 +91,7 @@ public class AdminDashboardService {
         }
         return dashboardRepository.allOrders().stream()
                 .map(o -> new AdminDashboard.OrderAuditItem(o.getId(), o.getCustomerId(), o.getCustomerTier(), o.getDate(),
-                        LocalDate.parse(o.getDate()).format(DAY), o.getStatus(), o.getPay(), o.getTotal().longValue(),
+                        LocalDate.parse(o.getDate()).format(DAY), o.getOrderedAt(), o.getCompletedAt(), o.getStatus(), o.getPay(), o.getTotal().longValue(),
                         o.getDiscount() != null ? o.getDiscount().longValue() : 0L,
                         byCategory.getOrDefault(o.getId(), Map.of())))
                 .toList();

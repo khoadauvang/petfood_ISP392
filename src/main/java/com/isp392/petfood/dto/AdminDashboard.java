@@ -67,6 +67,8 @@ public class AdminDashboard {
         private final String customerTier;      // hạng hiện tại của khách
         private final String date;              // yyyy-MM-dd, ngày đặt
         private final String dayText;           // dd/MM
+        private final String orderedAt;         // yyyy-MM-dd HH:mm, thời điểm đặt
+        private final String completedAt;       // yyyy-MM-dd HH:mm, null nếu chưa hoàn thành
         private final String status;
         private final String pay;               // COD | VNPAY
         private final long total;
