@@ -226,19 +226,6 @@
         <a href="${ctx}/staff/lots" class="act-icon" title="Xóa bộ lọc"><i class="ti ti-x"></i></a>
     </form>
 
-    <%-- Banner thông báo nếu đang lọc Sản phẩm tồn kho thấp --%>
-    <c:if test="${filterStockStatus == 'LOW_STOCK' or filterView == 'LOW_STOCK'}">
-        <div style="margin:14px 0; padding:12px 18px; border-radius:12px; background:#fffbeb; border:1px solid #fde68a; color:#92400e; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:600; box-shadow:0 2px 8px rgba(217, 119, 6, 0.08)">
-            <div style="display:flex; align-items:center; gap:10px">
-                <i class="ti ti-alert-triangle" style="font-size:20px; color:#d97706"></i>
-                <span>Đang hiển thị <b>Danh sách sản phẩm tồn kho thấp</b> (Tồn khả dụng &le; Định mức an toàn). Ưu tiên lập đơn nhập bổ sung!</span>
-            </div>
-            <a href="${ctx}/staff/lots" class="btn-pill-outline" style="padding:4px 14px; font-size:12px; text-decoration:none">
-                <i class="ti ti-x"></i>Xem tất cả
-            </a>
-        </div>
-    </c:if>
-
     <%-- BẢNG SẢN PHẨM & TỒN KHO THEO LÔ (Master-Detail Accordion giống Figma) --%>
     <div class="panel" style="background:#fff; border-radius:14px; border:1px solid var(--line); overflow:hidden; margin-top:16px; padding:0">
         <div class="split-head">
