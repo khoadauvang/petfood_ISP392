@@ -87,8 +87,8 @@ public class ProductForm {
     @NotNull(message = "Vui lòng chọn trạng thái")
     private ProductStatus status = ProductStatus.ACTIVE;
 
-    // 5 ảnh theo vị trí, ảnh 1 là ảnh đại diện.
-    // Thêm mới: bắt buộc đủ 5. Sửa: chỉ chọn ảnh ở vị trí muốn thay, ô bỏ trống thì giữ ảnh cũ.
+    // Tối đa 5 ảnh theo vị trí, ảnh 1 là ảnh đại diện.
+    // Thêm mới: bắt buộc ảnh 1, ảnh 2–5 tuỳ chọn. Sửa: chỉ chọn ảnh ở vị trí muốn thay, ô bỏ trống thì giữ ảnh cũ.
     private MultipartFile image1;
     private MultipartFile image2;
     private MultipartFile image3;

@@ -185,7 +185,6 @@
             <a href="${ctx}/products?species=CAT" class="${activePage == 'cat' ? 'active' : ''}">Thức ăn cho mèo</a>
             <a href="${ctx}/products?category=pate-treats" class="${activePage == 'pate' ? 'active' : ''}">Pate &amp; treats thưởng</a>
             <a href="${ctx}/flash-sale" class="${activePage == 'flash-sale' ? 'active' : ''}">Flash Sale xả kho</a>
-            <a href="${ctx}/products?category=combo" class="${activePage == 'combo' ? 'active' : ''}">Combo tiết kiệm</a>
         </div>
 
         <!-- Cột 3: Hỗ trợ -->
@@ -195,7 +194,6 @@
             <a href="${ctx}/policies/expiry" class="${activePage == 'policy-expiry' ? 'active' : ''}">Cam kết hạn dùng tối thiểu 90 ngày</a>
             <a href="${ctx}/policies/shipping" class="${activePage == 'policy-shipping' ? 'active' : ''}">Chính sách giao hàng hỏa tốc 2H</a>
             <a href="${ctx}/policies/guide" class="${activePage == 'guide' ? 'active' : ''}">Hướng dẫn mua hàng &amp; thanh toán</a>
-            <a href="${ctx}/faq" class="${activePage == 'faq' ? 'active' : ''}">Câu hỏi thường gặp (FAQ)</a>
         </div>
 
         <!-- Cột 4: Tài khoản -->
@@ -203,7 +201,7 @@
             <h3>Tài khoản</h3>
             <a href="${ctx}/profile" class="${activePage == 'profile' ? 'active' : ''}">Thông tin tài khoản</a>
             <a href="${ctx}/orders" class="${activePage == 'orders' ? 'active' : ''}">Lịch sử đơn hàng</a>
-            <a href="${ctx}/vip" class="${activePage == 'vip' ? 'active' : ''}">Thành viên VIP PetClub</a>
+            <a href="${ctx}/profile?tab=tier" class="${activePage == 'vip' ? 'active' : ''}">Thành viên VIP PetClub</a>
         </div>
     </div>
 

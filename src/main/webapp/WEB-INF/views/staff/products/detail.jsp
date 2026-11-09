@@ -33,7 +33,7 @@
     <%-- Chỉ xoá được sản phẩm chưa có lô hàng (BR-11), service kiểm tra lại lần nữa --%>
     <c:if test="${empty lots}">
         <form method="post" action="${ctx}/staff/products/${product.id}/delete" class="inline"
-              onsubmit="return confirm('Xoá hẳn sản phẩm này và 5 ảnh của nó?');">
+              onsubmit="return confirm('Xoá hẳn sản phẩm này và ảnh của nó?');">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <button type="submit">Xoá</button>
         </form>
@@ -47,7 +47,7 @@
             <c:when test="${not empty url}">
                 <img src="${ctx}<c:out value='${url}'/>" alt="Ảnh ${loop.index + 1}" title="Ảnh ${loop.index + 1}">
             </c:when>
-            <c:otherwise><div class="noimg">Thiếu ảnh ${loop.index + 1}</div></c:otherwise>
+            <c:otherwise><div class="noimg">Trống ${loop.index + 1}</div></c:otherwise>
         </c:choose>
 
     </c:forEach>

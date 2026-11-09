@@ -37,6 +37,7 @@ public class MembershipService {
 
     // Chạy định kỳ tự động mỗi phút ở chế độ nền để nâng/hạ hạng hội viên ngay khi đủ điều kiện
     @Scheduled(fixedDelayString = "${petfood.membership.recalc-delay-ms:60000}", initialDelay = 15_000)
+    @Transactional
     public void scheduledRecalculate() {
         int changed = recalculateAll();
         if (changed > 0) {
@@ -46,6 +47,7 @@ public class MembershipService {
 
     // Tính lại ngay lúc khởi động: máy không chạy lúc 00:05 thì hạng vẫn được cập nhật
     @EventListener(ApplicationReadyEvent.class)
+    @Transactional
     public void recalculateOnStartup() {
         int changed = recalculateAll();
         log.info("Đồng bộ hạng thành viên lúc khởi động: {} khách đổi hạng", changed);

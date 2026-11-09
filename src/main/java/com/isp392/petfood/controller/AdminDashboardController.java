@@ -33,7 +33,8 @@ public class AdminDashboardController {
     public String dashboard(@RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                             @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                             Model model) {
-        LocalDate end = endOrDefault(to);
+        LocalDate anchor = (from == null && to == null) ? dashboardService.resolveDefaultAnchorDate() : LocalDate.now();
+        LocalDate end = endOrDefault(to, anchor);
         LocalDate start = startOrDefault(from, end);
         model.addAttribute("filterFrom", start);
         model.addAttribute("filterTo", end);
@@ -53,7 +54,8 @@ public class AdminDashboardController {
     public ResponseEntity<Map<String, Object>> realtimeStats(
             @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        LocalDate end = endOrDefault(to);
+        LocalDate anchor = (from == null && to == null) ? dashboardService.resolveDefaultAnchorDate() : LocalDate.now();
+        LocalDate end = endOrDefault(to, anchor);
         LocalDate start = startOrDefault(from, end);
         try {
             return ResponseEntity.ok(Map.of(
@@ -65,9 +67,8 @@ public class AdminDashboardController {
         }
     }
 
-    private static LocalDate endOrDefault(LocalDate to) {
-        LocalDate today = LocalDate.now();
-        return to == null ? today.withDayOfMonth(today.lengthOfMonth()) : to;
+    private static LocalDate endOrDefault(LocalDate to, LocalDate anchor) {
+        return to == null ? anchor.withDayOfMonth(anchor.lengthOfMonth()) : to;
     }
 
     private static LocalDate startOrDefault(LocalDate from, LocalDate end) {

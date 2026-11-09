@@ -348,7 +348,6 @@
                     <button type="button" class="chip" data-preset="month">Tháng này</button>
                     <button type="submit" id="range-submit"><i class="ti ti-filter"></i> Lọc</button>
                 </form>
-                <a href="javascript:window.print()" class="export-btn"><i class="ti ti-download"></i>Xuất báo cáo</a>
             </div>
         </div>
 
@@ -356,7 +355,7 @@
         <div class="quick">
             <span class="quick-label">THAO TÁC NHANH:</span>
             <a class="qbtn primary" href="${ctx}/staff/products/new"><i class="ti ti-circle-plus"></i>+ Thêm sản phẩm</a>
-            <a class="qbtn" style="background:#fee2e2; border-color:#fca5a5; color:#991b1b" href="${ctx}/staff/flash-sales/new"><i class="ti ti-bolt" style="color:#ef4444"></i>Tạo Flash Sale</a>
+            <a class="qbtn" style="background:#fee2e2; border-color:#fca5a5; color:#991b1b" href="${ctx}/staff/flash-sales/new"><i class="ti ti-bolt" style="color:#ef4444"></i>Tạo chương trình</a>
             <a class="qbtn" href="${ctx}/staff/orders"><i class="ti ti-receipt"></i>Xem đơn hàng</a>
             <a class="qbtn" href="${ctx}/staff/lots"><i class="ti ti-building-warehouse"></i>Xem tồn kho</a>
             <a class="qbtn" href="javascript:switchAdminTab('tab-revenue')"><i class="ti ti-chart-bar"></i>Xem báo cáo</a>
@@ -371,14 +370,21 @@
                 </div>
                 <div class="kpi-value" id="admin-kpi-revenue">
                     <c:choose>
-                        <c:when test="${stats != null && stats.grossRevenue != null}">
-                            ₫<fmt:formatNumber value="${stats.grossRevenue}" type="number"/>
+                        <c:when test="${stats != null && stats.netRevenue != null}">
+                            ₫<fmt:formatNumber value="${stats.netRevenue}" type="number"/>
                         </c:when>
                         <c:otherwise>₫0</c:otherwise>
                     </c:choose>
                 </div>
-                <div class="kpi-meta">
-                    <span class="badge ok"><i class="ti ti-trending-up"></i>Doanh thu ròng:</span> ₫<fmt:formatNumber value="${stats != null ? stats.netRevenue : 0}" type="number"/>
+                <div class="kpi-meta" id="admin-kpi-revenue-meta">
+                    <c:choose>
+                        <c:when test="${stats != null && stats.refunds != null && stats.refunds > 0}">
+                            <span class="badge warn"><i class="ti ti-arrow-back-up"></i>Đã hoàn trả: −₫<fmt:formatNumber value="${stats.refunds}" type="number"/></span> (Gộp: ₫<fmt:formatNumber value="${stats.grossRevenue}" type="number"/>)
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge ok"><i class="ti ti-trending-up"></i>Doanh thu ròng:</span> ₫<fmt:formatNumber value="${stats != null ? stats.netRevenue : 0}" type="number"/>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
 
@@ -396,7 +402,7 @@
                     </c:choose>
                 </div>
                 <div class="kpi-meta">
-                    <span class="badge warn"><i class="ti ti-clock"></i>Đơn chờ duyệt:</span> ${stats != null ? stats.pendingOrders : 0}
+                    <span class="badge warn"><i class="ti ti-clock"></i>Đơn chờ duyệt:</span> <span id="admin-kpi-pending-orders">${stats != null ? stats.pendingOrders : 0}</span>
                 </div>
             </div>
 
@@ -432,7 +438,7 @@
                     </c:choose>
                 </div>
                 <div class="kpi-meta">
-                    <span class="badge red">Cảnh báo kho</span> ${alertSummary != null ? alertSummary.redLotCount : 0} lô sắp hết hạn
+                    <span class="badge red">Cảnh báo kho</span> <span id="admin-kpi-red-lots">${alertSummary != null ? alertSummary.redLotCount : 0}</span> lô sắp hết hạn
                 </div>
             </a>
         </section>
@@ -712,7 +718,7 @@
                         <th class="num">DOANH THU</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="admin-top-products-tbody">
                     <c:choose>
                         <c:when test="${not empty stats.topProducts}">
                             <c:forEach var="p" items="${stats.topProducts}" varStatus="pStatus">
@@ -739,7 +745,7 @@
                 </table>
 
                 <div class="panel-foot">
-                    <span>Hiển thị <c:out value="${not empty stats.topProducts ? stats.topProducts.size() : 0}"/> sản phẩm bán chạy</span>
+                    <span id="admin-top-products-foot">Hiển thị <c:out value="${not empty stats.topProducts ? stats.topProducts.size() : 0}"/> sản phẩm bán chạy</span>
                 </div>
             </div>
         </section>
@@ -765,9 +771,6 @@
                     <p style="font-size:13.5px; color:#64748b; margin:0;">Theo dõi hiệu quả bán hàng, xu hướng đơn hàng và kết quả kinh doanh tổng thể.</p>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <button type="button" class="export-btn" onclick="exportRevenueReportCsv()" style="background:#ea580c; border:1px solid #ea580c; color:#fff; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 2px 6px rgba(234,88,12,0.25);">
-                        <i class="ti ti-download" style="font-size:16px;"></i> Xuất báo cáo
-                    </button>
                 </div>
             </div>
         </div>
@@ -810,7 +813,7 @@
             <div class="filter-meta-bar">
                 <div class="filter-meta-badge">
                     <span class="filter-pulse-dot"></span>
-                    <span>Dữ liệu đồng bộ: 5 phút trước &bull; Đơn vị tiền tệ: Việt Nam Đồng (VNĐ ₫)</span>
+                    <span id="screen12-sync-label">Dữ liệu đồng bộ thời gian thực &bull; Đơn vị tiền tệ: Việt Nam Đồng (VNĐ ₫)</span>
                 </div>
             </div>
         </div>
@@ -823,7 +826,7 @@
                     <i class="ti ti-cash"></i>
                 </div>
                 <div class="rev-kpi-val" id="screen12KpiRevenue">
-                    ₫<fmt:formatNumber value="${stats != null && stats.grossRevenue != null ? stats.grossRevenue : 0}" type="number"/>
+                    ₫<fmt:formatNumber value="${stats != null && stats.netRevenue != null ? stats.netRevenue : 0}" type="number"/>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;" id="screen12KpiRevenueGrowth">
                     <span class="pill-badge warn" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-down-right"></i> -8.3%</span>
@@ -851,7 +854,7 @@
                     <i class="ti ti-receipt-2"></i>
                 </div>
                 <div class="rev-kpi-val" id="screen12KpiAov">
-                    ₫<fmt:formatNumber value="${stats != null && stats.completedOrders > 0 ? stats.grossRevenue / stats.completedOrders : 0}" type="number" maxFractionDigits="0"/>
+                    ₫<fmt:formatNumber value="${stats != null && stats.completedOrders > 0 ? stats.netRevenue / stats.completedOrders : 0}" type="number" maxFractionDigits="0"/>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;" id="screen12KpiAovGrowth">
                     <span class="pill-badge warn" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; padding:3px 8px; border-radius:99px; font-weight:700;"><i class="ti ti-arrow-down-right"></i> -6.2%</span>
@@ -1348,9 +1351,6 @@
                         <option value="asc">Ngày tăng dần</option>
                         <option value="revenue">Doanh thu cao nhất</option>
                     </select>
-                    <button type="button" class="export-btn" onclick="exportDailyAuditCsv()" style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">
-                        <i class="ti ti-download" style="font-size:15px; color:#64748b;"></i> Xuất file CSV
-                    </button>
                 </div>
             </div>
 
@@ -1419,9 +1419,6 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:10px;">
-                <button type="button" class="export-btn" onclick="exportScreen13TableCsv()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; font-size:13px; font-weight:700; color:#334155; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-                    <i class="ti ti-download" style="font-size:16px; color:#ea580c;"></i> Xuất CSV
-                </button>
             </div>
         </div>
 
@@ -1931,9 +1928,6 @@
                     </p>
                 </div>
                 <div>
-                    <button type="button" class="export-btn" onclick="exportScreen13TableCsv()" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">
-                        <i class="ti ti-download" style="font-size:15px;"></i> Xuất bảng (CSV)
-                    </button>
                 </div>
             </div>
 
@@ -2078,11 +2072,6 @@
                         <option value="50">50 / trang</option>
                     </select>
 
-                    <%-- Nút xuất CSV --%>
-                    <button type="button" class="export-btn" onclick="exportScreen13CustomerSpendingCsv()"
-                            style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer;">
-                        <i class="ti ti-download" style="font-size:15px;"></i> Xuất bảng (CSV)
-                    </button>
                 </div>
             </div>
 
@@ -2253,20 +2242,20 @@
 
         if (tabId === 'tab-revenue') {
             if (sbRevenue) sbRevenue.classList.add('active');
-            if (window.location.hash !== '#revenue') history.replaceState(null, null, '#revenue');
+            if (window.location.hash !== '#revenue') history.replaceState(null, null, window.location.pathname + window.location.search + '#revenue');
             if (typeof syncScreen12QuickChips === 'function') syncScreen12QuickChips();
             if (typeof applyScreen12Filter === 'function') {
                 applyScreen12Filter();
             }
         } else if (tabId === 'tab-members') {
             if (sbMembers) sbMembers.classList.add('active');
-            if (window.location.hash !== '#members') history.replaceState(null, null, '#members');
+            if (window.location.hash !== '#members') history.replaceState(null, null, window.location.pathname + window.location.search + '#members');
             if (typeof applyScreen13Filter === 'function') {
                 applyScreen13Filter();
             }
         } else {
             if (sbOverview) sbOverview.classList.add('active');
-            if (window.location.hash) history.replaceState(null, null, window.location.pathname);
+            if (window.location.hash) history.replaceState(null, null, window.location.pathname + window.location.search);
             if (typeof renderDynamicRevenueChart === 'function' && revenueDataPoints && revenueDataPoints.length > 0) {
                 renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
             }
@@ -2504,17 +2493,8 @@
                 if (dateEl) dateEl.innerText = d.displayDate;
                 if (amtEl) amtEl.innerText = formatCurrency(d.amount);
 
-                if (subEl) {
-                    if (d.amount > 0 && d.amount === maxAmount && maxAmount > 0) {
-                        subEl.innerText = 'Doanh thu cao nhất kỳ • ' + d.orders + ' đơn hoàn tất';
-                    } else if (d.amount > 0 && d.orders > 0) {
-                        subEl.innerText = d.orders + ' đơn hàng hoàn tất';
-                    } else if (d.amount > 0) {
-                        subEl.innerText = 'Doanh thu ghi nhận';
-                    } else {
-                        subEl.innerText = 'Không có doanh thu';
-                    }
-                }
+                // Ẩn dòng phụ trong tooltip xu hướng doanh thu
+                if (subEl) subEl.style.display = 'none';
 
                 const bars = container.querySelectorAll('.trend-bar-item');
                 const bar = bars[idx];
@@ -3046,15 +3026,21 @@
         if (ftRev) ftRev.innerText = formatCurrency(grossRev);
         if (ftAov) ftAov.innerText = formatCurrency(aov);
 
-        // Render lại sơ đồ doanh thu & đơn hàng
-        const chartList = currentScreen12MasterDays.map(d => ({
+        // Render lại sơ đồ doanh thu (orderCount = số đơn hoàn tất) & sơ đồ đơn hàng (orderCount = tổng số đơn phát sinh)
+        const revenueChartList = currentScreen12MasterDays.map(d => ({
+            date: d.rawDate,
+            dayText: d.dayText,
+            orderCount: d.completed,
+            amount: d.revenue
+        }));
+        const ordersChartList = currentScreen12MasterDays.map(d => ({
             date: d.rawDate,
             dayText: d.dayText,
             orderCount: d.total,
             amount: d.revenue
         }));
-        renderDynamicRevenueChart(chartList, 'screen12RevenueWrapper');
-        renderScreen12OrdersChart(chartList);
+        renderDynamicRevenueChart(revenueChartList, 'screen12RevenueWrapper');
+        renderScreen12OrdersChart(ordersChartList);
 
         // Cập nhật tóm tắt trạng thái đơn
         const stSub = document.getElementById('screen12StatusSubtitle');
@@ -3275,6 +3261,28 @@
         aovGrowthEl.innerHTML = buildGrowthBadge(aov, prevAov);
     }
 
+    // Ngày tham chiếu cho các nút chọn nhanh (Hôm nay / Tuần này / Tháng này / Năm nay):
+    // Nếu tháng hiện tại của đồng hồ máy có đơn hàng thì lấy ngày hiện tại; nếu không (VD: đồng hồ máy sang tháng 11 nhưng dữ liệu ở tháng 10)
+    // thì lấy ngày của đơn hàng gần nhất để bấm chọn nhanh không bị trắng dữ liệu.
+    function getReferenceNow() {
+        const sysNow = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const ymPrefix = sysNow.getFullYear() + '-' + pad(sysNow.getMonth() + 1);
+        if (Array.isArray(ALL_ORDERS_DATA) && ALL_ORDERS_DATA.length > 0) {
+            const hasInSysMonth = ALL_ORDERS_DATA.some(o => o.date && o.date.startsWith(ymPrefix));
+            if (!hasInSysMonth) {
+                let maxDate = '';
+                ALL_ORDERS_DATA.forEach(o => {
+                    if (o.date && o.date > maxDate) maxDate = o.date;
+                });
+                if (maxDate) {
+                    return new Date(maxDate + 'T00:00:00');
+                }
+            }
+        }
+        return sysNow;
+    }
+
     function syncScreen12QuickChips() {
         const fromInput = document.getElementById('screen12FilterFrom');
         const toInput = document.getElementById('screen12FilterTo');
@@ -3283,7 +3291,7 @@
         const fromVal = fromInput.value;
         const toVal = toInput.value;
 
-        const now = new Date();
+        const now = getReferenceNow();
         const pad = n => String(n).padStart(2, '0');
         const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 
@@ -3331,7 +3339,7 @@
         const toInput = document.getElementById('screen12FilterTo');
         if (!fromInput || !toInput) return;
 
-        const now = new Date();
+        const now = getReferenceNow();
         const pad = n => String(n).padStart(2, '0');
         const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 
@@ -3363,7 +3371,7 @@
         const fromInput = document.getElementById('screen12FilterFrom');
         const toInput = document.getElementById('screen12FilterTo');
 
-        const now = new Date();
+        const now = getReferenceNow();
         const pad = n => String(n).padStart(2, '0');
         const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -3898,7 +3906,7 @@
         const fromVal = fromInput.value;
         const toVal = toInput.value;
 
-        const now = new Date();
+        const now = getReferenceNow();
         const pad = n => String(n).padStart(2, '0');
         const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 
@@ -3940,7 +3948,7 @@
         const toInput = document.getElementById('s13FilterTo');
         if (!fromInput || !toInput) return;
 
-        const now = new Date();
+        const now = getReferenceNow();
         const pad = n => String(n).padStart(2, '0');
         const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 
@@ -3978,7 +3986,7 @@
         const toInput = document.getElementById('s13FilterTo');
         const tierSelect = document.getElementById('s13FilterTier');
 
-        const now = new Date();
+        const now = getReferenceNow();
         const pad = n => String(n).padStart(2, '0');
         const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -4682,19 +4690,41 @@
         }
 
         try {
-            const resp = await fetch('${ctx}/admin/api/stats' + window.location.search);
+            const fromEl = document.getElementById('from');
+            const toEl = document.getElementById('to');
+            const fromParam = (fromEl && fromEl.value) ? fromEl.value : '${filterFrom}';
+            const toParam = (toEl && toEl.value) ? toEl.value : '${filterTo}';
+            const queryStr = (fromParam && toParam)
+                ? ('?from=' + encodeURIComponent(fromParam) + '&to=' + encodeURIComponent(toParam))
+                : window.location.search;
+            const resp = await fetch('${ctx}/admin/api/stats' + queryStr);
             if (!resp.ok) throw new Error('API response: ' + resp.status);
             const data = await resp.json();
 
             if (data && data.stats) {
-                // Cập nhật 4 thẻ KPI Screen 1
+                // Cập nhật 4 thẻ KPI Screen 1 (đồng bộ 100% doanh thu thực nhận sau hoàn trả với Tab 2)
                 const revEl = document.getElementById('admin-kpi-revenue');
-                if (revEl && data.stats.grossRevenue != null) {
-                    revEl.innerText = formatCurrency(data.stats.grossRevenue);
+                const netRev = data.stats.netRevenue != null ? Number(data.stats.netRevenue) : Number(data.stats.grossRevenue || 0);
+                const grossRev = Number(data.stats.grossRevenue || 0);
+                const refundsAmt = Number(data.stats.refunds || 0);
+                if (revEl) {
+                    revEl.innerText = formatCurrency(netRev);
+                }
+                const revMetaEl = document.getElementById('admin-kpi-revenue-meta');
+                if (revMetaEl) {
+                    if (refundsAmt > 0) {
+                        revMetaEl.innerHTML = '<span class="badge warn"><i class="ti ti-arrow-back-up"></i>Đã hoàn trả: −' + formatCurrency(refundsAmt) + '</span> (Gộp: ' + formatCurrency(grossRev) + ')';
+                    } else {
+                        revMetaEl.innerHTML = '<span class="badge ok"><i class="ti ti-trending-up"></i>Doanh thu ròng:</span> ' + formatCurrency(netRev);
+                    }
                 }
                 const ordEl = document.getElementById('admin-kpi-orders');
                 if (ordEl && data.stats.completedOrders != null) {
                     ordEl.innerText = Number(data.stats.completedOrders).toLocaleString('vi-VN');
+                }
+                const pendOrdEl = document.getElementById('admin-kpi-pending-orders');
+                if (pendOrdEl && data.stats.pendingOrders != null) {
+                    pendOrdEl.innerText = Number(data.stats.pendingOrders).toLocaleString('vi-VN');
                 }
                 const custEl = document.getElementById('admin-kpi-customers');
                 if (custEl && data.stats.newCustomers != null) {
@@ -4704,13 +4734,56 @@
                 if (alertEl && data.alertSummary && data.alertSummary.lowStockCount != null) {
                     alertEl.innerText = data.alertSummary.lowStockCount;
                 }
+                const redLotsEl = document.getElementById('admin-kpi-red-lots');
+                if (redLotsEl && data.alertSummary && data.alertSummary.redLotCount != null) {
+                    redLotsEl.innerText = data.alertSummary.redLotCount;
+                }
+
+                // Cập nhật bảng Top 5 sản phẩm bán chạy ở Tab 1 & Tab 2
+                const topTbody = document.getElementById('admin-top-products-tbody');
+                const topFoot = document.getElementById('admin-top-products-foot');
+                const s12TopTbody = document.getElementById('screen12TopProductsTbody');
+                if (Array.isArray(data.stats.topProducts)) {
+                    const topList = data.stats.topProducts;
+                    if (topTbody) {
+                        if (topList.length === 0) {
+                            topTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:28px; color:var(--text-muted)">Chưa có dữ liệu sản phẩm bán ra trong khoảng thời gian này</td></tr>';
+                        } else {
+                            topTbody.innerHTML = topList.map((p, idx) =>
+                                '<tr>' +
+                                '<td><span class="rank r' + (idx + 1) + '">' + (idx + 1) + '</span></td>' +
+                                '<td><b>' + escapeHtml(p.name || '') + '</b><div class="sku">SKU: ' + escapeHtml(p.sku || '') + '</div></td>' +
+                                '<td class="num"><b>' + Number(p.quantity || 0).toLocaleString('vi-VN') + ' món</b></td>' +
+                                '<td class="num" style="color:#ea580c; font-weight:800">' + Number(p.revenue || 0).toLocaleString('vi-VN') + ' ₫</td>' +
+                                '</tr>'
+                            ).join('');
+                        }
+                    }
+                    if (topFoot) {
+                        topFoot.innerText = 'Hiển thị ' + topList.length + ' sản phẩm bán chạy';
+                    }
+                    if (s12TopTbody && topList.length > 0) {
+                        s12TopTbody.innerHTML = topList.map((p, idx) => {
+                            const bg = idx === 0 ? '#ea580c' : (idx === 1 ? '#94a3b8' : (idx === 2 ? '#cbd5e1' : '#f1f5f9'));
+                            const col = idx < 2 ? '#fff' : '#475569';
+                            return '<tr>' +
+                                '<td><div style="display:flex; align-items:center; gap:10px;">' +
+                                '<span style="width:24px; height:24px; border-radius:50%; background:' + bg + '; color:' + col + '; display:grid; place-items:center; font-size:11px; font-weight:800; flex-shrink:0;">' + (idx + 1) + '</span>' +
+                                '<div><b style="color:#1e293b; font-size:13px; display:block;">' + escapeHtml(p.name || '') + '</b>' +
+                                '<small style="color:#64748b; font-size:11.5px;">Thức ăn thú cưng dinh dưỡng</small></div></div></td>' +
+                                '<td><span class="pill-badge gray" style="font-size:11px;">' + escapeHtml(p.sku || '') + '</span></td>' +
+                                '<td><span style="padding:3px 8px; border-radius:99px; background:#fff7ed; color:#c2410c; font-size:11px; font-weight:700;">Thức ăn thú cưng</span></td>' +
+                                '<td style="text-align:right; font-weight:700; color:#1e293b;">' + Number(p.quantity || 0).toLocaleString('vi-VN') + '</td>' +
+                                '<td style="text-align:right; font-weight:800; color:#1e293b;">' + formatCurrency(p.revenue || 0) + '</td>' +
+                                '</tr>';
+                        }).join('');
+                    }
+                }
 
                 // Cập nhật sơ đồ Tab 1 nếu có dailyRevenue
                 if (data.stats.dailyRevenue) {
                     revenueDataPoints = data.stats.dailyRevenue;
-                    if (window.location.hash !== '#revenue') {
-                        renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
-                    }
+                    renderDynamicRevenueChart(revenueDataPoints, 'trendChartWrapper1');
                 }
 
                 // Vẽ lại biểu đồ tròn trạng thái đơn
@@ -4724,7 +4797,7 @@
                 }
 
                 // Cập nhật ALL_ORDERS_DATA, ALL_CUSTOMERS_DATA và các màn hình Screen 12, Screen 13
-                                if (Array.isArray(data.stats.allOrders)) {
+                if (Array.isArray(data.stats.allOrders)) {
                     ALL_ORDERS_DATA = data.stats.allOrders.map(o => ({
                         ...o,
                         tier: o.tier || o.customerTier,
@@ -4737,6 +4810,11 @@
                     ALL_CUSTOMERS_DATA = data.stats.allCustomers.map(c => Object.assign({}, c, { name: c.name || c.fullName || '' }));
                     applyScreen13Filter();
                 }
+            }
+
+            const s12SyncEl = document.getElementById('screen12-sync-label');
+            if (s12SyncEl) {
+                s12SyncEl.innerHTML = 'Dữ liệu đồng bộ thời gian thực (' + (data.updatedAt || 'Vừa xong') + ') &bull; Đơn vị tiền tệ: Việt Nam Đồng (VNĐ ₫)';
             }
 
             if (badge) {
@@ -4766,7 +4844,7 @@
             const d1 = new Date(fromInput.value + 'T00:00:00');
             const d2 = new Date(toInput.value + 'T00:00:00');
 
-            const now = new Date();
+            const now = getReferenceNow();
             const pad = n => String(n).padStart(2, '0');
             const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 
@@ -4808,7 +4886,7 @@
         form.querySelectorAll('.chip[data-preset]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const preset = btn.getAttribute('data-preset');
-                const now = new Date();
+                const now = getReferenceNow();
                 const pad = n => String(n).padStart(2, '0');
                 const toIso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
                 let newFromStr, newToStr;

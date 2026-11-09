@@ -7,8 +7,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-// Bảng tạo bằng claude/FoodPetShop_ProductImage.sql. Mỗi sản phẩm đúng 5 ảnh, sort_order 1..5, ảnh 1 là ảnh đại diện.
-// DB chặn tối đa 5 (UQ_ProductImage_product_sort + CK_ProductImage_sort_order), BE kiểm tra đủ 5.
+// Bảng tạo bằng claude/FoodPetShop_ProductImage.sql. Mỗi sản phẩm 1–5 ảnh, sort_order 1..5 (có thể bỏ trống vị trí 2–5), ảnh 1 là ảnh đại diện.
+// DB chặn tối đa 5 (UQ_ProductImage_product_sort + CK_ProductImage_sort_order), BE bắt buộc ảnh 1 (đổi 09/11, trước đây bắt buộc đủ 5).
 @Entity
 @Table(name = "ProductImage")
 @Getter

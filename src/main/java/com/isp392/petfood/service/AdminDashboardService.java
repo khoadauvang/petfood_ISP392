@@ -39,6 +39,24 @@ public class AdminDashboardService {
     private final ReturnRequestRepository returnRequestRepository;
     private final SupportService supportService;
 
+    // Xác định ngày tham chiếu mặc định khi mở Dashboard mà không truyền ?from=&to=:
+    // Ưu tiên tháng hiện tại nếu có đơn phát sinh; nếu tháng hiện tại chưa có đơn nào (VD: lệch ngày giờ hệ thống so với dữ liệu mẫu),
+    // tự động lấy theo tháng của đơn hàng gần nhất trong DB để dữ liệu không bị về 0.
+    @Transactional(readOnly = true)
+    public LocalDate resolveDefaultAnchorDate() {
+        LocalDate today = LocalDate.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+        LocalDate monthEnd = today.withDayOfMonth(today.lengthOfMonth());
+        boolean hasOrdersInCurrentMonth = !dashboardRepository
+                .ordersByStatus(monthStart.atStartOfDay(), monthEnd.plusDays(1).atStartOfDay())
+                .isEmpty();
+        if (hasOrdersInCurrentMonth) {
+            return today;
+        }
+        LocalDate latest = dashboardRepository.latestOrderDate();
+        return latest != null ? latest : today;
+    }
+
     // from, to: ngày bắt đầu và kết thúc (tính cả ngày "to")
     @Transactional(readOnly = true)
     public AdminDashboard build(LocalDate from, LocalDate to) {

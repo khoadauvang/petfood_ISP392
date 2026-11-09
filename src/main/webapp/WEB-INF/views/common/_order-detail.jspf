@@ -448,7 +448,7 @@
                         <i class="fi fi-rr-bolt" style="font-size:10px;"></i> ${isPromoLine ? 'Chương trình' : 'Flash Sale'}
                     </span>
                 </c:if>
-                <div><c:forEach var="lot" items="${line.lots}"><span class="fefo-lot-tag"><i class="fi fi-rr-check"></i> Lô: <c:out value="${lot}"/></span></c:forEach></div>
+                <%-- Không hiện lô / HSD từng lô cho khách (FE yêu cầu 09/11); dữ liệu lô vẫn có trong line.lots --%>
             </div>
         </div>
         <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">

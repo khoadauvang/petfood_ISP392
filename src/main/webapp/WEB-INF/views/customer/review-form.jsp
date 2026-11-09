@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 
@@ -127,12 +128,11 @@
     <%@ include file="/WEB-INF/views/common/_header.jspf" %>
 
     <div class="breadcrumb-bar">
-        <div>
-            <a href="${ctx}/"><i class="fi fi-rr-home"></i> Trang chủ</a> › 
-            <a href="${ctx}/orders">Đơn hàng của tôi</a> › 
-            <a href="${ctx}/orders/${orderId}">Đơn #PFS-${orderId}</a> › 
-            <strong>Đánh giá sản phẩm</strong>
-        </div>
+        <pf:breadcrumb current="Đánh giá sản phẩm">
+            <pf:crumb href="${ctx}/profile" label="Tài khoản"/>
+            <pf:crumb href="${ctx}/orders" label="Đơn hàng của tôi"/>
+            <pf:crumb href="${ctx}/orders/${orderId}" label="Đơn #PFS-${orderId}"/>
+        </pf:breadcrumb>
     </div>
 
     <div class="page-container" style="max-width: 900px; margin: 30px auto; padding: 0 16px;">

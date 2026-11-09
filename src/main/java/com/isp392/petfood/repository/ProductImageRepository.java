@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
 
-    // 5 ảnh của một sản phẩm theo vị trí 1..5
+    // Ảnh (1–5) của một sản phẩm theo vị trí 1..5
     List<ProductImage> findByProduct_IdOrderBySortOrderAsc(Long productId);
 
     List<ProductImage> findByProduct_SkuOrderByProduct_IdAscSortOrderAsc(String sku);

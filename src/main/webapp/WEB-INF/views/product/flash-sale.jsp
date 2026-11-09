@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
@@ -31,13 +32,7 @@
 
         <main class="page-container">
             <!-- 1. Breadcrumb -->
-            <nav class="breadcrumb" aria-label="Breadcrumb">
-                <a href="${ctx}/" class="breadcrumb-home">
-                    <span>Trang chủ</span>
-                </a>
-                <span class="breadcrumb-separator">&rsaquo;</span>
-                <span class="breadcrumb-current">Flash Sale &amp; Khuyến mãi</span>
-            </nav>
+            <pf:breadcrumb current="Flash Sale & Khuyến mãi" style="margin-bottom:18px"/>
 
             <!-- 2. Khung Banner Flash Sale & Đồng hồ đếm ngược -->
             <section class="flash-banner">
@@ -130,7 +125,7 @@
                                     
                                     <div class="flash-card-meta">
                                         <span class="flash-days-pill"><i class="fi fi-rr-clock"></i> Còn ${o.daysLeft} ngày</span>
-                                        <span class="flash-sale-name" title="<c:out value='${o.saleName}'/>">${o.promotion ? '🎁 ' : '⚡ '}<c:out value="${o.saleName}"/></span>
+                                        <span class="flash-sale-name" title="<c:out value='${o.saleName}'/>"><i class="${o.promotion ? 'fi fi-rr-tags' : 'fi fi-rr-bolt'}"></i> <c:out value="${o.saleName}"/></span>
                                     </div>
 
                                     <div class="product-card-price-row">

@@ -462,12 +462,6 @@
                                                                     <i class="ti ${v.status == 'ACTIVE' ? 'ti-player-pause' : 'ti-player-play'}"></i>
                                                                 </button>
                                                             </form>
-                                                            <form method="post" action="${ctx}/staff/products/${v.id}/delete" style="display:inline" onsubmit="return confirm('Xác nhận xóa biến thể này?');">
-                                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                                                <button type="submit" class="act-icon danger" title="Xóa biến thể" style="padding:0">
-                                                                    <i class="ti ti-trash"></i>
-                                                                </button>
-                                                            </form>
                                                         </div>
                                                     </td>
                                                 </tr>

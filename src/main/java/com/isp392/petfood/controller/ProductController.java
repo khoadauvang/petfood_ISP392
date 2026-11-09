@@ -27,7 +27,7 @@ import java.util.List;
 //   GET /                     trang chủ (product/list.jsp của nhóm FE): banner + sản phẩm bán chạy & mới về
 //   GET /products             danh sách (product/products.jsp): tìm theo từ khoá, lọc danh mục / loài / độ tuổi /
 //                             thương hiệu / khoảng giá
-//   GET /products/{id}        chi tiết: 5 ảnh, mô tả, tồn bán thường, HSD lô gần nhất
+//   GET /products/{id}        chi tiết: 1–5 ảnh, mô tả, tồn bán thường, HSD lô gần nhất
 @Controller
 @RequiredArgsConstructor
 public class ProductController {

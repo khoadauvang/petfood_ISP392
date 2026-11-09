@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
@@ -31,14 +32,7 @@
 
         <main class="page-container">
             <!-- Breadcrumb -->
-            <nav class="breadcrumb" aria-label="Breadcrumb">
-                <a href="${ctx}/" class="breadcrumb-home">
-                    <i class="fi fi-rr-home"></i>
-                    <span>Trang chủ</span>
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-current">Sản phẩm dinh dưỡng</span>
-            </nav>
+            <pf:breadcrumb current="Sản phẩm dinh dưỡng" style="margin-bottom:20px"/>
 
             <div class="catalog-layout">
 

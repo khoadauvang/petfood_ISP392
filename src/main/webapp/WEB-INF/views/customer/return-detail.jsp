@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN" />
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -25,13 +26,11 @@
 
         <!-- BREADCRUMB -->
         <div class="breadcrumb-bar">
-            <div>
-                <a href="${ctx}/"><i class="fi fi-rr-home"></i> Trang chủ</a> › 
-                <a href="${ctx}/profile">Tài khoản</a> › 
-                <a href="${ctx}/orders">Đơn hàng của tôi</a> › 
-                <a href="${ctx}/orders/${ret.orderId}">Chi tiết đơn hàng #PFS-${ret.orderId}</a> › 
-                <strong>Yêu cầu trả hàng #RR-${ret.id}</strong>
-            </div>
+            <pf:breadcrumb current="Yêu cầu trả hàng #RR-${ret.id}">
+                <pf:crumb href="${ctx}/profile" label="Tài khoản"/>
+                <pf:crumb href="${ctx}/orders" label="Đơn hàng của tôi"/>
+                <pf:crumb href="${ctx}/orders/${ret.orderId}" label="Đơn #PFS-${ret.orderId}"/>
+            </pf:breadcrumb>
         </div>
 
         <div class="page-container">
@@ -225,7 +224,7 @@
                         <i class="fi fi-rr-arrow-left"></i> Quay lại chi tiết đơn hàng #PFS-${ret.orderId}
                     </a>
                     <a href="${ctx}/products" class="btn-action-primary">
-                        <i class="fi fi-rr-shopping-bag"></i> Mua lại / Tiếp tục mua sắm
+                        <i class="fi fi-rr-shopping-bag"></i> Tiếp tục mua sắm
                     </a>
                 </div>
 

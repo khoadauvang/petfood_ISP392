@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
@@ -20,11 +21,9 @@
         <%@ include file="/WEB-INF/views/common/_header.jspf" %>
 
         <div class="breadcrumb-bar">
-            <div>
-                <a href="${ctx}/"><i class="fi fi-rr-home"></i> Trang chủ</a> › 
-                <a href="${ctx}/profile">Tài khoản</a> › 
-                <strong>Đơn hàng của tôi</strong>
-            </div>
+            <pf:breadcrumb current="Đơn hàng của tôi">
+                <pf:crumb href="${ctx}/profile" label="Tài khoản"/>
+            </pf:breadcrumb>
             
         </div>
 

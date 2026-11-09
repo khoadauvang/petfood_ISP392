@@ -271,7 +271,7 @@
                         Khai báo quy cách mới, điều chỉnh mã SKU và thiết lập định giá bán cho dòng sản phẩm đang chọn.
                     </c:when>
                     <c:when test="${empty productId}">
-                        Khai báo thông tin sản phẩm mới, thiết lập định giá bán, phân loại và tải lên bộ 5 ảnh sản phẩm.
+                        Khai báo thông tin sản phẩm mới, thiết lập định giá bán, phân loại và tải lên 1–5 ảnh sản phẩm.
                     </c:when>
                     <c:otherwise>
                         Cập nhật thông tin chi tiết, trạng thái kinh doanh và điều chỉnh hình ảnh đại diện sản phẩm.
@@ -295,7 +295,7 @@
             <i class="ti ti-layers-subtract" style="color:#2563eb; font-size:26px; flex-shrink:0;"></i>
             <div style="line-height:1.5;">
                 <span style="font-weight:800; font-size:14px; color:#1d4ed8;">ĐANG TẠO BIẾN THỂ MỚI CHO: <c:out value="${parentProduct.name}"/></span><br>
-                <span>Hệ thống đã tự động kế thừa <b>Danh mục</b>, <b>Thương hiệu</b>, <b>Loài &amp; Độ tuổi</b>, <b>Mô tả</b> và <b>bộ 5 ảnh</b> từ sản phẩm gốc. Bạn chỉ cần điền quy cách vào tên, hoàn tất SKU, giá bán và bấm Lưu.</span>
+                <span>Hệ thống đã tự động kế thừa <b>Danh mục</b>, <b>Thương hiệu</b>, <b>Loài &amp; Độ tuổi</b>, <b>Mô tả</b> và <b>ảnh</b> từ sản phẩm gốc. Bạn chỉ cần điền quy cách vào tên, hoàn tất SKU, giá bán và bấm Lưu.</span>
             </div>
         </div>
     </c:if>
@@ -331,12 +331,12 @@
                     </div>
                 </div>
 
-                <%-- CARD 2: Bộ 5 ảnh sản phẩm --%>
+                <%-- CARD 2: 1–5 ảnh sản phẩm --%>
                 <div class="form-card">
                     <div class="form-card-head">
                         <div class="form-card-title">
                             <i class="ti ti-photo" style="color:var(--color-primary)"></i>
-                            <span>2. Bộ sưu tập hình ảnh (Đủ 5 ảnh)</span>
+                            <span>2. Bộ sưu tập hình ảnh (1–5 ảnh)</span>
                         </div>
                         <span class="pill-badge green">Tối đa 5MB/ảnh</span>
                     </div>
@@ -344,9 +344,9 @@
                     <div class="note" style="background:#fffaf5; border:1px solid #ffd8b8; color:#9a3412; margin-bottom:14px; padding:10px 14px; border-radius:12px; display:flex; align-items:flex-start; gap:10px; font-size:13px;">
                         <i class="ti ti-info-circle" style="color:#ea580c; font-size:18px; margin-top:2px;"></i>
                         <div style="line-height:1.5;">
-                            <b>Yêu cầu hình ảnh:</b> Định dạng JPG, PNG hoặc WEBP, tối thiểu 300×300 px. Hệ thống tự động chuyển sang JPG nền trắng chuẩn hóa cạnh dài tối đa 900 px.
+                            <b>Yêu cầu hình ảnh:</b> Bắt buộc ảnh 1 (ảnh đại diện), ảnh 2–5 không bắt buộc. Định dạng JPG, PNG hoặc WEBP, tối thiểu 300×300 px. Hệ thống tự động chuyển sang JPG nền trắng chuẩn hóa cạnh dài tối đa 900 px.
                             <c:if test="${not empty productId}"><br><span style="color:#c2410c;">(Chế độ sửa: Chỉ cần chọn ở vị trí muốn thay, để trống sẽ giữ nguyên ảnh cũ).</span></c:if>
-                            <c:if test="${not empty parentProduct}"><br><span style="color:#2563eb;">(Chế độ biến thể: Hệ thống đã nạp sẵn 5 ảnh từ dòng sản phẩm chính. Bạn có thể giữ nguyên hoặc bấm "Thay đổi" nếu có ảnh quy cách riêng).</span></c:if>
+                            <c:if test="${not empty parentProduct}"><br><span style="color:#2563eb;">(Chế độ biến thể: Hệ thống đã nạp sẵn ảnh từ dòng sản phẩm chính. Bạn có thể giữ nguyên hoặc bấm "Thay đổi" nếu có ảnh quy cách riêng).</span></c:if>
                         </div>
                     </div>
 
@@ -389,7 +389,7 @@
 
                                 <input type="file" name="image${slot}" id="fileSlot${slot}" accept="image/jpeg,image/png,image/webp"
                                        style="display:none;" onchange="handleImagePreview(this, ${slot})"
-                                       <c:if test="${empty productId and empty parentProduct}">required</c:if>>
+                                       <c:if test="${slot == 1 and empty productId and empty parentProduct}">required</c:if>>
 
                                 <button type="button" class="slot-upload-trigger" onclick="document.getElementById('fileSlot${slot}').click()">
                                     <i class="ti ti-upload"></i>
@@ -568,7 +568,7 @@
         <div class="sticky-action-bar">
             <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted);">
                 <i class="ti ti-shield-check" style="font-size:18px; color:#16a34a;"></i>
-                <span>Vui lòng kiểm tra kỹ tất cả các trường thông tin và 5 ảnh sản phẩm trước khi lưu.</span>
+                <span>Vui lòng kiểm tra kỹ tất cả các trường thông tin và ảnh sản phẩm trước khi lưu.</span>
             </div>
 
             <div style="display:flex; align-items:center; gap:12px;">

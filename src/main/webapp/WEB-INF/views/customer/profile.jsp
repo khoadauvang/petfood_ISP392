@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <fmt:setLocale value="vi_VN" />
@@ -12,6 +13,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Hồ sơ & Hạng hội viên · PetFood</title>
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
+        <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <!-- TÁCH CSS -->
         <link rel="stylesheet" href="${ctx}/css/profile.css">
@@ -23,7 +25,9 @@
 
         <div class="breadcrumb-bar">
             <div>
-                <a href="${ctx}/">Trang chủ</a> › <a href="${ctx}/profile">Tài khoản</a> › <strong id="breadcrumb-title">Hồ sơ của tôi</strong>
+                <pf:breadcrumb current="Hồ sơ của tôi" currentId="breadcrumb-title">
+                    <pf:crumb href="${ctx}/profile" label="Tài khoản"/>
+                </pf:breadcrumb>
             </div>
         </div>
 

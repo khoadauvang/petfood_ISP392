@@ -144,7 +144,6 @@
                             <i class="fi fi-rr-flame"></i> GIỜ VÀNG GIÁ SỐC &bull; XẢ KHO CẬN DATE
                         </span>
                         <h2>Flash Sale Cận Date</h2>
-                        <p>Số lượng có hạn &bull; Giảm sốc đến 70% &bull; Minh bạch HSD theo chuẩn FEFO.</p>
                     </div>
                     <a href="${ctx}/flash-sale" class="view-all flash-view-all">Xem tất cả Flash Sale &rarr;</a>
                 </div>
@@ -174,7 +173,7 @@
                                         
                                         <div class="flash-card-meta">
                                             <span class="flash-days-pill"><i class="fi fi-rr-clock"></i> Còn ${o.daysLeft} ngày</span>
-                                            <span class="flash-sale-name" title="<c:out value='${o.saleName}'/>"><c:out value="${o.saleName}"/></span>
+                                            <span class="flash-sale-name" title="<c:out value='${o.saleName}'/>"><i class="${o.promotion ? 'fi fi-rr-tags' : 'fi fi-rr-bolt'}"></i> <c:out value="${o.saleName}"/></span>
                                         </div>
 
                                         <div class="product-card-price-row">
@@ -213,7 +212,6 @@
                 <div>
                     <span class="section-label">THƯƠNG HIỆU UY TÍN &bull; DATE MỚI NHẤT</span>
                     <h2>Sản phẩm bán chạy &amp; Mới về</h2>
-                    <p>Các dòng sản phẩm dinh dưỡng cao cấp đạt chuẩn FEFO, được hàng chục ngàn Sen tin chọn.</p>
                 </div>
                 <a href="${ctx}/products" class="view-all">Xem tất cả sản phẩm &rarr;</a>
             </div>

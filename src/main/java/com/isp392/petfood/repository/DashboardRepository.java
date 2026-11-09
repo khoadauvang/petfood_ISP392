@@ -43,26 +43,39 @@ public interface DashboardRepository extends Repository<Order, Long> {
             SELECT COUNT(*) AS orderCount, COALESCE(SUM(o.total_amount), 0) AS totalAmount,
                    COALESCE(SUM(o.shipping_fee), 0) AS shippingFee
             FROM dbo.Orders o
-            WHERE o.order_status = N'COMPLETED' AND o.completed_at >= :from AND o.completed_at < :to
+            WHERE o.order_status = N'COMPLETED'
+              AND COALESCE(o.completed_at, o.created_at) >= :from
+              AND COALESCE(o.completed_at, o.created_at) < :to
             """, nativeQuery = true)
     RevenueRow revenue(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    // Tiền đã hoàn (yêu cầu trả hàng REFUNDED trong kỳ) của các đơn đã giao thành công
+    // Tiền đã hoàn (yêu cầu trả hàng REFUNDED) của các đơn đã giao thành công trong kỳ (đồng bộ 100% với allOrders)
     @Query(value = """
             SELECT COALESCE(SUM(ri.refund_amount), 0)
             FROM dbo.ReturnItem ri
             JOIN dbo.ReturnRequest rr ON rr.return_id = ri.return_id
             JOIN dbo.Orders o ON o.order_id = rr.order_id
             WHERE rr.status = N'REFUNDED' AND o.order_status = N'COMPLETED'
-              AND rr.refunded_at >= :from AND rr.refunded_at < :to
+              AND COALESCE(o.completed_at, o.created_at) >= :from
+              AND COALESCE(o.completed_at, o.created_at) < :to
             """, nativeQuery = true)
     BigDecimal refunds(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query(value = """
-            SELECT CAST(o.completed_at AS DATE) AS day, COUNT(*) AS orderCount, SUM(o.total_amount) AS totalAmount
+            SELECT CAST(COALESCE(o.completed_at, o.created_at) AS DATE) AS day,
+                   COUNT(*) AS orderCount,
+                   COALESCE(SUM(o.total_amount - COALESCE(rf.refunded, 0)), 0) AS totalAmount
             FROM dbo.Orders o
-            WHERE o.order_status = N'COMPLETED' AND o.completed_at >= :from AND o.completed_at < :to
-            GROUP BY CAST(o.completed_at AS DATE)
+            OUTER APPLY (
+                SELECT SUM(ri.refund_amount) AS refunded
+                FROM dbo.ReturnItem ri
+                JOIN dbo.ReturnRequest rr ON rr.return_id = ri.return_id
+                WHERE rr.order_id = o.order_id AND rr.status = N'REFUNDED'
+            ) rf
+            WHERE o.order_status = N'COMPLETED'
+              AND COALESCE(o.completed_at, o.created_at) >= :from
+              AND COALESCE(o.completed_at, o.created_at) < :to
+            GROUP BY CAST(COALESCE(o.completed_at, o.created_at) AS DATE)
             ORDER BY day
             """, nativeQuery = true)
     List<DailyRevenueRow> dailyRevenue(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
@@ -76,15 +89,25 @@ public interface DashboardRepository extends Repository<Order, Long> {
             """, nativeQuery = true)
     List<StatusCountRow> ordersByStatus(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    // Sản phẩm bán chạy: số lượng và tiền hàng (sau giảm hạng) trong các đơn giao thành công
+    // Sản phẩm bán chạy: số lượng và tiền hàng thực thu (sau giảm hạng và trừ hàng hoàn trả REFUNDED) trong các đơn giao thành công
     @Query(value = """
             SELECT TOP 5 p.product_id AS productId, p.name AS name, p.sku + N'-' + p.variant AS sku,
-                   SUM(oi.quantity) AS quantity, SUM(oi.unit_price * oi.quantity - oi.discount_amount) AS revenue
+                   SUM(oi.quantity - COALESCE(rf.qty, 0)) AS quantity,
+                   SUM((oi.unit_price * oi.quantity - oi.discount_amount) - COALESCE(rf.amt, 0)) AS revenue
             FROM dbo.OrderItem oi
             JOIN dbo.Orders o ON o.order_id = oi.order_id
             JOIN dbo.Product p ON p.product_id = oi.product_id
-            WHERE o.order_status = N'COMPLETED' AND o.completed_at >= :from AND o.completed_at < :to
+            OUTER APPLY (
+                SELECT SUM(ri.quantity) AS qty, SUM(ri.refund_amount) AS amt
+                FROM dbo.ReturnItem ri
+                JOIN dbo.ReturnRequest rr ON rr.return_id = ri.return_id
+                WHERE ri.order_item_id = oi.order_item_id AND rr.status = N'REFUNDED'
+            ) rf
+            WHERE o.order_status = N'COMPLETED'
+              AND COALESCE(o.completed_at, o.created_at) >= :from
+              AND COALESCE(o.completed_at, o.created_at) < :to
             GROUP BY p.product_id, p.name, p.sku, p.variant
+            HAVING SUM(oi.quantity - COALESCE(rf.qty, 0)) > 0
             ORDER BY quantity DESC, revenue DESC
             """, nativeQuery = true)
     List<TopProductRow> topProducts(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
@@ -147,12 +170,18 @@ public interface DashboardRepository extends Repository<Order, Long> {
             """, nativeQuery = true)
     List<OrderAuditRow> allOrders();
 
-    // Tiền hàng (sau giảm hạng) của từng đơn theo danh mục
+    // Tiền hàng thực thu (sau giảm hạng và trừ hàng hoàn trả REFUNDED) của từng đơn theo danh mục
     @Query(value = """
             SELECT oi.order_id AS orderId, p.category_id AS categoryId,
-                   COALESCE(SUM(oi.unit_price * oi.quantity - oi.discount_amount), 0) AS amount
+                   COALESCE(SUM((oi.unit_price * oi.quantity - oi.discount_amount) - COALESCE(rf.amt, 0)), 0) AS amount
             FROM dbo.OrderItem oi
             JOIN dbo.Product p ON p.product_id = oi.product_id
+            OUTER APPLY (
+                SELECT SUM(ri.refund_amount) AS amt
+                FROM dbo.ReturnItem ri
+                JOIN dbo.ReturnRequest rr ON rr.return_id = ri.return_id
+                WHERE ri.order_item_id = oi.order_item_id AND rr.status = N'REFUNDED'
+            ) rf
             GROUP BY oi.order_id, p.category_id
             """, nativeQuery = true)
     List<OrderCategoryAmountRow> orderCategoryAmounts();
@@ -172,4 +201,11 @@ public interface DashboardRepository extends Repository<Order, Long> {
             GROUP BY c.membership_tier
             """, nativeQuery = true)
     List<StatusCountRow> customersByTier();
+
+    // Ngày có đơn hàng gần nhất trong hệ thống (dùng làm kỳ mặc định nếu tháng hiện tại của máy chưa có đơn)
+    @Query(value = """
+            SELECT CAST(MAX(COALESCE(o.completed_at, o.created_at)) AS DATE)
+            FROM dbo.Orders o
+            """, nativeQuery = true)
+    LocalDate latestOrderDate();
 }

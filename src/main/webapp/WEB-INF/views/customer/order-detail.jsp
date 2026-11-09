@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN" />
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -12,6 +13,7 @@
         <title>Chi tiết đơn hàng #PFS-${order.id} · PetFood</title>
 
         <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css">
+        <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -24,12 +26,10 @@
 
         <!-- BREADCRUMB -->
         <div class="breadcrumb-bar">
-            <div>
-                <a href="${ctx}/"><i class="fi fi-rr-home"></i> Trang chủ</a> › 
-                <a href="${ctx}/profile">Tài khoản</a> › 
-                <a href="${ctx}/orders">Đơn hàng của tôi</a> › 
-                <strong>Chi tiết đơn hàng #PFS-${order.id}</strong>
-            </div>
+            <pf:breadcrumb current="Đơn #PFS-${order.id}">
+                <pf:crumb href="${ctx}/profile" label="Tài khoản"/>
+                <pf:crumb href="${ctx}/orders" label="Đơn hàng của tôi"/>
+            </pf:breadcrumb>
         </div>
 
         <div class="page-container">

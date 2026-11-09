@@ -1,0 +1,42 @@
+/* Breadcrumb dùng chung phía khách (WEB-INF/tags/breadcrumb.tag) */
+.pf-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #8C8077;
+}
+
+.pf-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #8C8077;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.pf-breadcrumb a:hover {
+    color: #F47721;
+}
+
+.pf-breadcrumb a i {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.pf-breadcrumb .pf-bc-sep {
+    color: #D8C4B3;
+}
+
+.pf-breadcrumb .pf-bc-current {
+    color: #2B2420;
+    font-weight: 700;
+    max-width: 420px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

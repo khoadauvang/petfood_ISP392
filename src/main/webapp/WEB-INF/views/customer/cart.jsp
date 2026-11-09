@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <fmt:setLocale value="vi_VN"/>
@@ -76,11 +77,7 @@
         <main class="page-container">
 
             <div class="cart-topbar">
-                <nav class="breadcrumb" aria-label="Breadcrumb">
-                    <a href="${ctx}/"><i class="fi fi-rr-home"></i> Trang chủ</a>
-                    <span class="sep">/</span>
-                    <span class="current">Giỏ hàng của bạn</span>
-                </nav>
+                <pf:breadcrumb current="Giỏ hàng của bạn"/>
             </div>
 
             <c:choose>

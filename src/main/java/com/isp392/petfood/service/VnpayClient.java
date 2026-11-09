@@ -10,6 +10,8 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -113,13 +115,23 @@ public class VnpayClient {
         params.put("vnp_OrderInfo", orderInfo(payment));
         params.put("vnp_OrderType", "other");
         params.put("vnp_Locale", "vn");
-        params.put("vnp_ReturnUrl", returnUrl);
+        params.put("vnp_ReturnUrl", currentReturnUrl());
         params.put("vnp_IpAddr", clientIp);
         params.put("vnp_CreateDate", payment.getCreatedAt().format(VNP_DATE));
         params.put("vnp_ExpireDate", expireAt.format(VNP_DATE));
 
         String query = encode(params);
         return payUrl + "?" + query + "&vnp_SecureHash=" + hmac(query);
+    }
+
+    // Link VNPay đưa khách về: lấy theo domain khách đang mở trang (localhost, ngrok, cloudflared...),
+    // nhờ server.forward-headers-strategy=framework nên sau tunnel vẫn ra đúng https://<domain-public>.
+    // Đổi domain tunnel không cần sửa .env. Ngoài request (không có domain để lấy) mới dùng petfood.vnpay.return-url.
+    private String currentReturnUrl() {
+        if (RequestContextHolder.getRequestAttributes() == null) {
+            return returnUrl;
+        }
+        return ServletUriComponentsBuilder.fromCurrentContextPath().path("/payment/vnpay-return").toUriString();
     }
 
     // Kiểm chữ ký các tham số VNPay gửi về (bỏ vnp_SecureHash, vnp_SecureHashType; sắp xếp; ký lại; so sánh)

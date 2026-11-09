@@ -295,7 +295,7 @@
                                     <div>
                                         <b style="color:var(--text-logo)"><c:out value="${l.productName}"/></b>
                                         <div style="font-size:11px; color:var(--text-muted); margin-top:2px">
-                                            SKU: <code><c:out value="${l.sku}"/></code> • <span class="pill-badge gray">Kệ kho chuẩn</span>
+                                            SKU: <code><c:out value="${l.sku}"/></code>
                                         </div>
                                     </div>
                                 </div>

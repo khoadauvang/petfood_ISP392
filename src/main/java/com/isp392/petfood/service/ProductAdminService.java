@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 
 import static com.isp392.petfood.dto.ProductForm.IMAGE_COUNT;
 
-// Quản lý sản phẩm của Staff/Admin (FR-10): thêm kèm 5 ảnh, sửa, thay ảnh, ẩn/hiện, xoá sản phẩm chưa phát sinh dữ liệu.
+// Quản lý sản phẩm của Staff/Admin (FR-10): thêm kèm 1–5 ảnh, sửa, thay ảnh, ẩn/hiện, xoá sản phẩm chưa phát sinh dữ liệu.
 // Khác ProductService: class đó chỉ phục vụ trang khách (chỉ đọc).
 @Service
 @RequiredArgsConstructor
@@ -239,7 +239,7 @@ public class ProductAdminService {
     }
 
     // =====================================================================
-    // THÊM: Product + 5 ProductImage (+ lô đầu tiên nếu có) trong CÙNG một transaction.
+    // THÊM: Product + 1–5 ProductImage (+ lô đầu tiên nếu có) trong CÙNG một transaction.
     // Thiếu/lỗi ảnh nào thì không lưu gì cả (ghi chú 1 trong FoodPetShop_ProductImage.sql).
     // =====================================================================
     @Transactional
@@ -249,12 +249,12 @@ public class ProductAdminService {
         Category category = checkCategory(form, errors);
         checkUnique(form, null, errors);
         checkFirstLot(form, errors);
-        // Bắt buộc đủ 5 ảnh; riêng biến thể thì ô bỏ trống lấy ảnh cùng vị trí của sản phẩm gốc
-        boolean variant = form.getVariantOf() != null;
-        Map<Integer, byte[]> images = processImages(form, !variant, errors);
-        if (variant) {
+        // 1–5 ảnh, bắt buộc ảnh 1 (ảnh đại diện); riêng biến thể thì ô bỏ trống lấy ảnh cùng vị trí của sản phẩm gốc
+        Map<Integer, byte[]> images = processImages(form, errors);
+        if (form.getVariantOf() != null) {
             inheritImages(form.getVariantOf(), images, errors);
         }
+        requireCoverImage(images.containsKey(1), errors);
         if (!errors.isEmpty()) {
             throw new BusinessRuleException(errors);
         }
@@ -265,12 +265,12 @@ public class ProductAdminService {
         copy(form, category, product);
         saveAndFlush(product);
 
-        // 3. Ghi 5 file ảnh + 5 dòng ProductImage. Nếu bước sau lỗi, transaction rollback
-        //    và ProductImageStorage tự xoá các file vừa ghi.
+        // 3. Ghi file ảnh + dòng ProductImage cho các vị trí có ảnh (giữ đúng vị trí đã chọn). Nếu bước sau lỗi,
+        //    transaction rollback và ProductImageStorage tự xoá các file vừa ghi.
         List<ProductImage> rows = new ArrayList<>();
-        for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
-            String url = imageStorage.save(product.getFullSku(), slot, images.get(slot));
-            rows.add(new ProductImage(product, slot, url));
+        for (Map.Entry<Integer, byte[]> entry : images.entrySet()) {
+            String url = imageStorage.save(product.getFullSku(), entry.getKey(), entry.getValue());
+            rows.add(new ProductImage(product, entry.getKey(), url));
         }
         productImageRepository.saveAll(rows);
         product.setImageUrl(rows.get(0).getImageUrl());     // ảnh đại diện = ảnh số 1
@@ -292,21 +292,15 @@ public class ProductAdminService {
         Map<String, String> errors = new LinkedHashMap<>();
         Category category = checkCategory(form, errors);
         checkUnique(form, id, errors);
-        Map<Integer, byte[]> newImages = processImages(form, false, errors);  // chỉ các ô có chọn file
+        Map<Integer, byte[]> newImages = processImages(form, errors);  // chỉ các ô có chọn file
 
-        // Sau khi sửa vẫn phải đủ 5 ảnh (dữ liệu cũ có thể thiếu: vị trí trống bắt buộc chọn ảnh)
+        // Sau khi sửa vẫn phải có ảnh 1 (ảnh đại diện); vị trí 2–5 được để trống
         Map<Integer, ProductImage> currentBySlot = new HashMap<>();
         for (ProductImage image : productImageRepository.findByProduct_IdOrderBySortOrderAsc(id)) {
             currentBySlot.put(image.getSortOrder(), image);
         }
-        if (currentBySlot.size() < IMAGE_COUNT) {
-            inheritImages(id, newImages, errors);
-        }
-        for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
-            String field = "image" + slot;
-            if (!currentBySlot.containsKey(slot) && !newImages.containsKey(slot) && !errors.containsKey(field)) {
-                errors.put(field, "Sản phẩm phải đủ 5 ảnh: vị trí " + slot + " đang trống, hãy chọn ảnh");
-            }
+        if (!errors.containsKey("image1")) {
+            requireCoverImage(currentBySlot.containsKey(1) || newImages.containsKey(1), errors);
         }
         if (!errors.isEmpty()) {
             throw new BusinessRuleException(errors);
@@ -431,17 +425,21 @@ public class ProductAdminService {
         }
     }
 
-    // Chuẩn hoá từng ảnh. Trả về Map vị trí -> nội dung JPG; ảnh lỗi được ghi vào errors với tên ô image1..image5.
-    private Map<Integer, byte[]> processImages(ProductForm form, boolean requireAll, Map<String, String> errors) {
+    // Mỗi sản phẩm cần ít nhất ảnh 1 (ảnh đại diện); ảnh 2–5 không bắt buộc
+    private static void requireCoverImage(boolean hasCover, Map<String, String> errors) {
+        if (!hasCover) {
+            errors.putIfAbsent("image1", "Chưa chọn ảnh số 1 (ảnh đại diện)");
+        }
+    }
+
+    // Chuẩn hoá các ảnh đã chọn. Trả về Map vị trí -> nội dung JPG; ảnh lỗi được ghi vào errors với tên ô image1..image5.
+    private Map<Integer, byte[]> processImages(ProductForm form, Map<String, String> errors) {
         Map<Integer, byte[]> result = new TreeMap<>();
         List<MultipartFile> files = form.imagesBySlot();
         for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
             MultipartFile file = files.get(slot - 1);
             String field = "image" + slot;
             if (file == null || file.isEmpty()) {
-                if (requireAll) {
-                    errors.put(field, "Chưa chọn ảnh số " + slot);
-                }
                 continue;
             }
             if (file.getSize() > MAX_IMAGE_BYTES) {
@@ -485,19 +483,16 @@ public class ProductAdminService {
             }
         }
         if (fallbackUrl != null && !fallbackUrl.isBlank()) {
-            for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
-                parentUrls.putIfAbsent(slot, fallbackUrl);
-            }
+            parentUrls.putIfAbsent(1, fallbackUrl);
         }
+        // Vị trí sản phẩm gốc không có ảnh thì để trống (chỉ ảnh 1 là bắt buộc, kiểm tra ở create)
         for (int slot = 1; slot <= IMAGE_COUNT; slot++) {
-            String field = "image" + slot;
-            if (images.containsKey(slot) || errors.containsKey(field)) {
+            String url = parentUrls.get(slot);
+            if (images.containsKey(slot) || errors.containsKey("image" + slot) || url == null || url.isBlank()) {
                 continue;
             }
-            byte[] bytes = imageStorage.readBytes(parentUrls.get(slot));
-            if (bytes == null) {
-                errors.put(field, "Sản phẩm gốc không có ảnh số " + slot + ", hãy chọn ảnh");
-            } else {
+            byte[] bytes = imageStorage.readBytes(url);
+            if (bytes != null) {
                 images.put(slot, bytes);
             }
         }

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
@@ -31,13 +32,9 @@
 
             <!-- 2. BREADCRUMB & SSL BADGE -->
             <div class="checkout-topbar">
-                <nav class="checkout-breadcrumb" aria-label="Breadcrumb">
-                    <a href="${ctx}/">Trang chủ</a>
-                    <span class="sep">&rsaquo;</span>
-                    <a href="${ctx}/cart">Giỏ hàng</a>
-                    <span class="sep">&rsaquo;</span>
-                    <span class="current">Thanh toán an toàn</span>
-                </nav>
+                <pf:breadcrumb current="Thanh toán an toàn">
+                    <pf:crumb href="${ctx}/cart" label="Giỏ hàng của bạn"/>
+                </pf:breadcrumb>
             </div>
 
             <!-- 3. FORM CHÍNH BAO TRỌN 2 CỘT ĐỂ GỬI DỮ LIỆU ĐỒNG BỘ -->

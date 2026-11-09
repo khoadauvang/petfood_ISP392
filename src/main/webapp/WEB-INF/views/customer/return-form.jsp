@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <fmt:setLocale value="vi_VN"/>
@@ -28,12 +29,11 @@
 
     <!-- BREADCRUMB -->
     <div class="breadcrumb-bar">
-        <div>
-            <a href="${ctx}/"><i class="fi fi-rr-home"></i> Trang chủ</a> › 
-            <a href="${ctx}/orders">Đơn hàng của tôi</a> › 
-            <a href="${ctx}/orders/${orderId}">Đơn #PFS-${orderId}</a> › 
-            <strong>Yêu cầu trả hàng</strong>
-        </div>
+        <pf:breadcrumb current="Yêu cầu trả hàng">
+            <pf:crumb href="${ctx}/profile" label="Tài khoản"/>
+            <pf:crumb href="${ctx}/orders" label="Đơn hàng của tôi"/>
+            <pf:crumb href="${ctx}/orders/${orderId}" label="Đơn #PFS-${orderId}"/>
+        </pf:breadcrumb>
     </div>
 
     <div class="page-container">

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="pf" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
@@ -19,7 +20,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- CSS chung của hệ thống (Header/Footer) và CSS riêng của trang Chi tiết -->
-        <link rel="stylesheet" href="${ctx}/css/detail.css?v=3">
+        <link rel="stylesheet" href="${ctx}/css/detail.css?v=4">
     </head>
     <body>
 
@@ -28,23 +29,21 @@
 
         <main class="detail-page-wrapper">
 
+            <%-- Suất ưu đãi còn hàng đầu tiên: chỉ dùng để trang trí (badge -%, đồng hồ đếm ngược).
+                 Nút mua chính vẫn mua giá thường; mua theo suất ở mục Flash Sale bên dưới (BR-65). --%>
+            <c:set var="hasSaleOffer" value="false" />
+            <c:forEach var="fo" items="${flashSaleOffers}">
+                <c:if test="${not hasSaleOffer and fo.remainingQty > 0}">
+                    <c:set var="hasSaleOffer" value="true" />
+                    <c:set var="activeOffer" value="${fo}" />
+                </c:if>
+            </c:forEach>
+
             <!-- 2. BREADCRUMB ĐỒNG BỘ VỚI TRANG PRODUCTS.JSP -->
-            <nav class="breadcrumb" aria-label="Breadcrumb">
-                <a href="${ctx}/" class="breadcrumb-home">
-                    <i class="fi fi-rr-home"></i>
-                    <span>Trang chủ</span>
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <a href="${ctx}/products">
-                    <span>Sản phẩm</span>
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <a href="${ctx}/products?categoryId=${product.categoryId}">
-                    <span><c:out value="${product.categoryName}"/></span>
-                </a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-current"><c:out value="${product.name}"/></span>
-            </nav>
+            <pf:breadcrumb current="${product.name}" style="margin-bottom:20px">
+                <pf:crumb href="${ctx}/products" label="Sản phẩm"/>
+                <pf:crumb href="${ctx}/products?categoryId=${product.categoryId}" label="${product.categoryName}"/>
+            </pf:breadcrumb>
 
             <!-- 3. KHUNG CHÍNH: ẢNH GALLERY TRÁI & THÔNG TIN MUA HÀNG PHẢI -->
             <div class="detail-main-card">
@@ -53,6 +52,11 @@
                 <section class="detail-gallery">
                     <div class="main-img-box">
                         <span class="gallery-floating-tag"><i class="fi fi-rr-badge-check"></i> CHÍNH HÃNG</span>
+                        <c:if test="${hasSaleOffer}">
+                            <span class="gallery-discount-tag ${activeOffer.promotion ? 'promo' : 'flash'}">
+                                <i class="${activeOffer.promotion ? 'fi fi-rr-tags' : 'fi fi-rr-flame'}"></i> -${activeOffer.discountPercent}%
+                            </span>
+                        </c:if>
                         <c:choose>
                             <c:when test="${not empty product.imageUrls}">
                                 <img id="mainImage" src="${ctx}<c:out value='${product.imageUrls[0]}'/>" alt="<c:out value='${product.name}'/>">
@@ -120,10 +124,29 @@
                         <span class="price-sub-note">Giá đã bao gồm thuế VAT. Miễn phí vận chuyển nội thành cho đơn từ 150.000đ.</span>
                     </div>
 
+                    <%-- THỜI GIAN ƯU ĐÃI CÒN LẠI (FLASH SALE & CHƯƠNG TRÌNH) --%>
+                    <c:if test="${hasSaleOffer}">
+                        <div class="sale-countdown-timer-box" data-end-at="${activeOffer.endAt}">
+                            <div class="countdown-heading">
+                                <i class="fi fi-rr-clock"></i>
+                                <span>${activeOffer.promotion ? 'Ưu đãi kết thúc sau:' : 'Flash Sale kết thúc sau:'}</span>
+                                <a href="#flash-offers" style="font-size:12px; font-weight:600; color:#C2410C;">Xem suất ưu đãi</a>
+                            </div>
+                            <div class="countdown-digits">
+                                <span class="cd-segment cd-days-wrap" style="display:none;"><strong class="cd-days">00</strong><small>ngày</small></span>
+                                <span class="cd-segment"><strong class="cd-hours">00</strong><small>giờ</small></span>
+                                <span class="cd-colon">:</span>
+                                <span class="cd-segment"><strong class="cd-minutes">00</strong><small>phút</small></span>
+                                <span class="cd-colon">:</span>
+                                <span class="cd-segment"><strong class="cd-seconds">00</strong><small>giây</small></span>
+                            </div>
+                        </div>
+                    </c:if>
+
                     <%-- PHẦN CHỌN BIẾN THỂ / QUY CÁCH SẢN PHẨM (TRÊN SỐ LƯỢNG) --%>
                     <c:if test="${not empty variants and variants.size() > 1}">
                         <div class="product-variants-wrapper">
-                            <span class="variant-field-label">Quy cách / Biến thể:</span>
+                            <span class="variant-field-label">Loại sản phẩm:</span>
                             <div class="variant-options-list">
                                 <c:forEach var="v" items="${variants}">
                                     <a href="${ctx}/products/${v.id}"
@@ -224,7 +247,7 @@
 
             <!-- 4. CHƯƠNG TRÌNH KHUYẾN MÃI & FLASH SALE ĐANG CHẠY CỦA SẢN PHẨM NÀY (BR-65) -->
             <c:if test="${not empty flashSaleOffers}">
-                <section class="detail-section-card flash-offer-card">
+                <section class="detail-section-card flash-offer-card" id="flash-offers">
                     <h2><i class="fi fi-rr-flame"></i> Suất Chương trình &amp; Flash Sale đang mở bán cho sản phẩm này</h2>
                     <c:forEach var="o" items="${flashSaleOffers}">
                         <div class="flash-offer-item">
@@ -586,6 +609,35 @@
                     btnEl.disabled = false;
                 }, 1200);
             }
+
+            // Đồng hồ đếm ngược thời gian ưu đãi còn lại cho Flash Sale & Chương trình
+            function initSaleCountdown() {
+                const box = document.querySelector('.sale-countdown-timer-box');
+                if (!box) return;
+                const endTime = new Date(box.getAttribute('data-end-at') || '').getTime();
+                if (isNaN(endTime)) return;
+
+                const daysWrap = box.querySelector('.cd-days-wrap');
+                const daysEl = box.querySelector('.cd-days');
+                const hoursEl = box.querySelector('.cd-hours');
+                const minutesEl = box.querySelector('.cd-minutes');
+                const secondsEl = box.querySelector('.cd-seconds');
+                const pad = n => String(n).padStart(2, '0');
+
+                function update() {
+                    const totalSeconds = Math.floor(Math.max(0, endTime - Date.now()) / 1000);
+                    const d = Math.floor(totalSeconds / 86400);
+                    if (daysWrap) daysWrap.style.display = d > 0 ? 'inline-flex' : 'none';
+                    if (daysEl) daysEl.textContent = pad(d);
+                    if (hoursEl) hoursEl.textContent = pad(Math.floor((totalSeconds % 86400) / 3600));
+                    if (minutesEl) minutesEl.textContent = pad(Math.floor((totalSeconds % 3600) / 60));
+                    if (secondsEl) secondsEl.textContent = pad(totalSeconds % 60);
+                }
+
+                update();
+                setInterval(update, 1000);
+            }
+            initSaleCountdown();
         </script>
         <%-- Nhúng Footer --%>
         <%@ include file="/WEB-INF/views/common/_footer.jspf" %>
