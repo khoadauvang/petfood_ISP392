@@ -20,7 +20,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- CSS chung của hệ thống (Header/Footer) và CSS riêng của trang Chi tiết -->
-        <link rel="stylesheet" href="${ctx}/css/detail.css?v=4">
+        <link rel="stylesheet" href="${ctx}/css/detail.css?v=7">
     </head>
     <body>
 
@@ -29,8 +29,9 @@
 
         <main class="detail-page-wrapper">
 
-            <%-- Suất ưu đãi còn hàng đầu tiên: chỉ dùng để trang trí (badge -%, đồng hồ đếm ngược).
-                 Nút mua chính vẫn mua giá thường; mua theo suất ở mục Flash Sale bên dưới (BR-65). --%>
+            <%-- Suất Flash Sale / Chương trình còn hàng đầu tiên của sản phẩm (BR-65): hiện giá ưu đãi trong ô giá
+                 và thêm nút thứ 3 "Mua với Flash Sale" (dòng giỏ riêng theo flashSaleItemId).
+                 "Thêm vào giỏ hàng" / "Mua ngay" vẫn mua giá thường. --%>
             <c:set var="hasSaleOffer" value="false" />
             <c:forEach var="fo" items="${flashSaleOffers}">
                 <c:if test="${not hasSaleOffer and fo.remainingQty > 0}">
@@ -52,11 +53,6 @@
                 <section class="detail-gallery">
                     <div class="main-img-box">
                         <span class="gallery-floating-tag"><i class="fi fi-rr-badge-check"></i> CHÍNH HÃNG</span>
-                        <c:if test="${hasSaleOffer}">
-                            <span class="gallery-discount-tag ${activeOffer.promotion ? 'promo' : 'flash'}">
-                                <i class="${activeOffer.promotion ? 'fi fi-rr-tags' : 'fi fi-rr-flame'}"></i> -${activeOffer.discountPercent}%
-                            </span>
-                        </c:if>
                         <c:choose>
                             <c:when test="${not empty product.imageUrls}">
                                 <img id="mainImage" src="${ctx}<c:out value='${product.imageUrls[0]}'/>" alt="<c:out value='${product.name}'/>">
@@ -130,7 +126,6 @@
                             <div class="countdown-heading">
                                 <i class="fi fi-rr-clock"></i>
                                 <span>${activeOffer.promotion ? 'Ưu đãi kết thúc sau:' : 'Flash Sale kết thúc sau:'}</span>
-                                <a href="#flash-offers" style="font-size:12px; font-weight:600; color:#C2410C;">Xem suất ưu đãi</a>
                             </div>
                             <div class="countdown-digits">
                                 <span class="cd-segment cd-days-wrap" style="display:none;"><strong class="cd-days">00</strong><small>ngày</small></span>
@@ -162,120 +157,94 @@
                         </div>
                     </c:if>
 
-                    <!-- BỘ NÚT MUA HÀNG: HÀNG 1 LÀ SỐ LƯỢNG + TỒN KHO KHẢ DỤNG; HÀNG 2 LÀ MUA NGAY & THÊM GIỎ -->
+                    <!-- BỘ NÚT MUA HÀNG: HÀNG 1 LÀ SỐ LƯỢNG + TỒN KHO; HÀNG 2 LÀ THÊM GIỎ & MUA NGAY (GIÁ THƯỜNG);
+                         CÓ FLASH SALE THÌ THÊM HÀNG 3 "MUA VỚI FLASH SALE" (THÊM SUẤT ƯU ĐÃI VÀO GIỎ) -->
+                    <c:set var="isCustomer" value="${currentUser != null and currentUser.role == 'CUSTOMER'}"/>
+                    <c:set var="flashBtnLabel" value="${activeOffer.promotion ? 'Mua với giá Chương trình' : 'Mua với Flash Sale'}"/>
                     <div class="purchase-action-area">
-                        <c:if test="${product.inStock}">
-                            <c:choose>
-                                <c:when test="${currentUser != null and currentUser.role == 'CUSTOMER'}">
-                                    <form method="post" action="${ctx}/cart/add" id="detailAddCartForm">
+                        <c:if test="${product.inStock or hasSaleOffer}">
+                            <c:if test="${isCustomer}">
+                                <form method="post" action="${ctx}/cart/add" id="detailAddCartForm">
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                                    <input type="hidden" name="productId" value="${product.id}">
+                                    <input type="hidden" name="returnUrl" id="detailReturnUrl" value="/products/${product.id}">
+                                    <input type="hidden" name="buyNow" id="detailBuyNow" value="false">
+                                    <input type="hidden" name="quantity" id="detailQtyHidden" value="1">
+                                </form>
+                                <c:if test="${hasSaleOffer}">
+                                    <%-- Mua suất ưu đãi: thêm vào giỏ thành dòng riêng theo flashSaleItemId, khách ở lại trang --%>
+                                    <form method="post" action="${ctx}/cart/add" id="detailFlashSaleForm">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                        <input type="hidden" name="productId" value="${product.id}">
-                                        <input type="hidden" name="returnUrl" id="detailReturnUrl" value="${pageContext.request.requestURI}">
-                                        <input type="hidden" name="buyNow" id="detailBuyNow" value="false">
-
-                                        <%-- HÀNG 1: Nút số lượng + Tồn kho khả dụng kế bên --%>
-                                        <div class="qty-and-stock-row">
-                                            <div class="qty-stepper-wrap">
-                                                <span class="qty-field-label">Số lượng:</span>
-                                                <div class="detail-qty-stepper">
-                                                    <button type="button" class="stepper-btn" onclick="changeDetailQty(-1)">&minus;</button>
-                                                    <input type="number"
-                                                           id="detailQtyInput"
-                                                           name="quantity"
-                                                           value="1"
-                                                           min="1"
-                                                           max="${product.sellableQty}"
-                                                           class="stepper-input"
-                                                           required>
-                                                    <button type="button" class="stepper-btn" onclick="changeDetailQty(1)">&plus;</button>
-                                                </div>
-                                            </div>
-                                            <div class="avail-stock-pill">
-                                                <span>Tồn kho khả dụng: <strong>${product.sellableQty} sản phẩm</strong></span>
-                                            </div>
-                                        </div>
-
-                                        <%-- HÀNG 2: Mua ngay và Thêm vào giỏ hàng chuyển xuống dưới --%>
-                                        <div class="purchase-buttons-row">
-                                            <button type="button" class="btn-add-to-cart" onclick="addToCartFly(this)">
-                                                <i class="fi fi-rr-shopping-cart-add"></i> Thêm vào giỏ hàng
-                                            </button>
-                                            <button type="submit" class="btn-buy-now" onclick="return setBuyMode(true)">
-                                                Mua ngay
-                                            </button>
-                                        </div>
+                                        <input type="hidden" name="flashSaleItemId" value="${activeOffer.flashSaleItemId}">
+                                        <input type="hidden" name="quantity" id="detailFlashQtyHidden" value="1">
+                                        <input type="hidden" name="returnUrl" value="/products/${product.id}">
                                     </form>
-                                </c:when>
-                                <c:otherwise>
-                                    <%-- Khi chưa đăng nhập (hoặc không phải CUSTOMER): vẫn hiển thị đầy đủ Stepper số lượng + Tồn kho + 2 nút Mua hàng & Thêm giỏ --%>
-                                    <div class="qty-and-stock-row">
-                                        <div class="qty-stepper-wrap">
-                                            <span class="qty-field-label">Số lượng:</span>
-                                            <div class="detail-qty-stepper">
-                                                <button type="button" class="stepper-btn" onclick="changeDetailQty(-1)">&minus;</button>
-                                                <input type="number"
-                                                       id="detailQtyInput"
-                                                       name="quantity"
-                                                       value="1"
-                                                       min="1"
-                                                       max="${product.sellableQty}"
-                                                       class="stepper-input">
-                                                <button type="button" class="stepper-btn" onclick="changeDetailQty(1)">&plus;</button>
-                                            </div>
-                                        </div>
-                                        <div class="avail-stock-pill">
-                                            <span>Tồn kho khả dụng: <strong>${product.sellableQty} sản phẩm</strong></span>
-                                        </div>
-                                    </div>
+                                </c:if>
+                            </c:if>
 
-                                    <%-- Khi chưa đăng nhập bấm vào 1 trong 2 nút thì chuyển hướng sang trang đăng nhập --%>
-                                    <div class="purchase-buttons-row">
-                                        <button type="button" class="btn-add-to-cart" onclick="redirectToLogin()">
-                                            <i class="fi fi-rr-shopping-cart-add"></i> Thêm vào giỏ hàng
-                                        </button>
-                                        <button type="button" class="btn-buy-now" onclick="redirectToLogin()">
-                                            Mua ngay
-                                        </button>
+                            <%-- HÀNG 1: Nút số lượng + Tồn kho khả dụng (và số suất ưu đãi còn lại) --%>
+                            <div class="qty-and-stock-row">
+                                <div class="qty-stepper-wrap">
+                                    <span class="qty-field-label">Số lượng:</span>
+                                    <div class="detail-qty-stepper">
+                                        <button type="button" class="stepper-btn" onclick="changeDetailQty(-1)">&minus;</button>
+                                        <input type="number"
+                                               id="detailQtyInput"
+                                               value="1"
+                                               min="1"
+                                               max="${product.inStock ? product.sellableQty : activeOffer.remainingQty}"
+                                               class="stepper-input">
+                                        <button type="button" class="stepper-btn" onclick="changeDetailQty(1)">&plus;</button>
                                     </div>
-                                </c:otherwise>
-                            </c:choose>
+                                </div>
+                                <div class="avail-stock-pill">
+                                    <span>Tồn kho khả dụng: <strong>${product.sellableQty} sản phẩm</strong></span>
+                                </div>
+                                <c:if test="${hasSaleOffer}">
+                                    <div class="avail-stock-pill flash-remaining-pill">
+                                        <span>${activeOffer.promotion ? 'Suất Chương trình' : 'Suất Flash Sale'} còn: <strong>${activeOffer.remainingQty}</strong></span>
+                                    </div>
+                                </c:if>
+                            </div>
+
+                            <%-- HÀNG 2: Thêm vào giỏ hàng & Mua ngay (giá thường, chỉ khi còn hàng bán thường) --%>
+                            <c:if test="${product.inStock}">
+                                <div class="purchase-buttons-row">
+                                    <button type="button" class="btn-add-to-cart" onclick="${isCustomer ? 'addToCartFly(this)' : 'redirectToLogin()'}">
+                                        <i class="fi fi-rr-shopping-cart-add"></i> Thêm vào giỏ hàng
+                                    </button>
+                                    <button type="button" class="btn-buy-now" onclick="${isCustomer ? 'buyNowRegular()' : 'redirectToLogin()'}">
+                                        Mua ngay
+                                    </button>
+                                </div>
+                            </c:if>
+
+                            <%-- HÀNG 3: Mua với Flash Sale / Chương trình (giá ưu đãi trên nút; Flash Sale ghi kèm HSD lô, BR-65) --%>
+                            <c:if test="${hasSaleOffer}">
+                                <div class="purchase-buttons-row flash-buy-row">
+                                    <button type="button" class="btn-flash-sale-buy ${activeOffer.promotion ? 'promo' : ''}" onclick="${isCustomer ? 'buyWithFlashSale(this)' : 'redirectToLogin()'}">
+                                        <span class="fs-btn-label">
+                                            <i class="${activeOffer.promotion ? 'fi fi-rr-tags' : 'fi fi-rr-bolt'}"></i>
+                                            <c:out value="${flashBtnLabel}"/>
+                                        </span>
+                                        <span class="fs-btn-price"><fmt:formatNumber value="${activeOffer.salePrice}" type="number"/> ₫</span>
+                                        <span class="fs-btn-off">−${activeOffer.discountPercent}%</span>
+                                    </button>
+                                    <c:if test="${not activeOffer.promotion}">
+                                        <div class="flash-sale-expiry-row">
+                                            <i class="fi fi-rr-calendar"></i>
+                                            <span>HSD lô Flash Sale: <strong><c:out value="${activeOffer.expiryText}"/></strong></span>
+                                            <span class="flash-days-pill">Còn ${activeOffer.daysLeft} ngày</span>
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </c:if>
                         </c:if>
                     </div>
 
                 </section>
             </div>
 
-            <!-- 4. CHƯƠNG TRÌNH KHUYẾN MÃI & FLASH SALE ĐANG CHẠY CỦA SẢN PHẨM NÀY (BR-65) -->
-            <c:if test="${not empty flashSaleOffers}">
-                <section class="detail-section-card flash-offer-card" id="flash-offers">
-                    <h2><i class="fi fi-rr-flame"></i> Suất Chương trình &amp; Flash Sale đang mở bán cho sản phẩm này</h2>
-                    <c:forEach var="o" items="${flashSaleOffers}">
-                        <div class="flash-offer-item">
-                            <div>
-                                <span style="display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; margin-right:6px; background:${o.promotion ? '#e0f2fe' : '#fee2e2'}; color:${o.promotion ? '#0369a1' : '#b91c1c'};">
-                                    ${o.promotion ? 'Chương trình' : 'Flash Sale'}
-                                </span>
-                                <span class="flash-offer-price"><fmt:formatNumber value="${o.salePrice}" type="number"/> ₫</span>
-                                <span class="flash-offer-meta">
-                                    (Giảm −${o.discountPercent}%) · HSD lô: <strong>${o.expiryText}</strong>
-                                    <span style="display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; background:${o.daysLeft >= 90 ? '#e6f9ed' : '#fee2e2'}; color:${o.daysLeft >= 90 ? '#166534' : '#b91c1c'};">còn ${o.daysLeft} ngày</span>
-                                    · Còn <strong>${o.remainingQty}</strong> suất · Kết thúc: ${o.endText}
-                                </span>
-                            </div>
-                            <c:if test="${empty currentUser or currentUser.role == 'CUSTOMER'}">
-                                <form method="post" action="${ctx}/cart/add" class="flash-inline-form" onsubmit="return requireLogin()">
-                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                    <input type="hidden" name="flashSaleItemId" value="${o.flashSaleItemId}">
-                                    <input type="number" name="quantity" value="1" min="1" max="${o.remainingQty}" class="flash-qty-input" required>
-                                    <button type="submit" class="btn-add-to-cart" style="height: 38px; padding: 0 18px; font-size: 13px;">
-                                        <i class="fi fi-rr-bolt"></i> ${o.promotion ? 'Mua giá Chương trình' : 'Mua giá Flash Sale'}
-                                    </button>
-                                </form>
-                            </c:if>
-                        </div>
-                    </c:forEach>
-                </section>
-            </c:if>
 
             <!-- 5. MÔ TẢ SẢN PHẨM & BẢNG THÔNG SỐ KỸ THUẬT -->
             <div class="desc-specs-grid">
@@ -483,14 +452,40 @@
                 return true;
             }
 
+            function detailQty() {
+                const input = document.getElementById('detailQtyInput');
+                return Math.max(1, parseInt(input ? input.value : '1', 10) || 1);
+            }
+
+            // Chép số lượng ở ô stepper vào form giá thường trước khi gửi
+            function syncRegularQty() {
+                const hidden = document.getElementById('detailQtyHidden');
+                if (hidden)
+                    hidden.value = detailQty();
+            }
+
             // "Mua ngay": thêm vào giỏ rồi sang thẳng trang đặt hàng chỉ với sản phẩm này (CartController, buyNow)
-            function setBuyMode(isBuyNow) {
-                if (!requireLogin())
-                    return false;
-                const buyNowInput = document.getElementById('detailBuyNow');
-                if (buyNowInput)
-                    buyNowInput.value = isBuyNow ? 'true' : 'false';
-                return true;
+            function buyNowRegular() {
+                const form = document.getElementById('detailAddCartForm');
+                if (!form || !requireLogin())
+                    return;
+                syncRegularQty();
+                document.getElementById('detailBuyNow').value = 'true';
+                form.submit();
+            }
+
+            // "Mua với Flash Sale": thêm suất ưu đãi vào giỏ (dòng riêng), khách ở lại trang như "Thêm vào giỏ hàng"
+            const FLASH_REMAINING = ${hasSaleOffer ? activeOffer.remainingQty : 0};
+            function buyWithFlashSale(btnEl) {
+                if (!document.getElementById('detailFlashSaleForm') || !requireLogin())
+                    return;
+                const qty = detailQty();
+                if (qty > FLASH_REMAINING) {
+                    alert('Suất ưu đãi chỉ còn ' + FLASH_REMAINING + ' sản phẩm, vui lòng giảm số lượng.');
+                    return;
+                }
+                document.getElementById('detailFlashQtyHidden').value = qty;
+                addToCartFly(btnEl, 'detailFlashSaleForm');
             }
 
             // Số trên icon giỏ ở header = tổng số lượng trong giỏ (cartItemCount do BE trả về, giống CartCountAdvice)
@@ -512,10 +507,12 @@
             }
 
             // HÀM THÊM VÀO GIỎ NGẦM + HIỆU ỨNG BAY LÊN ICON GIỎ HÀNG TRÊN HEADER
-            function addToCartFly(btnEl) {
-                const form = document.getElementById('detailAddCartForm');
+            function addToCartFly(btnEl, formId) {
+                const form = document.getElementById(formId || 'detailAddCartForm');
                 if (!form || !requireLogin())
                     return;
+                if (!formId)
+                    syncRegularQty();
 
                 // 1. Gửi ngầm lên /cart/add (X-Requested-With -> BE trả JSON {ok, message, cartItemCount}),
                 //    chỉ chạy hiệu ứng khi BE báo thêm được; lỗi (vượt tồn...) thì báo đúng lý do
