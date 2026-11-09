@@ -29,10 +29,8 @@ import java.util.function.Supplier;
 //   POST /staff/orders/{id}/confirm          PENDING -> CONFIRMED (ghi confirmed_by)
 //   POST /staff/orders/{id}/pack             CONFIRMED -> PROCESSING (ghi packed_by)
 //   POST /staff/orders/{id}/ship             PROCESSING -> SHIPPED, đã cấu hình GHN thì tạo vận đơn GHN
-//   POST /staff/orders/{id}/ship-manual      PROCESSING -> SHIPPED không qua GHN (GHN lỗi / địa chỉ cũ gõ tay)
-//   POST /staff/orders/{id}/ghn-sync         hỏi GHN: giao xong -> COMPLETED, trả về shop -> RETURNED
-//   POST /staff/orders/{id}/complete         SHIPPED -> COMPLETED (COD -> PAID)
-//   POST /staff/orders/{id}/returned         SHIPPED -> RETURNED (khách không nhận hàng)
+//   POST /staff/orders/{id}/complete         SHIPPED -> COMPLETED (COD -> PAID)  } chỉ khi chưa cấu hình GHN; có GHN thì
+//   POST /staff/orders/{id}/returned         SHIPPED -> RETURNED                 } GHN cập nhật (webhook / GhnTrackingJob)
 //   POST /staff/orders/{id}/cancel           huỷ đơn chưa giao, bắt buộc lý do
 //   POST /staff/orders/{id}/cancel-request/approve | reject   duyệt yêu cầu huỷ của khách
 //   POST /staff/orders/{id}/refunded         đơn VNPay đã trả tiền bị huỷ: ghi nhận đã hoàn tiền
@@ -122,26 +120,9 @@ public class StaffOrderController {
                     : "Đơn #" + id + " đã tạo vận đơn GHN " + result.ghnOrderCode()
                             + (result.expectedDelivery() == null ? "" : ", dự kiến giao " + result.expectedDelivery()) + ".");
         } catch (GhnException e) {
-            // đơn vẫn PROCESSING: staff sửa thông tin rồi thử lại, hoặc bấm "Giao thủ công"
-            redirect.addFlashAttribute("errorMessage", "Không tạo được vận đơn GHN: " + e.getMessage()
-                    + " Có thể bấm \"Giao thủ công\" để giao không qua GHN.");
+            // đơn vẫn PROCESSING: staff sửa thông tin (SĐT, địa chỉ) rồi thử lại
+            redirect.addFlashAttribute("errorMessage", "Không tạo được vận đơn GHN: " + e.getMessage());
         } catch (BusinessRuleException e) {
-            redirect.addFlashAttribute("errorMessage", e.getMessage());
-        }
-        return "redirect:/staff/orders?orderId=" + id;
-    }
-
-    @PostMapping("/staff/orders/{id}/ship-manual")
-    public String shipManually(@PathVariable("id") Long id, RedirectAttributes redirect) {
-        return act(id, redirect, "Đơn #" + id + " đang được giao (thủ công, không qua GHN)",
-                () -> { ghnShippingService.shipManually(id); return null; });
-    }
-
-    @PostMapping("/staff/orders/{id}/ghn-sync")
-    public String syncGhn(@PathVariable("id") Long id, RedirectAttributes redirect) {
-        try {
-            redirect.addFlashAttribute("successMessage", ghnShippingService.sync(id));
-        } catch (GhnException | BusinessRuleException e) {
             redirect.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/staff/orders?orderId=" + id;
@@ -149,6 +130,9 @@ public class StaffOrderController {
 
     @PostMapping("/staff/orders/{id}/complete")
     public String complete(@PathVariable("id") Long id, RedirectAttributes redirect) {
+        if (ghnShippingService.isEnabled()) {
+            return ghnOnly(id, redirect);
+        }
         return act(id, redirect, "Đơn #" + id + " đã giao thành công", () -> orderService.complete(id));
     }
 
@@ -156,6 +140,9 @@ public class StaffOrderController {
     public String returned(@PathVariable("id") Long id,
                            @AuthenticationPrincipal AccountPrincipal user,
                            RedirectAttributes redirect) {
+        if (ghnShippingService.isEnabled()) {
+            return ghnOnly(id, redirect);
+        }
         Long employeeId = user != null ? user.getEmployeeId() : null;
         return act(id, redirect, "Đơn #" + id + " ghi nhận khách không nhận hàng", () -> orderService.markReturned(id, employeeId));
     }
@@ -190,6 +177,12 @@ public class StaffOrderController {
         redirect.addFlashAttribute("successMessage",
                 "Đã tính lại hạng hội viên cho toàn bộ khách hàng (" + changed + " khách hàng thay đổi hạng).");
         return "redirect:/staff/orders";
+    }
+
+    // Đã cấu hình GHN: kết quả giao hàng chỉ lấy từ GHN, staff không chuyển tay
+    private static String ghnOnly(Long id, RedirectAttributes redirect) {
+        redirect.addFlashAttribute("errorMessage", "Đơn #" + id + " giao qua GHN: trạng thái tự cập nhật khi GHN báo giao xong / trả hàng.");
+        return "redirect:/staff/orders?orderId=" + id;
     }
 
     private static String act(Long id, RedirectAttributes redirect, String success, Supplier<?> action) {

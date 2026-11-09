@@ -15,7 +15,7 @@ import java.util.Map;
 // GHN gọi về khi trạng thái vận đơn đổi: POST /ghn/webhook (không đăng nhập, không CSRF - SecurityConfig).
 // Khai báo URL https://<domain-ngrok>/ghn/webhook ở trang Webhook của tài khoản GHN dev.
 // Không tin trạng thái trong payload: GhnShippingService.sync tra lại GHN bằng Token của shop.
-// Luôn trả 200 (trừ sai secret) để GHN không gửi lại mãi; lỗi xử lý chỉ ghi log, staff bấm "Cập nhật từ GHN" sau.
+// Luôn trả 200 (trừ sai secret) để GHN không gửi lại mãi; lỗi xử lý chỉ ghi log, GhnTrackingJob dò lại sau.
 @RestController
 @RequiredArgsConstructor
 public class GhnWebhookController {

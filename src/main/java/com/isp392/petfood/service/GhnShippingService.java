@@ -1,5 +1,6 @@
 package com.isp392.petfood.service;
 
+import com.isp392.petfood.dto.OrderStatusEvent;
 import com.isp392.petfood.entity.Customer;
 import com.isp392.petfood.entity.Order;
 import com.isp392.petfood.entity.OrderItem;
@@ -21,6 +22,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,7 +44,8 @@ import java.util.regex.Pattern;
 //     không cần lưu mã vận đơn GHN: tra cứu bằng detail-by-client-code. Thêm created_at để làm lại DB (id chạy lại từ 1)
 //     không đụng đơn GHN cũ cùng mã.
 // Staff bấm "Giao hàng" (PROCESSING -> SHIPPED) thì tạo đơn GHN. GHN báo giao xong (delivered) thì đơn COMPLETED,
-// trả về shop (returned) thì RETURNED, qua webhook hoặc nút "Cập nhật từ GHN" của staff.
+// trả về shop (returned) thì RETURNED, qua webhook hoặc job dò định kỳ (GhnTrackingJob); staff không chuyển tay.
+// Mỗi lần trạng thái GHN / trạng thái đơn đổi thì đẩy OrderStatusEvent qua WebSocket tới trang staff (OrderStatusNotifier).
 // Phí ship khách trả vẫn theo quy tắc của nhóm (ShippingFeeService); shop trả phí GHN (payment_type_id = 1).
 // Chưa cấu hình GHN thì mọi thứ chạy như cũ: staff chuyển trạng thái tay.
 @Service
@@ -52,6 +57,8 @@ public class GhnShippingService {
     private static final Pattern VARIANT_WEIGHT = Pattern.compile("(\\d+(?:[.,]\\d+)?)\\s*(KG|G)", Pattern.CASE_INSENSITIVE);
     private static final int MAX_LIGHT_WEIGHT = 20_000;          // < 20kg: dịch vụ hàng nhẹ (service_type_id = 2)
     private static final int MAX_COD = 50_000_000;
+    // Đơn tra GHN lỗi (giao thủ công, GHN không có đơn, mạng lỗi): job tạm bỏ qua một lúc rồi mới hỏi lại
+    private static final Duration TRACKING_RETRY_AFTER_ERROR = Duration.ofMinutes(10);
     private static final Map<String, String> STATUS_LABELS = Map.ofEntries(
             Map.entry("ready_to_pick", "Chờ lấy hàng"),
             Map.entry("picking", "Shipper đang đến lấy hàng"),
@@ -87,6 +94,10 @@ public class GhnShippingService {
 
     private final GhnClient ghn;
     private final OrderService orderService;
+    private final OrderStatusNotifier notifier;
+    // Trạng thái GHN đã biết của đơn đang giao (chỉ trong bộ nhớ, không thêm cột DB): để biết khi nào đổi mà báo staff
+    private final Map<Long, String> lastGhnStatus = new ConcurrentHashMap<>();
+    private final Map<Long, Instant> trackingRetryAt = new ConcurrentHashMap<>();
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final TransactionTemplate readOnlyTx;
@@ -99,7 +110,8 @@ public class GhnShippingService {
     private final String webhookSecret;
     private final Map<String, String> sender;
 
-    public GhnShippingService(GhnClient ghn, OrderService orderService, OrderRepository orderRepository,
+    public GhnShippingService(GhnClient ghn, OrderService orderService, OrderStatusNotifier notifier,
+                              OrderRepository orderRepository,
                               OrderItemRepository orderItemRepository, PlatformTransactionManager transactionManager,
                               @Value("${petfood.ghn.order-code-prefix:PF}") String codePrefix,
                               @Value("${petfood.ghn.default-item-weight-grams:1000}") int defaultItemWeight,
@@ -115,6 +127,7 @@ public class GhnShippingService {
                               @Value("${petfood.ghn.from-province-name:}") String fromProvince) {
         this.ghn = ghn;
         this.orderService = orderService;
+        this.notifier = notifier;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.readOnlyTx = new TransactionTemplate(transactionManager);
@@ -171,7 +184,7 @@ public class GhnShippingService {
     // ===== Staff: giao hàng, cập nhật trạng thái =====
 
     // PROCESSING -> SHIPPED và tạo đơn GHN. Lỗi từ GHN (địa chỉ cũ gõ tay, thiếu SĐT...) ném GhnException,
-    // đơn giữ PROCESSING để staff sửa hoặc chọn giao thủ công (shipManually).
+    // đơn giữ PROCESSING để staff sửa rồi thử lại.
     public ShipResult ship(Long orderId) {
         if (!ghn.isConfigured()) {
             orderService.ship(orderId);
@@ -198,11 +211,6 @@ public class GhnShippingService {
         return new ShipResult(created.orderCode(), formatTime(created.expectedDeliveryTime()));
     }
 
-    // Giao thủ công, không tạo đơn GHN (GHN lỗi hoặc địa chỉ cũ không theo danh mục)
-    public void shipManually(Long orderId) {
-        orderService.ship(orderId);
-    }
-
     // Hỏi GHN trạng thái hiện tại rồi chuyển đơn SHIPPED sang COMPLETED / RETURNED nếu GHN đã kết thúc.
     // Không tin dữ liệu webhook gửi tới: luôn tra lại GHN. Gọi nhiều lần không sao (đơn đã chuyển thì bỏ qua).
     // Trả về câu mô tả kết quả cho staff.
@@ -212,21 +220,71 @@ public class GhnShippingService {
         if (order.getStatus() != OrderStatus.SHIPPED) {
             return "Đơn #" + orderId + " không ở trạng thái đang giao, không cần cập nhật từ GHN.";
         }
+        return track(order);
+    }
+
+    // GhnTrackingJob: tra GHN mọi đơn đang giao. Lỗi của một đơn không chặn các đơn khác.
+    public void trackShippedOrders() {
+        if (!ghn.isConfigured()) {
+            return;
+        }
+        List<Order> shipped = readOnlyTx.execute(s -> orderRepository.findByStatus(OrderStatus.SHIPPED));
+        if (shipped == null) {
+            return;
+        }
+        // đơn không còn đang giao (staff bấm tay, webhook đã xử lý): bỏ trạng thái đã nhớ
+        List<Long> ids = shipped.stream().map(Order::getId).toList();
+        lastGhnStatus.keySet().retainAll(ids);
+        trackingRetryAt.keySet().retainAll(ids);
+
+        Instant now = Instant.now();
+        for (Order order : shipped) {
+            Instant retryAt = trackingRetryAt.get(order.getId());
+            if (retryAt != null && now.isBefore(retryAt)) {
+                continue;
+            }
+            try {
+                track(order);
+                trackingRetryAt.remove(order.getId());
+            } catch (GhnException e) {
+                trackingRetryAt.put(order.getId(), now.plus(TRACKING_RETRY_AFTER_ERROR));
+                log.debug("Không tra được GHN cho đơn #{}: {}", order.getId(), e.getMessage());
+            } catch (RuntimeException e) {
+                // ví dụ webhook vừa chuyển đơn cùng lúc (BusinessRuleException): lần sau đơn không còn SHIPPED
+                log.warn("Dò trạng thái GHN đơn #{} lỗi: {}", order.getId(), e.getMessage());
+            }
+        }
+    }
+
+    // Tra GHN cho một đơn SHIPPED, chuyển trạng thái nếu GHN đã kết thúc, báo trang staff khi có thay đổi
+    private String track(Order order) {
+        Long orderId = order.getId();
         OrderInfo info = ghn.orderByClientCode(clientOrderCode(order));
         String label = label(info.status());
+        OrderStatus newStatus = OrderStatus.SHIPPED;
+        String message;
         switch (info.status()) {
             case "delivered" -> {
                 orderService.complete(orderId);
-                return "GHN đã giao thành công, đơn #" + orderId + " chuyển sang hoàn tất.";
+                newStatus = OrderStatus.COMPLETED;
+                message = "GHN đã giao thành công, đơn #" + orderId + " chuyển sang hoàn tất.";
             }
             case "returned" -> {
                 orderService.markReturned(orderId, null);
-                return "GHN đã trả hàng về shop, đơn #" + orderId + " ghi nhận khách không nhận hàng.";
+                newStatus = OrderStatus.RETURNED;
+                message = "GHN đã trả hàng về shop, đơn #" + orderId + " ghi nhận khách không nhận hàng.";
             }
-            default -> {
-                return "Vận đơn GHN " + info.orderCode() + ": " + label + ".";
-            }
+            default -> message = "Vận đơn GHN " + info.orderCode() + ": " + label + ".";
         }
+
+        String previous = newStatus == OrderStatus.SHIPPED
+                ? lastGhnStatus.put(orderId, info.status())
+                : lastGhnStatus.remove(orderId);
+        if (newStatus != OrderStatus.SHIPPED || !info.status().equals(previous)) {
+            notifier.publish(new OrderStatusEvent(orderId, newStatus.name(), newStatus.getLabel(),
+                    info.orderCode(), info.status(), label, formatTime(info.leadtime()), message));
+        }
+        return message;
     }
 
     // Webhook GHN: chỉ nhận đơn của đúng shop, client_order_code đúng dạng của mình

@@ -278,22 +278,39 @@
             const tabs = document.querySelectorAll(".policy-nav-tab");
             const sections = document.querySelectorAll(".policy-card");
 
-            window.addEventListener("scroll", function() {
-                let current = "";
+            const nav = document.querySelector(".policy-nav-sticky");
+            let ticking = false;
+
+            // Mục đang xem = mục cuối cùng có đầu đã qua mốc (dưới thanh tab + ~1/3 màn hình).
+            // Cuộn chạm đáy trang thì chọn mục cuối (mục cuối ngắn, không bao giờ lên được tới đầu trang).
+            function updateActiveTab() {
+                ticking = false;
+                const navBottom = nav ? nav.getBoundingClientRect().bottom : 0;
+                const marker = navBottom + (window.innerHeight - navBottom) * 0.3;
+                let current = sections.length ? sections[0].id : "";
                 sections.forEach(section => {
-                    const sectionTop = section.offsetTop - 140;
-                    if (window.scrollY >= sectionTop) {
-                        current = section.getAttribute("id");
+                    if (section.getBoundingClientRect().top <= marker) {
+                        current = section.id;
                     }
                 });
+                const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+                if (atBottom && sections.length) {
+                    current = sections[sections.length - 1].id;
+                }
 
                 tabs.forEach(tab => {
-                    tab.classList.remove("active");
-                    if (tab.getAttribute("href") === "#" + current) {
-                        tab.classList.add("active");
-                    }
+                    tab.classList.toggle("active", tab.getAttribute("href") === "#" + current);
                 });
-            });
+            }
+
+            window.addEventListener("scroll", function() {
+                if (!ticking) {
+                    ticking = true;
+                    requestAnimationFrame(updateActiveTab);
+                }
+            }, { passive: true });
+            window.addEventListener("resize", updateActiveTab);
+            updateActiveTab();
         });
     </script>
 </body>

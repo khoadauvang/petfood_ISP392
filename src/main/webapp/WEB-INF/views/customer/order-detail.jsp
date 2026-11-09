@@ -149,7 +149,7 @@
                             </div>
                             <div class="step-item ${not empty order.confirmedAtText || not empty order.packedByName ? 'active' : ''}">
                                 <div class="step-icon"><i class="fi fi-rr-check"></i></div>
-                                <div class="step-label">Kiểm soát FEFO & Kho</div>
+                                <div class="step-label">Xác Nhận Đơn</div>
                                 <div class="step-date">
                                     <c:out value="${not empty order.confirmedAtText ? order.confirmedAtText : 'Đang xử lý'}" />
                                 </div>

@@ -77,6 +77,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     long countByStatus(OrderStatus status);
 
+    // Đơn đang giao: job dò trạng thái GHN (GhnTrackingJob)
+    List<Order> findByStatus(OrderStatus status);
+
     // ===== Hạng thành viên (BR-40, BR-41) =====
     interface CustomerAmountRow {
         Long getCustomerId();

@@ -246,7 +246,7 @@
             <div class="screen-bc">
                 <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <span class="current">QUẢN LÝ ĐƠN HÀNG</span>
             </div>
-            <h1>QUẢN LÝ ĐƠN HÀNG <span class="pill-badge orange">ĐỒNG BỘ THỜI GIAN THỰC</span></h1>
+            <h1>QUẢN LÝ ĐƠN HÀNG <span id="realtime-badge" class="pill-badge gray" title="Đang kết nối...">ĐỒNG BỘ THỜI GIAN THỰC</span></h1>
             <p class="page-sub">Xem danh sách và xử lý chi tiết đơn hàng trực tiếp ngay tại chỗ trên một màn hình.</p>
         </div>
     </div>
@@ -408,7 +408,7 @@
                                         </span>
                                     </td>
                                     <td style="white-space:nowrap">
-                                        <span class="pill-badge ${o.status == 'COMPLETED' ? 'green' : (o.status == 'SHIPPED' ? 'blue' : (o.status == 'PROCESSING' ? 'blue' : (o.status == 'CONFIRMED' ? 'green' : (o.status == 'CANCELLED' ? 'red' : 'gray'))))}">
+                                        <span data-order-status-badge data-status="${o.status}" class="pill-badge ${o.status == 'COMPLETED' ? 'green' : (o.status == 'SHIPPED' ? 'blue' : (o.status == 'PROCESSING' ? 'blue' : (o.status == 'CONFIRMED' ? 'green' : (o.status == 'CANCELLED' ? 'red' : 'gray'))))}">
                                             ${o.status.label}
                                         </span>
                                         <c:if test="${o.cancelRequested}"><span class="pill-badge red" style="margin-left:4px">Yêu cầu huỷ</span></c:if>
@@ -490,7 +490,7 @@
                         <div>
                             <h3 style="margin:0 0 4px 0; font-size:18px; font-weight:800; color:var(--text-logo); display:flex; align-items:center; gap:8px">
                                 <span>#ORD-${selectedOrder.id}</span>
-                                <span class="pill-badge ${selectedOrder.status == 'COMPLETED' ? 'green' : (selectedOrder.status == 'SHIPPED' ? 'blue' : (selectedOrder.status == 'PROCESSING' ? 'blue' : (selectedOrder.status == 'CONFIRMED' ? 'green' : (selectedOrder.status == 'CANCELLED' ? 'red' : 'gray'))))}">
+                                <span id="selected-status-badge" data-order-id="${selectedOrder.id}" data-status="${selectedOrder.status}" class="pill-badge ${selectedOrder.status == 'COMPLETED' ? 'green' : (selectedOrder.status == 'SHIPPED' ? 'blue' : (selectedOrder.status == 'PROCESSING' ? 'blue' : (selectedOrder.status == 'CONFIRMED' ? 'green' : (selectedOrder.status == 'CANCELLED' ? 'red' : 'gray'))))}">
                                     ${selectedOrder.status.label}
                                 </span>
                             </h3>
@@ -626,28 +626,21 @@
                                         <i class="ti ti-truck"></i>${ghnEnabled ? 'Tạo vận đơn GHN (Bắt đầu giao)' : 'Bàn giao vận chuyển (Bắt đầu giao)'}
                                     </button>
                                 </form>
-                                <%-- GHN lỗi / đơn cũ có địa chỉ gõ tay: giao không qua GHN --%>
-                                <c:if test="${ghnEnabled}">
-                                    <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/ship-manual" style="margin-top:8px">${csrf}
-                                        <button type="submit" class="btn-pill-outline" style="width:100%; justify-content:center; padding:9px 16px; font-size:13px"
-                                                onclick="return confirm('Giao đơn này thủ công, không tạo vận đơn GHN?')">
-                                            <i class="ti ti-hand-move"></i>Giao thủ công (không qua GHN)
-                                        </button>
-                                    </form>
-                                </c:if>
                             </c:when>
 
                             <c:when test="${selectedOrder.status == 'SHIPPED'}">
                                 <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 10px 0">
-                                    Đơn đang được giao đến khách hàng. Cập nhật kết quả giao nhận bên dưới:
+                                    <c:choose>
+                                        <c:when test="${ghnEnabled}">Đơn đã bàn giao cho GHN. Trạng thái đơn tự cập nhật theo GHN (giao thành công / trả hàng về shop), không cần thao tác ở đây.</c:when>
+                                        <c:otherwise>Đơn đang được giao đến khách hàng. Cập nhật kết quả giao nhận bên dưới:</c:otherwise>
+                                    </c:choose>
                                 </p>
                                 <c:if test="${not empty shipment}">
-                                    <div style="font-size:12.5px; margin:0 0 10px 0; padding:8px 10px; border:1px dashed #93c5fd; border-radius:8px">
+                                    <div id="ghn-shipment-info" data-ghn-status="<c:out value='${shipment.status}'/>" style="font-size:12.5px; margin:0 0 10px 0; padding:8px 10px; border:1px dashed #93c5fd; border-radius:8px">
                                         <c:choose>
                                             <c:when test="${not empty shipment.orderCode}">
                                                 Vận đơn GHN <b><c:out value="${shipment.orderCode}"/></b>:
-                                                <c:out value="${shipment.statusLabel}"/>
-                                                <c:if test="${not empty shipment.expectedDelivery}"> · dự kiến giao <c:out value="${shipment.expectedDelivery}"/></c:if>
+                                                <span data-ghn-label><c:out value="${shipment.statusLabel}"/></span><span data-ghn-eta><c:if test="${not empty shipment.expectedDelivery}"> · dự kiến giao <c:out value="${shipment.expectedDelivery}"/></c:if></span>
                                             </c:when>
                                             <c:otherwise>
                                                 Không có vận đơn GHN (<c:out value="${shipment.error}"/>)
@@ -655,14 +648,9 @@
                                         </c:choose>
                                     </div>
                                 </c:if>
+                                <%-- Đã cấu hình GHN: kết quả giao do GHN cập nhật (webhook / job dò), staff không bấm tay --%>
+                                <c:if test="${not ghnEnabled}">
                                 <div style="display:flex; gap:8px; flex-direction:column">
-                                    <c:if test="${ghnEnabled}">
-                                        <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/ghn-sync">${csrf}
-                                            <button type="submit" class="btn-pill-outline" style="width:100%; justify-content:center; padding:9px 16px; font-size:13px">
-                                                <i class="ti ti-refresh"></i>Cập nhật trạng thái từ GHN
-                                            </button>
-                                        </form>
-                                    </c:if>
                                     <form method="post" action="${ctx}/staff/orders/${selectedOrder.id}/complete">${csrf}
                                         <button type="submit" class="btn-flashsale" style="width:100%; justify-content:center; padding:10px 16px; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%) !important">
                                             <i class="ti ti-circle-check"></i>Giao hàng thành công (Thu tiền COD)
@@ -675,6 +663,7 @@
                                         </button>
                                     </form>
                                 </div>
+                                </c:if>
                             </c:when>
 
                             <c:when test="${selectedOrder.status == 'COMPLETED'}">
@@ -834,6 +823,94 @@
         form.cancelReason.value = reason.trim();
         return true;
     }
+
+    // ===== Đồng bộ trạng thái đơn theo thời gian thực (WebSocket /staff/ws/orders) =====
+    // Server đẩy OrderStatusEvent khi GHN báo trạng thái mới (webhook hoặc job dò mỗi phút):
+    //   {orderId, status, statusLabel, ghnOrderCode, ghnStatus, ghnStatusLabel, expectedDelivery, message}
+    // - Dòng của đơn trong bảng: cập nhật nhãn trạng thái.
+    // - Đơn đang mở bên phải: cập nhật ô vận đơn GHN; nếu trạng thái đơn đổi (vd. Đang giao -> Hoàn thành)
+    //   thì tải lại trang sau vài giây để các nút thao tác đúng với trạng thái mới.
+    (function () {
+        const STATUS_COLOR = { COMPLETED: 'green', SHIPPED: 'blue', PROCESSING: 'blue', CONFIRMED: 'green', CANCELLED: 'red' };
+        const BADGE_COLORS = ['green', 'blue', 'red', 'gray', 'orange'];
+        const badge = document.getElementById('realtime-badge');
+        let retryDelay = 1000;
+
+        function setBadge(span, status, label) {
+            BADGE_COLORS.forEach(c => span.classList.remove(c));
+            span.classList.add(STATUS_COLOR[status] || 'gray');
+            span.dataset.status = status;
+            span.textContent = label;
+        }
+
+        function setConnected(ok) {
+            if (!badge) return;
+            badge.classList.toggle('orange', ok);
+            badge.classList.toggle('gray', !ok);
+            badge.title = ok ? 'Trạng thái đơn tự cập nhật, không cần tải lại trang'
+                             : 'Mất kết nối, đang thử kết nối lại...';
+        }
+
+        function toast(text, tone) {
+            let box = document.getElementById('realtime-toasts');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'realtime-toasts';
+                box.style.cssText = 'position:fixed; right:20px; bottom:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; max-width:360px';
+                document.body.appendChild(box);
+            }
+            const item = document.createElement('div');
+            item.className = 'msg ' + (tone || 'ok');
+            item.style.cssText = 'margin:0; box-shadow:0 8px 24px rgba(15,23,42,.15)';
+            item.textContent = text;
+            box.appendChild(item);
+            setTimeout(() => item.remove(), 6000);
+        }
+
+        function onEvent(e) {
+            const row = document.getElementById('row-ORD-' + e.orderId);
+            const rowBadge = row && row.querySelector('[data-order-status-badge]');
+            const rowChanged = rowBadge && rowBadge.dataset.status !== e.status;
+            if (rowChanged) setBadge(rowBadge, e.status, e.statusLabel);
+
+            const selected = document.getElementById('selected-status-badge');
+            if (selected && String(e.orderId) === selected.dataset.orderId) {
+                if (selected.dataset.status !== e.status) {
+                    setBadge(selected, e.status, e.statusLabel);
+                    toast(e.message + ' Đang tải lại chi tiết đơn...', 'ok');
+                    setTimeout(() => window.location.reload(), 2500);
+                    return;
+                }
+                const info = document.getElementById('ghn-shipment-info');
+                if (info && e.ghnStatus && info.dataset.ghnStatus !== e.ghnStatus) {
+                    info.dataset.ghnStatus = e.ghnStatus;
+                    const lbl = info.querySelector('[data-ghn-label]');
+                    const eta = info.querySelector('[data-ghn-eta]');
+                    if (lbl) lbl.textContent = e.ghnStatusLabel;
+                    if (eta) eta.textContent = e.expectedDelivery ? ' · dự kiến giao ' + e.expectedDelivery : '';
+                    toast(e.message, 'ok');
+                }
+                return;
+            }
+            if (rowChanged) toast(e.message, 'ok');
+        }
+
+        function connect() {
+            const scheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const ws = new WebSocket(scheme + window.location.host + '${ctx}/staff/ws/orders');
+            ws.onopen = () => { retryDelay = 1000; setConnected(true); };
+            ws.onmessage = msg => {
+                try { onEvent(JSON.parse(msg.data)); } catch (err) { console.warn('Tin nhắn WebSocket lỗi', err); }
+            };
+            ws.onclose = () => {
+                setConnected(false);
+                setTimeout(connect, retryDelay);           // mất mạng / server khởi động lại: thử lại, giãn dần tới 30s
+                retryDelay = Math.min(retryDelay * 2, 30000);
+            };
+        }
+
+        if ('WebSocket' in window) connect();
+    })();
 </script>
 </body>
 </html>
