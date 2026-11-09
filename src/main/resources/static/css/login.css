@@ -725,3 +725,24 @@ a {
 .input-underline-group.shake {
     animation: shakeError 0.35s ease-in-out;
 }
+
+/* THÔNG BÁO TRÊN FORM ĐĂNG NHẬP (lỗi / thành công / đã đăng xuất) */
+.login-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+.login-alert.error {
+    color: #D9381E;
+}
+.login-alert.success {
+    color: #1E8449;
+}
+.login-alert.logout {
+    justify-content: center;
+    color: #D9381E;
+}

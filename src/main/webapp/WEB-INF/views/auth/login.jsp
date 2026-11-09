@@ -16,7 +16,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="${ctx}/css/login.css">
+        <link rel="stylesheet" href="${ctx}/css/login.css?v=2">
     </head>
     <body>
 
@@ -63,9 +63,8 @@
                 </c:if>
 
                 <c:if test="${param.logout != null}">
-                    <div class="login-alert success">
-                        <i class="fi fi-rr-check-circle"></i>
-                        <span>Bạn đã đăng xuất thành công.</span>
+                    <div class="login-alert logout">
+                        <span>Bạn đã đăng xuất</span>
                     </div>
                 </c:if>
                 <c:if test="${param.reset != null}">

@@ -194,7 +194,7 @@
                                 <%-- Đơn đã tạo vận đơn GHN: mã vận đơn, trạng thái và ngày giao dự kiến lấy từ GHN --%>
                                 <c:when test="${not empty shipment and not empty shipment.orderCode}">
                                     <div>Đơn vị: <strong>Giao Hàng Nhanh (GHN)</strong></div>
-<%--                                    <div>Mã vận đơn: <strong><c:out value="${shipment.orderCode}"/></strong></div>--%>
+                                    <div>Mã vận đơn: <strong><c:out value="${shipment.orderCode}"/></strong></div>
                                     <div>Trạng thái: <strong><c:out value="${shipment.statusLabel}"/></strong></div>
                                     <c:if test="${not empty shipment.expectedDelivery}">
                                         <div>Dự kiến giao: <strong><c:out value="${shipment.expectedDelivery}"/></strong></div>
