@@ -20,6 +20,16 @@ public interface ReturnRequestRepository extends JpaRepository<ReturnRequest, Lo
 
     List<ReturnRequest> findByOrder_IdOrderByCreatedAtDesc(Long orderId);
 
+    // Yêu cầu đã hoàn tiền của một khách từ thời điểm since (thông báo hoàn tiền khi khách mở lại trang)
+    @Query("""
+            select r from ReturnRequest r join fetch r.order o
+            where o.customer.id = :customerId and r.status = com.isp392.petfood.enums.ReturnStatus.REFUNDED
+              and r.refundedAt >= :since
+            order by r.refundedAt desc
+            """)
+    List<ReturnRequest> findRefundedOfCustomerSince(@Param("customerId") Long customerId,
+                                                    @Param("since") LocalDateTime since);
+
     @Query("select r from ReturnRequest r where r.order.id in :orderIds order by r.createdAt desc, r.id desc")
     List<ReturnRequest> findByOrderIds(@Param("orderIds") Collection<Long> orderIds);
 

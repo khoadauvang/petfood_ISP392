@@ -218,11 +218,11 @@
             <div style="margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; gap:12px">
                 <div style="flex:1; max-width:400px; position:relative">
                     <i class="ti ti-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-placeholder)"></i>
-                    <input type="search" id="lotFilterInput" placeholder="Tìm theo tên sản phẩm, SKU hoặc mã lô..."
+                    <input type="search" id="lotFilterInput" placeholder="Tìm theo tên sản phẩm, mã sản phẩm hoặc mã lô..."
                            class="form-control" style="padding-left:34px" oninput="filterNormalLots()">
                 </div>
                 <small style="color:var(--text-muted)">
-                    <i class="ti ti-shield-check" style="color:#10b981"></i> 100% lô hiển thị đều cam kết HSD &gt; 90 ngày (BR-12/54)
+                    <i class="ti ti-shield-check" style="color:#10b981"></i> 100% lô hiển thị đều cam kết HSD &gt; 90 ngày
                 </small>
             </div>
 
@@ -233,7 +233,7 @@
                         <th style="width:40px; text-align:center">
                             <input type="checkbox" id="masterCheckbox" class="lot-checkbox" onchange="toggleSelectAllLots(this.checked)">
                         </th>
-                        <th>SẢN PHẨM &amp; SKU</th>
+                        <th>TÊN &amp; MÃ SẢN PHẨM</th>
                         <th>MÃ LÔ &amp; HẠN DÙNG</th>
                         <th style="text-align:center">TỒN KHO</th>
                         <th style="text-align:center; min-width:140px">SL KHUYẾN MÃI</th>
@@ -276,7 +276,7 @@
                                             </div>
                                             <div>
                                                 <b style="color:#0f172a; font-size:13px"><c:out value="${l.productName}"/></b>
-                                                <div style="font-size:11px; color:var(--text-muted); font-family:monospace">SKU: <c:out value="${l.sku}"/></div>
+                                                <div style="font-size:11px; color:var(--text-muted); font-family:monospace">Mã sản phẩm: <c:out value="${l.sku}"/></div>
                                             </div>
                                         </div>
                                     </td>

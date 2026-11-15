@@ -25,9 +25,12 @@ public class ProductGroupDto {
     private BigDecimal maxPrice;
     private long totalOnHand;
     private long totalSellable;
+    private long totalFlashSale;
     private int activeCount;
     private int discontinuedCount;
-    private boolean anyLowStock;
+    private boolean anyLowStock;        // có biến thể đang bán ở mức gần hết hàng
+    private boolean anyFlashSaleOnly;   // có biến thể đang bán hết giá thường, chỉ còn hàng Flash Sale
+    private boolean anyOutOfStock;      // có biến thể đang bán đã hết hàng
     private List<ProductVariantDto> variants = new ArrayList<>();
 
     public int getVariantCount() {

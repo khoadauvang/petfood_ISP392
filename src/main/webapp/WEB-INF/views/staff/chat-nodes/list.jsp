@@ -315,7 +315,7 @@
                 <span>CHĂM SÓC KHÁCH HÀNG</span> <span class="sep">&gt;</span> <span class="current">KỊCH BẢN PHẢN HỒI CHAT</span>
             </div>
             <h1>KỊCH BẢN PHẢN HỒI CHAT <span class="pill-badge orange">CÂY ĐIỀU HƯỚNG</span></h1>
-            <p class="page-sub">Thiết lập kịch bản cây hội thoại hỗ trợ khách hàng tự động, liên kết giải pháp và tra cứu nhanh.</p>
+<%--            <p class="page-sub">Thiết lập kịch bản cây hội thoại hỗ trợ khách hàng tự động, liên kết giải pháp và tra cứu nhanh.</p>--%>
         </div>
 
         <div>
@@ -387,7 +387,6 @@
         <div class="split-head">
             <div>
                 <h3 style="margin:0"><i class="ti ti-messages" style="color:var(--color-primary)"></i>CẤU TRÚC CÂY KỊCH BẢN PHẢN HỒI</h3>
-                <small style="color:var(--text-muted)">Phân cấp hiển thị theo chủ đề và nội dung giải đáp</small>
             </div>
             <div style="font-size:13px; color:var(--text-muted)">
                 Tổng cộng: <b style="color:var(--color-primary)">${totalCount}</b> nút kịch bản

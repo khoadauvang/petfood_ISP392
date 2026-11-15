@@ -32,7 +32,7 @@
                     <div class="slide-content">
                         <div class="slide-badge"><i class="fi fi-rr-sparkles"></i> Dinh Dưỡng Thú Cưng Hàng Đầu</div>
                         <h1>Nuôi cún mèo khỏe re,<br>Sen chẳng cần lo nghĩ!</h1>
-                        <p>Hệ thống thức ăn và đồ ăn vặt thú cưng chính hãng hàng đầu Việt Nam. Cam kết date mới FEFO 90+ ngày.</p>
+                        <p>Hệ thống thức ăn và đồ ăn vặt thú cưng chính hãng hàng đầu Việt Nam. Cam kết date mới 90+ ngày.</p>
                         <a href="${ctx}/products" class="slide-btn">Khám phá ngay &rarr;</a>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                 <div class="benefit-icon"><i class="fi fi-rr-shield-check"></i></div>
                 <div>
                     <h3>100% Chính hãng</h3>
-                    <p>Chuẩn FEFO date mới 90+ ngày</p>
+                    <p>Chuẩn date mới 90+ ngày</p>
                 </div>
             </div>
             <div class="benefit-item">
@@ -223,7 +223,7 @@
                             <c:when test="${p.inStock}">
                                 <a href="${ctx}/products/${p.id}" class="product-card-link" title="<c:out value='${p.name}'/>">
                                     <div class="product-image">
-                                        <span class="fefo-product-tag"><i class="fi fi-rr-calendar"></i> FEFO Date Mới</span>
+                                        <span class="fefo-product-tag"><i class="fi fi-rr-calendar"></i> Date Mới</span>
                                         <c:choose>
                                             <c:when test="${not empty p.imageUrl}">
                                                 <img src="${ctx}${p.imageUrl}" alt="<c:out value='${p.name}'/>" loading="lazy">
@@ -289,7 +289,7 @@
                 <!-- Cột 2: Chuẩn Date mới FEFO -->
                 <div class="fefo-card">
                     <div class="fefo-card-icon"><i class="fi fi-rr-calendar-check"></i></div>
-                    <h4>Chuẩn FEFO Date mới</h4>
+                    <h4>Chuẩn Date mới</h4>
                     <p>Kiểm soát kho thông minh First-Expired-First-Out. Luôn cam kết hạn dùng xa trên 90 ngày, đảm bảo dinh dưỡng và mùi vị vẹn nguyên.</p>
                 </div>
 
@@ -435,7 +435,7 @@
                         <i class="fi fi-rr-star"></i>
                     </div>
                     <p class="testimonial-quote">
-                        "Biết PetFood áp dụng chuẩn kho FEFO nên mình toàn mua thùng về cho bé Corgi ăn dần. Date thức ăn luôn mới toanh, túi zip chắc chắn thơm phức. 10 điểm cho chất lượng và độ tận tâm!"
+                        "Biết PetFood luôn giao hàng date mới nên mình toàn mua thùng về cho bé Corgi ăn dần. Date thức ăn luôn mới toanh, túi zip chắc chắn thơm phức. 10 điểm cho chất lượng và độ tận tâm!"
                     </p>
                     <div class="testimonial-author">
                         <div class="author-avatar"><i class="fi fi-rr-heart"></i></div>
@@ -454,7 +454,7 @@
             <div class="cta-content">
                 <span>PETFOOD &bull; AN TÂM DINH DƯỠNG</span>
                 <h2>Chăm sóc thú cưng bằng những điều tốt nhất</h2>
-                <p>Khám phá ngay hàng trăm sản phẩm dinh dưỡng cao cấp, hạt chuẩn date FEFO và phụ kiện chính hãng giúp Boss phát triển khỏe mạnh mỗi ngày.</p>
+                <p>Khám phá ngay hàng trăm sản phẩm dinh dưỡng cao cấp, hạt chuẩn date mới và phụ kiện chính hãng giúp Boss phát triển khỏe mạnh mỗi ngày.</p>
                 <a href="${ctx}/products" class="cta-button">Khám phá sản phẩm ngay &rarr;</a>
             </div>
         </section>

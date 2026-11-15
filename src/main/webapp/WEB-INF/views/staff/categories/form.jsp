@@ -31,7 +31,6 @@
                 <span class="current">${pageHeading}</span>
             </div>
             <h1>${pageHeading}</h1>
-            <p class="page-sub">Cấu hình thông tin tên danh mục, loại thú cưng áp dụng và trạng thái hiển thị.</p>
         </div>
 
         <div>

@@ -34,30 +34,6 @@
             <!-- 1. Breadcrumb -->
             <pf:breadcrumb current="Flash Sale & Khuyến mãi" style="margin-bottom:18px"/>
 
-            <!-- 2. Khung Banner Flash Sale & Đồng hồ đếm ngược -->
-            <section class="flash-banner">
-                <div class="flash-banner-top">
-                    <div class="flash-title-group">
-                        <div class="flash-heading">
-                            <i class="fi fi-rr-flame flame-icon"></i>
-                            <h1>Flash Sale &amp; Khuyến Mãi Đặc Biệt</h1>
-                        </div>
-                        <p class="flash-subtitle">
-                            Số lượng ưu đãi có hạn &bull; Giảm giá sốc cho các sản phẩm chính hãng
-                        </p>
-                    </div>
-
-                    
-                </div>
-
-                <div class="flash-policy-bar">
-                    <i class="fi fi-rr-bolt"></i>
-                    <p>
-                        <strong>Toàn bộ sản phẩm được áp dụng chính sách cam kết chất lượng,</strong> bảo quản chuẩn nhiệt độ 22°C và minh bạch thông tin HSD chính xác tuyệt đối.
-                    </p>
-                </div>
-            </section>
-
             <!-- 3. Thanh Tabs lọc nhanh -->
             <div class="flash-filter-tabs" role="tablist">
                 <a href="${ctx}/flash-sale" 
@@ -84,11 +60,6 @@
                    class="flash-tab ${param.species == 'CAT' or param.filter == 'cat' ? 'active' : ''}" 
                    data-filter="CAT">
                     Dành cho Mèo
-                </a>
-                <a href="${ctx}/flash-sale?minDiscount=30&filter=deep" 
-                   class="flash-tab ${param.minDiscount == '30' or param.filter == 'deep' ? 'active' : ''}" 
-                   data-filter="DEEP">
-                    Mức giảm sâu &gt; 30%
                 </a>
                 
             </div>

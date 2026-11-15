@@ -174,7 +174,7 @@
                 </span>
             </div>
             <p class="page-sub" style="margin-top:6px">
-                Đặt lúc: <b>${order.createdAtText}</b> · Kênh: Bán lẻ trực tuyến · Mã đối soát hệ thống: #ORD-${order.id}
+                Đặt lúc: <b>${order.createdAtText}</b> · Mã đối soát hệ thống: #ORD-${order.id}
             </p>
         </div>
 
@@ -284,7 +284,7 @@
                     <table style="box-shadow:none; border:0; margin:0">
                         <thead>
                         <tr>
-                            <th>SẢN PHẨM &amp; LÔ HÀNG (FEFO)</th>
+                            <th>SẢN PHẨM &amp; LÔ HÀNG</th>
                             <th class="num">ĐƠN GIÁ</th>
                             <th class="num" style="text-align:center">SL</th>
                             <th class="num">GIẢM GIÁ</th>
@@ -309,14 +309,6 @@
                                                     <i class="ti ${isPromoLine ? 'ti-discount-2' : 'ti-bolt'}"></i>${isPromoLine ? 'Chương trình' : 'Flash Sale'}: <c:out value="${line.flashSaleName}"/>
                                                 </span>
                                             </c:if>
-                                            <c:forEach var="lot" items="${line.lots}">
-                                                <div>
-                                                    <span class="od-lot-pill">
-                                                        <i class="ti ti-building-warehouse" style="color:#0284c7"></i>
-                                                        <c:out value="${lot}"/>
-                                                    </span>
-                                                </div>
-                                            </c:forEach>
                                         </div>
                                     </div>
                                 </td>
@@ -481,17 +473,17 @@
                         <c:set var="detailTierBadge" value="${order.tierDiscountRate >= 10 ? '💎 Kim Cương' : (order.tierDiscountRate >= 5 ? '🥇 Vàng' : (order.tierDiscountRate >= 3 ? '🥈 Bạc' : '🥉 Đồng'))}"/>
                         <c:set var="detailTierStyle" value="${order.tierDiscountRate >= 10 ? 'background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd' : (order.tierDiscountRate >= 5 ? 'background:#fef3c7; color:#b45309; border:1px solid #fde68a' : (order.tierDiscountRate >= 3 ? 'background:#f1f5f9; color:#334155; border:1px solid #cbd5e1' : 'background:#ffedd5; color:#9a3412; border:1px solid #fed7aa'))}"/>
                         <div class="info-box-name" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap">
-                            <span><c:out value="${order.customerName}"/></span>
+                            <span><c:out value="${order.maskedCustomerName}"/></span>
                             <span style="display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:700; ${detailTierStyle}">
                                 ${detailTierBadge}
                             </span>
                         </div>
                         <div class="info-box-desc">
                             <i class="ti ti-phone" style="margin-right:4px; vertical-align:middle"></i>
-                            <b><c:out value="${empty order.customerPhone ? 'Chưa cập nhật SĐT' : order.customerPhone}"/></b>
+                            <b><c:out value="${empty order.customerPhone ? 'Chưa cập nhật SĐT' : order.maskedCustomerPhone}"/></b>
                             <br>
                             <i class="ti ti-mail" style="margin-right:4px; vertical-align:middle"></i>
-                            <c:out value="${order.customerEmail}"/>
+                            <c:out value="${order.maskedCustomerEmail}"/>
                         </div>
                     </div>
 
@@ -569,7 +561,7 @@
                     <c:if test="${not empty order.packedByName}">
                         <li class="audit-item done">
                             <span class="audit-icon"><i class="ti ti-package"></i></span>
-                            <div class="audit-title">Đóng gói hoàn tất &amp; gán số lô FEFO</div>
+                            <div class="audit-title">Đóng gói hoàn tất</div>
                             <div class="audit-time">Nhân viên đóng gói: <b><c:out value="${order.packedByName}"/></b></div>
                         </li>
                     </c:if>

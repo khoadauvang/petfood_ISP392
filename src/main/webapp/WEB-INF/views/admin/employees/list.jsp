@@ -24,7 +24,7 @@
         <div class="page-header-row" style="margin-bottom: 1.25rem;">
             <div>
                 <h1 class="page-title" style="margin: 0 0 0.25rem 0; font-size: 1.6rem; font-weight: 800; color: #0f172a;">QUẢN LÝ TÀI KHOẢN NHÂN VIÊN</h1>
-                <p class="page-subtitle" style="margin: 0; color: #64748b; font-size: 0.88rem;">Quản lý thông tin tài khoản, vai trò phân quyền và trạng thái nhân sự trong hệ thống PetFood.</p>
+<%--                <p class="page-subtitle" style="margin: 0; color: #64748b; font-size: 0.88rem;">Quản lý thông tin tài khoản, vai trò phân quyền và trạng thái nhân sự trong hệ thống PetFood.</p>--%>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <a href="${ctx}/admin/employees/new" class="btn btn-primary" style="background: #f97316; border: 1px solid #ea580c; color: #fff; font-weight: 700; padding: 0.5rem 1.1rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
@@ -48,7 +48,7 @@
                     <span style="font-size: 0.8rem; color: #64748b;">nhân sự</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: #64748b;">
-                    <span>Tổng nhân sự toàn hệ thống</span>
+<%--                    <span>Tổng nhân sự toàn hệ thống</span>--%>
                 </div>
             </div>
 
@@ -64,7 +64,7 @@
                     <span style="background: #ffedd5; color: #9a3412; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 999px;">Toàn quyền</span>
                 </div>
                 <div style="font-size: 0.76rem; color: #64748b;">
-                    Quản trị hệ thống, báo cáo và phân quyền
+<%--                    Quản trị hệ thống, báo cáo và phân quyền--%>
                 </div>
             </div>
 
@@ -80,7 +80,7 @@
                     <span style="background: #f1f5f9; color: #475569; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 999px;">Tác nghiệp</span>
                 </div>
                 <div style="font-size: 0.76rem; color: #64748b;">
-                    Vận hành đơn hàng, kho vận &amp; CSKH
+<%--                    Vận hành đơn hàng, kho vận &amp; CSKH--%>
                 </div>
             </div>
 
@@ -96,7 +96,7 @@
                     <span style="background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 999px;">Vô hiệu hóa</span>
                 </div>
                 <div style="font-size: 0.76rem; color: #64748b;">
-                    Tài khoản đang bị tạm ngưng truy cập
+<%--                    Tài khoản đang bị tạm ngưng truy cập--%>
                 </div>
             </div>
 

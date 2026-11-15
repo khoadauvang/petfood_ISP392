@@ -195,7 +195,7 @@
         <div style="flex:1; min-width:260px; position:relative">
             <i class="ti ti-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-placeholder); font-size:16px"></i>
             <input type="text" name="keyword" value="<c:out value='${filterKeyword}'/>"
-                   placeholder="Tìm theo tên sản phẩm, SKU hoặc số lô..."
+                   placeholder="Tìm theo tên sản phẩm, mã sản phẩm hoặc số lô..."
                    style="width:100%; padding:9px 14px 9px 38px; border-radius:12px; border:1px solid var(--line); font-size:13px">
         </div>
 
@@ -241,7 +241,7 @@
         <table class="table" style="margin:0; width:100%; border-collapse:collapse">
             <thead>
                 <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:11px; font-weight:800; color:#64748b; text-align:left; letter-spacing:.04em; text-transform:uppercase;">
-                    <th style="padding:14px 16px; width:340px;">SẢN PHẨM &amp; SKU</th>
+                    <th style="padding:14px 16px; width:340px;">TÊN &amp; MÃ SẢN PHẨM</th>
                     <th style="padding:14px 16px; text-align:right;">TỔNG NHẬP (RECEIVE)</th>
                     <th style="padding:14px 16px; text-align:right;">TỒN KHO (ON HAND)</th>
                     <th style="padding:14px 16px; text-align:right;">FLASH SALE</th>
@@ -266,7 +266,7 @@
                                                 <c:out value="${g.productName}"/>
                                             </div>
                                             <div style="font-size:11px; color:#64748b; margin-top:3px">
-                                                SKU: <b><c:out value="${g.sku}"/></b>
+                                                Mã sản phẩm: <b><c:out value="${g.sku}"/></b>
                                                 <span class="sep" style="margin:0 4px">•</span>
                                                 <c:choose>
                                                     <c:when test="${g.activeLotCount > 0}">

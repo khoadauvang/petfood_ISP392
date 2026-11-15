@@ -24,7 +24,6 @@ public class ProductDetailDto {
 
     private final Long id;
     private final String sku;
-    private final String barcode;
     private final String name;
     private final String brand;
     private final String description;
@@ -53,7 +52,6 @@ public class ProductDetailDto {
         Category category = product.getCategory();
         this.id = product.getId();
         this.sku = product.getFullSku();
-        this.barcode = product.getBarcode();
         this.name = product.getName();
         this.brand = product.getBrand();
         this.description = product.getDescription();

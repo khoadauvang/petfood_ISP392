@@ -40,8 +40,7 @@
             <a href="#shipping" class="policy-nav-tab active"><i class="fi fi-rr-shipping-fast"></i> 1. Giao hàng</a>
             <a href="#return" class="policy-nav-tab"><i class="fi fi-rr-undo"></i> 2. Đổi trả &amp; Hoàn tiền</a>
             <a href="#membership" class="policy-nav-tab"><i class="fi fi-rr-star"></i> 3. Thành viên &amp; Tích điểm</a>
-            <a href="#fefo" class="policy-nav-tab"><i class="fi fi-rr-calendar-check"></i> 4. Quản lý hạn dùng FEFO</a>
-            <a href="#privacy" class="policy-nav-tab"><i class="fi fi-rr-lock"></i> 5. Bảo mật thông tin</a>
+            <a href="#privacy" class="policy-nav-tab"><i class="fi fi-rr-lock"></i> 4. Bảo mật thông tin</a>
         </div>
     </nav>
 
@@ -200,50 +199,13 @@
             <p>&bull; Hạng thành viên được xem xét lại định kỳ dựa trên lịch sử mua hàng.</p>
         </article>
 
-        <!-- ================= MỤC 4: CHẤT LƯỢNG SẢN PHẨM (FEFO) ================= -->
-        <article class="policy-card" id="fefo">
-            <div class="policy-card-header">
-                <div class="policy-card-icon"><i class="fi fi-rr-calendar-check"></i></div>
-                <div>
-                    <span>Tiêu chuẩn quản lý kho</span>
-                    <h2>4. Chính sách chất lượng sản phẩm</h2>
-                </div>
-            </div>
-
-            <p>
-                Vì PetFood kinh doanh thức ăn và sản phẩm tiêu dùng cho thú cưng, hệ thống quản lý hàng tồn kho theo từng lô hàng (lô) với hạn sử dụng riêng biệt, áp dụng nguyên tắc xuất hàng gần hết hạn trước <strong>(FEFO – First-Expired-First-Out)</strong>:
-            </p>
-
-            <div class="fefo-details-grid">
-                <div class="fefo-detail-box">
-                    <h4><i class="fi fi-rr-box-alt"></i> Xuất kho tự động tối ưu</h4>
-                    <p>Mỗi đơn hàng được hệ thống tự động ưu tiên xuất từ lô hàng có hạn sử dụng gần nhất còn đủ điều kiện bán, giúp hạn chế tồn đọng hàng cận hạn trong kho.</p>
-                </div>
-                <div class="fefo-detail-box">
-                    <h4><i class="fi fi-rr-flame"></i> Ưu đãi Flash Sale giá tốt</h4>
-                    <p>Các sản phẩm cận hạn sử dụng được ưu tiên đưa vào chương trình Flash Sale với giá ưu đãi, giúp khách hàng mua được sản phẩm chất lượng tốt với giá tốt hơn, trong khi vẫn đảm bảo hạn sử dụng còn đủ dài khi đến tay khách.</p>
-                </div>
-                <div class="fefo-detail-box">
-                    <h4><i class="fi fi-rr-calendar"></i> Hạn sử dụng rõ ràng</h4>
-                    <p>Hạn sử dụng của sản phẩm được hiển thị rõ trên trang sản phẩm và trên bao bì thực tế khi giao hàng.</p>
-                </div>
-            </div>
-
-            <div class="zero-tolerance-box">
-                <i class="fi fi-rr-shield-exclamation"></i>
-                <div>
-                    <strong>CAM KẾT PETFOOD:</strong> Sản phẩm quá hạn sử dụng không bao giờ được đưa ra bán, dù ở giá nào.
-                </div>
-            </div>
-        </article>
-
-        <!-- ================= MỤC 5: BẢO MẬT THÔNG TIN ================= -->
+        <!-- ================= MỤC 4: BẢO MẬT THÔNG TIN ================= -->
         <article class="policy-card" id="privacy">
             <div class="policy-card-header">
                 <div class="policy-card-icon"><i class="fi fi-rr-lock"></i></div>
                 <div>
                     <span>Bảo vệ quyền riêng tư</span>
-                    <h2>5. Chính sách bảo mật thông tin</h2>
+                    <h2>4. Chính sách bảo mật thông tin</h2>
                 </div>
             </div>
 

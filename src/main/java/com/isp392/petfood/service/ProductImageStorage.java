@@ -121,7 +121,7 @@ public class ProductImageStorage {
     private Path productDir(String sku) {
         Path dir = root.resolve(sku).normalize();
         if (!dir.startsWith(root) || dir.equals(root)) {
-            throw new IllegalArgumentException("SKU không hợp lệ để làm tên thư mục: " + sku);
+            throw new IllegalArgumentException("Mã sản phẩm không hợp lệ để làm tên thư mục: " + sku);
         }
         return dir;
     }

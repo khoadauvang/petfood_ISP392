@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Locale;
 
 // Form thêm / sửa sản phẩm (multipart/form-data vì có file ảnh).
-// name của các input trên JSP trùng tên field: sku, variant, barcode, name, brand, description, categoryId, species,
+// name của các input trên JSP trùng tên field: sku, variant, name, brand, description, categoryId, species,
 // ageGroup, sellingPrice, lowStockThreshold, status, image1..image5, firstLotExpiryDate, firstLotQty.
 // Controller đã gắn StringTrimmerEditor: chuỗi được cắt khoảng trắng, ô bỏ trống thành null.
 @Getter
@@ -36,12 +36,9 @@ public class ProductForm {
     // Id sản phẩm gốc khi thêm biến thể mới cho dòng sản phẩm (null = thêm sản phẩm bình thường)
     private Long variantOf;
 
-    // SKU = mã dòng sản phẩm, chung cho các quy cách (RC-KITTEN36); variant = quy cách (400G).
-    // Mã đầy đủ sku-variant dùng làm tên thư mục ảnh nên chỉ cho chữ in hoa, số (setter tự đổi sang chữ in hoa).
-    @NotBlank(message = "Vui lòng nhập SKU")
-    @Size(max = 50, message = "SKU tối đa 50 ký tự")
-    @Pattern(regexp = "^[A-Z0-9]+(-[A-Z0-9]+)*$",
-            message = "SKU chỉ gồm chữ A-Z, số 0-9 và dấu gạch ngang, ví dụ RC-KITTEN36")
+    // Mã sản phẩm (cột sku) = số thứ tự của dòng sản phẩm, chung cho các quy cách: 01, 02, 03...
+    // Hệ thống tự cấp, nhân viên không nhập: thêm mới thì lấy số kế tiếp, thêm biến thể thì dùng mã của sản phẩm gốc,
+    // sửa thì giữ mã cũ (ProductAdminService). Giá trị gửi lên từ form bị bỏ qua, chỉ dùng để hiện lại.
     private String sku;
 
     // Không có dấu gạch ngang: phần sau dấu '-' cuối của mã đầy đủ luôn là biến thể
@@ -50,10 +47,6 @@ public class ProductForm {
     @Pattern(regexp = "^[A-Z0-9.]+$",
             message = "Biến thể chỉ gồm chữ A-Z, số 0-9 và dấu chấm, ví dụ 400G, 1.5KG")
     private String variant;
-
-    @Size(max = 50, message = "Mã vạch tối đa 50 ký tự")
-    @Pattern(regexp = "^[0-9A-Za-z-]*$", message = "Mã vạch chỉ gồm chữ, số và dấu gạch ngang")
-    private String barcode;            // không bắt buộc
 
     @NotBlank(message = "Vui lòng nhập tên sản phẩm")
     @Size(max = 200, message = "Tên sản phẩm tối đa 200 ký tự")
@@ -79,10 +72,11 @@ public class ProductForm {
     @Digits(integer = 12, fraction = 0, message = "Giá bán là số nguyên (đồng), tối đa 12 chữ số")
     private BigDecimal sellingPrice;
 
-    @NotNull(message = "Vui lòng nhập ngưỡng tồn thấp")
-    @Min(value = 0, message = "Ngưỡng tồn thấp không được âm")
-    @Max(value = 1_000_000, message = "Ngưỡng tồn thấp quá lớn")
-    private Integer lowStockThreshold = 0;
+    // Ngưỡng cảnh báo "Gần hết hàng": số lượng có thể bán <= mức này thì sản phẩm bị đánh dấu (BR-62)
+    @NotNull(message = "Vui lòng nhập ngưỡng cảnh báo gần hết hàng")
+    @Min(value = 0, message = "Ngưỡng cảnh báo không được âm")
+    @Max(value = 1_000_000, message = "Ngưỡng cảnh báo quá lớn")
+    private Integer lowStockThreshold = Product.DEFAULT_LOW_STOCK_THRESHOLD;   // form thêm mới điền sẵn 10
 
     @NotNull(message = "Vui lòng chọn trạng thái")
     private ProductStatus status = ProductStatus.ACTIVE;
@@ -95,13 +89,13 @@ public class ProductForm {
     private MultipartFile image4;
     private MultipartFile image5;
 
-    // Lô đầu tiên, không bắt buộc, chỉ dùng khi thêm mới (hàng về cùng lúc tạo sản phẩm).
-    // Điền thì phải điền cả hai ô.
+    // Số lượng + hạn sử dụng của hàng nhận cùng lúc thêm sản phẩm (tạo lô đầu tiên). Chỉ có ở form thêm mới
+    // và bắt buộc ở đó; ProductAdminService.create kiểm tra (form sửa không gửi 2 ô này nên không đặt @NotNull).
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate firstLotExpiryDate;
 
-    @Min(value = 1, message = "Số lượng nhập phải lớn hơn 0")
-    @Max(value = 1_000_000, message = "Số lượng nhập quá lớn")
+    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
+    @Max(value = 1_000_000, message = "Số lượng quá lớn")
     private Integer firstLotQty;
 
     public void setSku(String sku) {
@@ -112,7 +106,7 @@ public class ProductForm {
         this.variant = (variant == null) ? null : variant.toUpperCase(Locale.ROOT);
     }
 
-    // Mã đầy đủ để báo lỗi / hiện lại cho nhân viên: RC-KITTEN36-400G
+    // Mã đầy đủ để báo lỗi / hiện lại cho nhân viên: 05-400G
     public String getFullSku() {
         return sku + "-" + variant;
     }
@@ -122,16 +116,11 @@ public class ProductForm {
         return Arrays.asList(image1, image2, image3, image4, image5);
     }
 
-    public boolean hasFirstLot() {
-        return firstLotExpiryDate != null || firstLotQty != null;
-    }
-
     // Đổ dữ liệu sản phẩm có sẵn vào form sửa (ảnh thì JSP hiện từ ProductDetailDto)
     public static ProductForm from(Product product) {
         ProductForm form = new ProductForm();
         form.setSku(product.getSku());
         form.setVariant(product.getVariant());
-        form.setBarcode(product.getBarcode());
         form.setName(product.getName());
         form.setBrand(product.getBrand());
         form.setDescription(product.getDescription());

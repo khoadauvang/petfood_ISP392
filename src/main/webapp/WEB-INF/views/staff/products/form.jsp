@@ -241,6 +241,29 @@
             gap: 16px;
             flex-wrap: wrap;
         }
+        /* Vùng kéo thả nhiều ảnh cùng lúc (tự chia vào vị trí 1 → 5) */
+        .bulk-dropzone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 2px dashed #fdba74;
+            border-radius: 14px;
+            background: #fffaf5;
+            color: #9a3412;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+            transition: background .15s, border-color .15s;
+        }
+        .bulk-dropzone:hover, .bulk-dropzone.dragover {
+            background: #ffedd5;
+            border-color: #ea580c;
+        }
+        .bulk-dropzone .ti { font-size: 28px; color: #ea580c; }
+        .slot-preview-wrap.dragover { outline: 2px dashed #ea580c; outline-offset: 2px; }
     </style>
 </head>
 <body>
@@ -265,19 +288,6 @@
                     <span class="pill-badge orange" style="font-size:12px;"><i class="ti ti-layers-subtract"></i> Biến thể quy cách</span>
                 </c:if>
             </h1>
-            <p class="page-sub">
-                <c:choose>
-                    <c:when test="${not empty parentProduct}">
-                        Khai báo quy cách mới, điều chỉnh mã SKU và thiết lập định giá bán cho dòng sản phẩm đang chọn.
-                    </c:when>
-                    <c:when test="${empty productId}">
-                        Khai báo thông tin sản phẩm mới, thiết lập định giá bán, phân loại và tải lên 1–5 ảnh sản phẩm.
-                    </c:when>
-                    <c:otherwise>
-                        Cập nhật thông tin chi tiết, trạng thái kinh doanh và điều chỉnh hình ảnh đại diện sản phẩm.
-                    </c:otherwise>
-                </c:choose>
-            </p>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px;">
@@ -295,7 +305,7 @@
             <i class="ti ti-layers-subtract" style="color:#2563eb; font-size:26px; flex-shrink:0;"></i>
             <div style="line-height:1.5;">
                 <span style="font-weight:800; font-size:14px; color:#1d4ed8;">ĐANG TẠO BIẾN THỂ MỚI CHO: <c:out value="${parentProduct.name}"/></span><br>
-                <span>Hệ thống đã tự động kế thừa <b>Danh mục</b>, <b>Thương hiệu</b>, <b>Loài &amp; Độ tuổi</b>, <b>Mô tả</b> và <b>ảnh</b> từ sản phẩm gốc. Bạn chỉ cần điền quy cách vào tên, hoàn tất SKU, giá bán và bấm Lưu.</span>
+                <span>Hệ thống đã tự động kế thừa <b>Danh mục</b>, <b>Thương hiệu</b>, <b>Loài &amp; Độ tuổi</b>, <b>Mô tả</b> và <b>ảnh</b> từ sản phẩm gốc. Bạn chỉ cần điền quy cách vào tên, biến thể, số lượng, hạn sử dụng, giá bán và bấm Lưu. Mã sản phẩm giữ theo sản phẩm gốc.</span>
             </div>
         </div>
     </c:if>
@@ -304,7 +314,7 @@
         <form:hidden path="variantOf" id="variantOf"/>
         <div class="form-layout">
             <%-- ========================================================
-                 CỘT TRÁI (LEFT COLUMN): Thông tin chính & Hình ảnh & Lô
+                 CỘT TRÁI (LEFT COLUMN): Thông tin chính (kèm số lượng + HSD khi thêm mới) & Hình ảnh
                  ======================================================== --%>
             <div>
                 <%-- CARD 1: Thông tin cơ bản --%>
@@ -312,7 +322,7 @@
                     <div class="form-card-head">
                         <div class="form-card-title">
                             <i class="ti ti-file-description" style="color:var(--color-primary)"></i>
-                            <span>1. Thông tin mô tả sản phẩm</span>
+                            <span>1. Thông tin sản phẩm</span>
                         </div>
                         <span class="pill-badge orange">Bắt buộc</span>
                     </div>
@@ -322,6 +332,26 @@
                         <form:input path="name" id="name" maxlength="200" cssClass="form-control" style="font-size:15px; font-weight:700;" placeholder="Ví dụ: Hạt cho mèo con Royal Canin Kitten 36 2kg" required="required"/>
                         <form:errors path="name" cssClass="err"/>
                     </div>
+
+                    <%-- Số lượng + hạn sử dụng: chỉ khi thêm mới (thay cho thẻ nhập lô riêng trước đây).
+                         name giữ nguyên firstLotQty / firstLotExpiryDate; service tạo lô đầu tiên từ 2 ô này. --%>
+                    <c:if test="${empty productId}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="firstLotQty">Số lượng <span class="req">*</span></label>
+                                <form:input path="firstLotQty" id="firstLotQty" type="number" min="1" step="1" cssClass="form-control" placeholder="Ví dụ: 100" required="required"/>
+                                <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Đơn vị tính: sản phẩm.</span>
+                                <form:errors path="firstLotQty" cssClass="err"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="firstLotExpiryDate">Hạn sử dụng <span class="req">*</span></label>
+                                <form:input path="firstLotExpiryDate" id="firstLotExpiryDate" type="date" cssClass="form-control" required="required"/>
+                                <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Còn từ 90 ngày trở lên mới bán thường được.</span>
+                                <form:errors path="firstLotExpiryDate" cssClass="err"/>
+                            </div>
+                        </div>
+                    </c:if>
 
                     <div class="form-group">
                         <label class="form-label" for="description">Mô tả chi tiết sản phẩm</label>
@@ -350,6 +380,18 @@
                         </div>
                     </div>
 
+                    <%-- Kéo thả / chọn nhiều ảnh một lần: JS chia lần lượt vào ô image1..image5 (sắp theo tên tệp).
+                         Input này không có name nên không gửi lên server; server vẫn nhận image1..image5 như cũ. --%>
+                    <div class="bulk-dropzone" id="bulkDropzone" onclick="document.getElementById('bulkFileInput').click()">
+                        <i class="ti ti-photo-plus"></i>
+                        <div style="line-height:1.5;">
+                            <b>Kéo thả tối đa 5 ảnh vào đây</b> hoặc bấm để chọn nhiều ảnh cùng lúc<br>
+                            <span style="font-size:12px; color:#c2410c;">Ảnh xếp vào vị trí 1 → 5 theo thứ tự tên tệp (ảnh đầu tiên là ảnh đại diện). Muốn đổi một ảnh thì thả thẳng vào ô đó.</span>
+                        </div>
+                    </div>
+                    <input type="file" id="bulkFileInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;"
+                           onchange="distributeImages(this.files); this.value='';">
+
                     <div class="slots-grid">
                         <c:forEach begin="1" end="5" var="slot">
                             <div class="slot-box">
@@ -374,7 +416,7 @@
                                     </c:if>
                                 </c:if>
 
-                                <div class="slot-preview-wrap" onclick="document.getElementById('fileSlot${slot}').click()" title="Bấm để chọn ảnh cho vị trí ${slot}">
+                                <div class="slot-preview-wrap" data-slot="${slot}" onclick="document.getElementById('fileSlot${slot}').click()" title="Bấm hoặc thả ảnh vào để chọn ảnh cho vị trí ${slot}">
                                     <img id="previewSlot${slot}" class="slot-img"
                                          src="${not empty currentUrl ? ctx.concat(currentUrl) : ''}"
                                          alt="Ảnh ${slot}"
@@ -401,42 +443,10 @@
                     </div>
                 </div>
 
-                <%-- CARD 3: Lô đầu tiên (chỉ khi thêm mới) --%>
-                <c:if test="${empty productId}">
-                    <div class="form-card" style="background:#fffcf9; border-color:#fed7aa;">
-                        <div class="form-card-head" style="border-bottom-color:#fed7aa;">
-                            <div class="form-card-title">
-                                <i class="ti ti-building-warehouse" style="color:var(--color-primary)"></i>
-                                <span>3. Nhập lô hàng đầu tiên (Không bắt buộc)</span>
-                            </div>
-                            <span class="pill-badge gray">Tùy chọn</span>
-                        </div>
-
-                        <p class="hint" style="margin-top:0; margin-bottom:16px; font-size:13px; color:var(--text-muted);">
-                            Nếu hàng đã về kho cùng thời điểm tạo sản phẩm, bạn có thể nhập luôn thông tin lô đầu tiên tại đây. Nếu chưa có hàng, có thể để trống và thực hiện tại mục <b>Quản lý Lô</b> sau.
-                        </p>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label" for="firstLotExpiryDate">Hạn sử dụng lô</label>
-                                <form:input path="firstLotExpiryDate" id="firstLotExpiryDate" type="date" cssClass="form-control"/>
-                                <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Cam kết HSD xuất bán thường ≥ 90 ngày.</span>
-                                <form:errors path="firstLotExpiryDate" cssClass="err"/>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="firstLotQty">Số lượng nhập kho</label>
-                                <form:input path="firstLotQty" id="firstLotQty" type="number" min="1" step="1" cssClass="form-control" placeholder="Ví dụ: 100"/>
-                                <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Đơn vị tính: sản phẩm.</span>
-                                <form:errors path="firstLotQty" cssClass="err"/>
-                            </div>
-                        </div>
-                    </div>
-                </c:if>
             </div>
 
             <%-- ========================================================
-                 CỘT PHẢI (RIGHT COLUMN): Phân loại & Định giá & Kho
+                 CỘT PHẢI (RIGHT COLUMN): Phân loại & Định giá & Trạng thái
                  ======================================================== --%>
             <div>
                 <%-- CARD 4: Phân loại & Định danh --%>
@@ -448,13 +458,18 @@
                         </div>
                     </div>
 
-                    <%-- SKU = mã dòng sản phẩm (chung cho mọi quy cách), biến thể = quy cách. Mã đầy đủ = SKU-BIẾN THỂ,
-                         dùng làm thư mục lưu ảnh. Thêm biến thể cho dòng có sẵn thì SKU đã điền sẵn, chỉ nhập biến thể. --%>
+                    <%-- Mã sản phẩm (cột sku) = số thứ tự dòng sản phẩm 01, 02... (chung cho mọi quy cách), hệ thống tự cấp,
+                         chỉ hiển thị. Thêm mới: cấp số kế tiếp khi lưu; thêm biến thể: dùng mã sản phẩm gốc; sửa: giữ mã cũ.
+                         Mã đầy đủ = MÃ SẢN PHẨM-BIẾN THỂ (05-400G), dùng làm thư mục lưu ảnh. --%>
                     <div class="form-group">
-                        <label class="form-label" for="sku">Mã SKU <span class="req">*</span></label>
-                        <form:input path="sku" id="sku" maxlength="50" cssClass="form-control" style="font-family:monospace; font-weight:700; text-transform:uppercase;" placeholder="RC-KITTEN36" required="required"/>
-                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Mã dòng sản phẩm, chung cho các quy cách: chữ in hoa, số và dấu gạch ngang.</span>
-                        <form:errors path="sku" cssClass="err"/>
+                        <label class="form-label" for="sku">Mã sản phẩm</label>
+                        <form:input path="sku" id="sku" readonly="true" tabindex="-1" cssClass="form-control" style="font-family:monospace; font-weight:700; background:#f1f5f9; cursor:not-allowed;" placeholder="Tự cấp khi lưu"/>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">
+                            <c:choose>
+                                <c:when test="${empty productForm.sku}">Hệ thống tự cấp số thứ tự kế tiếp (01, 02, 03...) khi lưu.</c:when>
+                                <c:otherwise>Mã của dòng sản phẩm, chung cho các quy cách, không sửa được.</c:otherwise>
+                            </c:choose>
+                        </span>
                     </div>
 
                     <div class="form-group">
@@ -466,28 +481,20 @@
                         <form:errors path="variant" cssClass="err"/>
                     </div>
                     <script>
-                        // Xem trước mã đầy đủ SKU-BIẾN THỂ khi nhân viên gõ
+                        // Xem trước mã đầy đủ MÃ SẢN PHẨM-BIẾN THỂ khi nhân viên gõ biến thể
                         (function () {
                             const sku = document.getElementById('sku');
                             const variant = document.getElementById('variant');
                             const out = document.getElementById('fullSkuPreview');
                             function render() {
-                                const a = (sku.value || '').trim().toUpperCase();
+                                const a = (sku.value || '').trim() || '(tự cấp)';
                                 const b = (variant.value || '').trim().toUpperCase();
-                                out.textContent = a && b ? a + '-' + b : '—';
+                                out.textContent = b ? a + '-' + b : '—';
                             }
-                            sku.addEventListener('input', render);
                             variant.addEventListener('input', render);
                             render();
                         })();
                     </script>
-
-                    <div class="form-group">
-                        <label class="form-label" for="barcode">Mã vạch Barcode</label>
-                        <form:input path="barcode" id="barcode" maxlength="50" cssClass="form-control" style="font-family:monospace;" placeholder="8938500000000"/>
-                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Không bắt buộc, quét mã máy đọc vạch.</span>
-                        <form:errors path="barcode" cssClass="err"/>
-                    </div>
 
                     <div class="form-group">
                         <label class="form-label" for="categoryId">Danh mục sản phẩm <span class="req">*</span></label>
@@ -527,12 +534,12 @@
                     </div>
                 </div>
 
-                <%-- CARD 5: Giá bán & Cảnh báo tồn kho --%>
+                <%-- CARD 5: Giá bán & Cảnh báo gần hết hàng & Trạng thái --%>
                 <div class="form-card">
                     <div class="form-card-head">
                         <div class="form-card-title">
                             <i class="ti ti-coin" style="color:var(--color-primary)"></i>
-                            <span>Giá bán &amp; Tồn kho</span>
+                            <span>Giá bán &amp; Trạng thái</span>
                         </div>
                     </div>
 
@@ -547,9 +554,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="lowStockThreshold">Ngưỡng cảnh báo tồn thấp <span class="req">*</span></label>
+                        <label class="form-label" for="lowStockThreshold">Ngưỡng cảnh báo gần hết hàng <span class="req">*</span></label>
                         <form:input path="lowStockThreshold" id="lowStockThreshold" type="number" min="0" step="1" cssClass="form-control" placeholder="10" required="required"/>
-                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Khi số lượng tồn có HSD ≥ 90 ngày ≤ mức này, hệ thống sẽ kích hoạt cảnh báo kho.</span>
+                        <span class="hint" style="font-size:12px; color:var(--text-muted); display:block; margin-top:4px;">Khi số lượng bán thường còn bằng hoặc ít hơn mức này, sản phẩm được đánh dấu "Gần hết hàng".</span>
                         <form:errors path="lowStockThreshold" cssClass="err"/>
                     </div>
 
@@ -584,6 +591,73 @@
 </main>
 
 <script>
+    // ===== Kéo thả nhiều ảnh =====
+    var MAX_IMAGE_BYTES = 5 * 1024 * 1024;           // khớp giới hạn 5MB/ảnh của server
+    var ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    // Lọc ảnh hợp lệ; báo các tệp bị bỏ qua (sai định dạng / quá 5MB)
+    function validImages(fileList) {
+        var ok = [], skipped = [];
+        Array.prototype.forEach.call(fileList, function (f) {
+            if (ALLOWED_TYPES.indexOf(f.type) < 0) skipped.push(f.name + ' (không phải JPG/PNG/WEBP)');
+            else if (f.size > MAX_IMAGE_BYTES) skipped.push(f.name + ' (lớn hơn 5MB)');
+            else ok.push(f);
+        });
+        if (skipped.length) alert('Bỏ qua các tệp:\n- ' + skipped.join('\n- '));
+        return ok;
+    }
+
+    // Gán 1 tệp vào ô vị trí slot (1..5) rồi cập nhật ảnh xem trước
+    function setSlotFile(slot, file) {
+        var input = document.getElementById('fileSlot' + slot);
+        if (!input) return;
+        var dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleImagePreview(input, slot);
+    }
+
+    // Nhiều ảnh: sắp theo tên tệp (1.jpg, 2.jpg, ... 10.jpg) rồi xếp vào vị trí 1 -> 5
+    function distributeImages(fileList) {
+        var files = validImages(fileList).sort(function (a, b) {
+            return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+        });
+        if (files.length === 0) return;
+        if (files.length > 5) {
+            alert('Chỉ nhận tối đa 5 ảnh, đã lấy 5 ảnh đầu tiên theo tên tệp.');
+            files = files.slice(0, 5);
+        }
+        files.forEach(function (f, i) { setSlotFile(i + 1, f); });
+    }
+
+    (function initDragDrop() {
+        // Thả tệp lệch ra ngoài vùng nhận thì trình duyệt không mở ảnh ra tab mới
+        ['dragover', 'drop'].forEach(function (ev) {
+            window.addEventListener(ev, function (e) { e.preventDefault(); });
+        });
+
+        function bindZone(el, onFiles) {
+            el.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); el.classList.add('dragover'); });
+            el.addEventListener('dragleave', function () { el.classList.remove('dragover'); });
+            el.addEventListener('drop', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                el.classList.remove('dragover');
+                if (e.dataTransfer && e.dataTransfer.files.length) onFiles(e.dataTransfer.files);
+            });
+        }
+
+        var zone = document.getElementById('bulkDropzone');
+        if (zone) bindZone(zone, distributeImages);
+
+        // Thả vào đúng một ô: 1 ảnh thì vào ô đó; nhiều ảnh thì xếp từ ô đó trở đi
+        document.querySelectorAll('.slot-preview-wrap[data-slot]').forEach(function (box) {
+            bindZone(box, function (fileList) {
+                var start = parseInt(box.getAttribute('data-slot'), 10);
+                validImages(fileList).slice(0, 6 - start).forEach(function (f, i) { setSlotFile(start + i, f); });
+            });
+        });
+    })();
+
     // Xem trước hình ảnh tức thời khi nhân viên chọn tệp từ máy
     function handleImagePreview(input, slot) {
         if (input.files && input.files[0]) {

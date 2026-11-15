@@ -176,7 +176,7 @@
                             <div style="font-size:12px;opacity:0.9;font-weight:600;letter-spacing:0.5px;">HỘI VIÊN ${profile.tierLabel.toUpperCase()}</div>
                             <h3 style="font-size:24px;font-weight:800;margin:6px 0;"><c:out value="${not empty profile.fullName ? profile.fullName : 'Quý khách'}" /></h3>
                             <div style="margin-top:16px;font-size:13px;line-height:1.8;">
-                                <div><i class="fi fi-rr-check"></i> Cam kết ưu tiên xuất kho lô sản xuất mới nhất (FEFO)</div>
+                                <div><i class="fi fi-rr-check"></i> Cam kết ưu tiên xuất kho lô sản xuất mới nhất</div>
                                 <div><i class="fi fi-rr-check"></i> Quyền lợi bảo hành đổi trả trong vòng 3 ngày</div>
                                 <div><i class="fi fi-rr-check"></i> Tích lũy chi tiêu tự động sau mỗi đơn hàng hoàn tất</div>
                             </div>
@@ -230,7 +230,7 @@
                             <c:if test="${profile.tierLabel == 'Vàng'}"><span class="tier-badge-label">HẠNG HIỆN TẠI</span></c:if>
                             <h4 style="font-size:15px;font-weight:700;">Vàng</h4>
                             <div style="color:var(--text-secondary);margin-bottom:8px;font-size:11px;">Chi tiêu từ 4.000.000₫</div>
-                            <p><i class="fi fi-rr-check"></i> Giảm 5% giá thường<br><i class="fi fi-rr-check"></i> Ưu tiên FEFO mới nhất<br><i class="fi fi-rr-check"></i> CSKH riêng biệt</p>
+                            <p><i class="fi fi-rr-check"></i> Giảm 5% giá thường<br><i class="fi fi-rr-check"></i> Ưu tiên date mới nhất<br><i class="fi fi-rr-check"></i> CSKH riêng biệt</p>
                         </div>
                         <div class="tier-card ${profile.tierLabel == 'Kim cương' ? 'current' : ''}">
                             <c:if test="${profile.tierLabel == 'Kim cương'}"><span class="tier-badge-label">HẠNG HIỆN TẠI</span></c:if>

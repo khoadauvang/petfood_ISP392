@@ -7,9 +7,10 @@ import com.isp392.petfood.entity.Product;
 import com.isp392.petfood.enums.AgeGroup;
 import com.isp392.petfood.enums.ProductStatus;
 import com.isp392.petfood.enums.Species;
+import com.isp392.petfood.enums.StockStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.service.CategoryService;
-import com.isp392.petfood.service.LotService;
+import com.isp392.petfood.service.InventoryPolicy;
 import com.isp392.petfood.service.ProductAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,18 +29,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 // Quản lý sản phẩm. /staff/** cho phép STAFF và ADMIN (SecurityConfig).
-//   GET  /staff/products                     danh sách + tìm kiếm, lọc, phân trang
-//   GET  /staff/products/new                 form thêm (multipart, 5 ảnh)   POST cùng URL để lưu
+// Trang tồn kho riêng (/staff/lots) đã bỏ: số lượng của từng biến thể hiện ngay trong bảng sản phẩm,
+// hàng được nhận vào lúc thêm sản phẩm / biến thể (số lượng + hạn sử dụng trên cùng form).
+//   GET  /staff/products                     danh sách + tìm kiếm, lọc (cả tình trạng hàng), phân trang
+//   GET  /staff/products/new                 form thêm (multipart, 5 ảnh, số lượng + HSD)   POST cùng URL để lưu
 //   GET  /staff/products/new?variantOf={id}  form thêm biến thể: điền sẵn từ sản phẩm gốc, ảnh trống lấy ảnh gốc
-//   GET  /staff/products/{id}                chi tiết: 5 ảnh + tồn theo lô
+//   GET  /staff/products/{id}                chi tiết: 5 ảnh + số lượng
 //   GET  /staff/products/{id}/edit           form sửa (thay ảnh nào chọn ảnh đó)   POST cùng URL để lưu
 //   POST /staff/products/{id}/toggle-status  ẩn/hiện: ACTIVE <-> DISCONTINUED
-//   POST /staff/products/{id}/delete         xoá (chỉ sản phẩm chưa có lô / đơn hàng)
+//   POST /staff/products/{id}/delete         xoá (chỉ sản phẩm chưa bán ra / chưa có đơn hàng)
 @Controller
 @RequestMapping("/staff/products")
 @RequiredArgsConstructor
@@ -47,9 +48,9 @@ public class StaffProductController {
 
     private final ProductAdminService productAdminService;
     private final CategoryService categoryService;
-    private final LotService lotService;
+    private final InventoryPolicy inventoryPolicy;
 
-    // Cắt khoảng trắng 2 đầu mọi ô chữ; ô bỏ trống thành null (mã vạch trống -> NULL, không vướng UNIQUE)
+    // Cắt khoảng trắng 2 đầu mọi ô chữ; ô bỏ trống thành null
     @InitBinder
     public void trimStrings(WebDataBinder binder) {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
@@ -60,44 +61,37 @@ public class StaffProductController {
                        @RequestParam(name = "categoryId", required = false) Long categoryId,
                        @RequestParam(name = "species", required = false) Species species,
                        @RequestParam(name = "status", required = false) ProductStatus status,
+                       @RequestParam(name = "stockStatus", required = false) StockStatus stockStatus,
                        @RequestParam(name = "page", defaultValue = "1") int page,
                        Model model) {
         // Trên URL page tính từ 1, Spring Data tính từ 0
         Page<ProductAdminRow> result = productAdminService.search(keyword, categoryId, species, status,
                 Math.max(page, 1) - 1);
 
-        List<ProductGroupDto> productGroups = productAdminService.getProductGroups(keyword, categoryId, species, status);
-
-        // Đếm chính xác số lượng cho 3 KPI Cards
-        long totalActive = 0;
-        long totalDiscontinued = 0;
-        for (ProductGroupDto g : productGroups) {
-            totalActive += g.getActiveCount();
-            totalDiscontinued += g.getDiscontinuedCount();
-        }
-        Map<String, Long> productCounts = new HashMap<>();
-        productCounts.put("total", result.getTotalElements());
-        productCounts.put("active", totalActive);
-        productCounts.put("discontinued", totalDiscontinued);
-        model.addAttribute("productCounts", productCounts);
+        List<ProductGroupDto> productGroups = productAdminService.getProductGroups(keyword, categoryId, species, status,
+                stockStatus);
 
         model.addAttribute("productGroups", productGroups);
         model.addAttribute("products", result.getContent());
         model.addAttribute("currentPage", result.getNumber() + 1);
         model.addAttribute("totalPages", result.getTotalPages());
-        model.addAttribute("totalItems", result.getTotalElements());
+        // Số biến thể đang hiện (đã tính cả bộ lọc tình trạng hàng, bộ lọc mà câu search phân trang không có)
+        model.addAttribute("totalItems", productGroups.stream().mapToLong(ProductGroupDto::getVariantCount).sum());
 
         // Giữ lại bộ lọc trên form và trong link phân trang
         model.addAttribute("filterKeyword", keyword);
         model.addAttribute("filterCategoryId", categoryId);
         model.addAttribute("filterSpecies", species);
         model.addAttribute("filterStatus", status);
+        model.addAttribute("filterStockStatus", stockStatus);
         model.addAttribute("filterQuery", QueryStrings.of(
-                "keyword", keyword, "categoryId", categoryId, "species", species, "status", status));
+                "keyword", keyword, "categoryId", categoryId, "species", species, "status", status,
+                "stockStatus", stockStatus));
 
         model.addAttribute("categories", categoryService.listAll());
         model.addAttribute("speciesList", Species.values());
         model.addAttribute("productStatuses", ProductStatus.values());
+        model.addAttribute("stockStatuses", StockStatus.values());
         return "staff/products/list";
     }
 
@@ -122,8 +116,18 @@ public class StaffProductController {
             String added = form.getVariantOf() != null
                     ? "Đã thêm biến thể " + saved.getFullSku()
                     : "Đã thêm sản phẩm " + saved.getFullSku();
-            redirect.addFlashAttribute("successMessage", added + " kèm 5 ảnh"
-                    + (form.hasFirstLot() ? " và lô đầu tiên (" + form.getFirstLotQty() + " sản phẩm)" : ""));
+            redirect.addFlashAttribute("successMessage", added + " với số lượng " + form.getFirstLotQty() + " sản phẩm");
+            // HSD đã dưới mốc bán thường thì nhắc ngay (BR-51), trước đây trang nhập lô làm việc này
+            switch (inventoryPolicy.levelOf(form.getFirstLotExpiryDate())) {
+                case RED -> redirect.addFlashAttribute("warningMessage", "Hạn sử dụng còn dưới "
+                        + inventoryPolicy.getShelfLifeCommitmentDays()
+                        + " ngày: số hàng này chưa bán thường được, chỉ bán qua Flash Sale.");
+                case BLOCKED, EXPIRED -> redirect.addFlashAttribute("warningMessage", "Hạn sử dụng còn dưới "
+                        + inventoryPolicy.getQuarantineDays() + " ngày: số hàng này không được bán.");
+                default -> {
+                    // còn hạn dài: không cần nhắc
+                }
+            }
             return "redirect:/staff/products/" + saved.getId();
         } catch (BusinessRuleException e) {
             FormErrors.apply(e, result, model);
@@ -134,7 +138,7 @@ public class StaffProductController {
     @GetMapping("/{id}")
     public String detail(@PathVariable("id") Long id, Model model) {
         model.addAttribute("product", productAdminService.getDetail(id));
-        model.addAttribute("lots", lotService.lotsOfProduct(id));
+        model.addAttribute("canDelete", productAdminService.isDeletable(id));
         return "staff/products/detail";
     }
 

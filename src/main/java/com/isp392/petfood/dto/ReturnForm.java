@@ -26,7 +26,7 @@ public class ReturnForm {
     // 1 đến 5 ảnh / video (BR-33)
     private List<MultipartFile> media = new ArrayList<>();
 
-    // Đơn COD: tài khoản nhận hoàn tiền chuyển khoản thủ công (LI-05). Đơn VNPay bỏ trống.
+    // Tài khoản nhận hoàn tiền chuyển khoản thủ công (LI-05), bắt buộc cho cả đơn COD và VNPay
     @Size(max = 100, message = "Tên ngân hàng tối đa 100 ký tự")
     private String refundBankName;
 

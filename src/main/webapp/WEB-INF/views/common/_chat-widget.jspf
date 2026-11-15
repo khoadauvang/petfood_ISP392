@@ -35,7 +35,7 @@
                 <i class="fi fi-rr-undo"></i> Chính sách đổi trả 3 ngày
             </button>
             <button type="button" class="quick-topic-btn" onclick="handleQuickTopic('fefo')">
-                <i class="fi fi-rr-shield-check"></i> Hạn sử dụng (FEFO)
+                <i class="fi fi-rr-shield-check"></i> Hạn sử dụng
             </button>
             <button type="button" class="quick-topic-btn" onclick="handleQuickTopic('shipping')">
                 <i class="fi fi-rr-shipping-fast"></i> Thời gian giao hàng 2H
@@ -466,7 +466,7 @@
     const quickTopicAnswers = {
         'order': 'Để tra cứu đơn hàng, bạn có thể vào mục <a href="' + chatAppCtx + '/orders">Đơn hàng của tôi</a> để xem mã vận đơn, tiến trình đóng gói và vị trí tài xế giao hàng nhé! 📦',
         'return': 'PetFood cam kết chính sách <strong>Đổi trả trong vòng 3 ngày</strong> kể từ khi nhận hàng cho mọi trường hợp rách bao bì, lỗi sản xuất hoặc sai loại sản phẩm. Bạn chỉ cần vào chi tiết đơn hàng bấm Yêu cầu trả hàng là được hỗ trợ ngay! 🔄',
-        'fefo': 'Tất cả sản phẩm tại PetFood áp dụng quy trình kiểm soát xuất kho <strong>FEFO</strong> (First Expired, First Out) nghiêm ngặt, đảm bảo hàng giao đến tay bạn luôn có <strong>hạn sử dụng từ 90 ngày trở lên</strong>! 🥩',
+        'fefo': 'Tất cả sản phẩm tại PetFood áp dụng quy trình kiểm soát hạn sử dụng nghiêm ngặt (hàng hết hạn trước xuất trước), đảm bảo hàng giao đến tay bạn luôn có <strong>hạn sử dụng từ 90 ngày trở lên</strong>! 🥩',
         'shipping': 'PetFood hỗ trợ dịch vụ <strong>Giao hàng Hỏa tốc 2H</strong> cho các quận nội thành TP.HCM & Hà Nội, và 1-2 ngày đối với các tỉnh thành toàn quốc. Bạn cứ yên tâm bé cưng không lo đói bữa nhé! 🚚',
         'human': 'Bạn có thể liên hệ trực tiếp Tổng đài CSKH miễn phí <strong>1900 6868</strong> (8:00 - 21:00 hàng ngày) hoặc để lại số điện thoại ngay tại đây, chuyên viên PetFood sẽ gọi lại hỗ trợ bạn trong vòng 5 phút ạ! 📞'
     };
@@ -475,7 +475,7 @@
         const labels = {
             'order': 'Tra cứu đơn hàng',
             'return': 'Chính sách đổi trả 3 ngày',
-            'fefo': 'Hạn sử dụng (FEFO)',
+            'fefo': 'Hạn sử dụng',
             'shipping': 'Thời gian giao hàng 2H',
             'human': 'Gặp nhân viên tư vấn'
         };
@@ -546,7 +546,7 @@
         } else if (lower.includes('đổi') || lower.includes('trả') || lower.includes('lỗi')) {
             botReply = 'PetFood hỗ trợ đổi trả miễn phí trong 3 ngày nếu sản phẩm có lỗi bao bì hay cận date. Bạn có thể xem chi tiết tại <a href="' + chatAppCtx + '/policies">Chính sách đổi trả</a> nha!';
         } else if (lower.includes('hạn') || lower.includes('date') || lower.includes('fefo')) {
-            botReply = 'Mọi sản phẩm bán ra đều được cam kết hạn dùng tối thiểu 90 ngày theo chuẩn FEFO. Đảm bảo an toàn tuyệt đối cho các bé cưng!';
+            botReply = 'Mọi sản phẩm bán ra đều được cam kết hạn dùng tối thiểu 90 ngày. Đảm bảo an toàn tuyệt đối cho các bé cưng!';
         }
         return botReply;
     }

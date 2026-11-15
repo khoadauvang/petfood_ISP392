@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 // Trang chi tiết sản phẩm phía khách (/products/{id}). Khác ProductDetailDto của Staff: không có tồn thực tế,
-// ngưỡng tồn thấp, mã vạch... chỉ những gì khách cần xem.
+// ngưỡng tồn thấp... chỉ những gì khách cần xem.
 @Getter
 @AllArgsConstructor
 public class ShopProductDto {

@@ -75,7 +75,7 @@
 
                     <div class="fefo-gallery-note">
                         <i class="fi fi-rr-boxes"></i>
-                        <span>Kho vận hành theo quy chuẩn <strong>FEFO (First-Expired, First-Out)</strong> tự động xuất lô có hạn sử dụng đảm bảo chuẩn châu Âu.</span>
+                        <span>Kho tự động xuất hàng có hạn sử dụng gần nhất trước, đảm bảo chuẩn châu Âu.</span>
                     </div>
                 </section>
 
@@ -85,7 +85,7 @@
                     <div class="info-top-meta">
                         <div class="brand-sku-line">
                             <span><c:out value="${empty product.brand ? 'PETFOOD OFFICIAL' : product.brand}"/></span>
-                            <span class="sku-code">· SKU: <c:out value="${product.sku}"/></span>
+                            <span class="sku-code">· Mã sản phẩm: <c:out value="${product.sku}"/></span>
                         </div>
 
                         <%-- HIỂN THỊ RÕ TRẠNG THÁI TỒN KHO --%>

@@ -14,7 +14,6 @@ public class ProductAdminRow {
 
     private final Long id;
     private final String sku;
-    private final String barcode;
     private final String name;
     private final String brand;
     private final String categoryName;
@@ -32,7 +31,6 @@ public class ProductAdminRow {
     public ProductAdminRow(Product product, StockSummary stock) {
         this.id = product.getId();
         this.sku = product.getFullSku();
-        this.barcode = product.getBarcode();
         this.name = product.getName();
         this.brand = product.getBrand();
         this.categoryName = product.getCategory().getName();

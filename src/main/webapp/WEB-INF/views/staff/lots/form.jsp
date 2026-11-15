@@ -88,7 +88,7 @@
                     <i class="ti ti-shield-check"></i>
                 </div>
                 <div>
-                    <h4 style="margin:0 0 3px 0; font-size:14.5px; font-weight:800; color:#9a3412;">Chính sách phân luồng hàng hóa theo hạn sử dụng (FEFO - BR-51)</h4>
+                    <h4 style="margin:0 0 3px 0; font-size:14.5px; font-weight:800; color:#9a3412;">Chính sách phân luồng hàng hóa theo hạn sử dụng (FEFO)</h4>
                     <p style="margin:0; font-size:12.5px; color:#7c2d12; line-height:1.4;">
                         Lô hàng khi nhập kho sẽ được hệ thống kiểm soát tự động: Còn hạn <b>&gt; ${shelfLifeDays} ngày</b> được bán lẻ bình thường; <b>${quarantineDays} - ${shelfLifeDays} ngày</b> chuyển sang bán Flash Sale; <b>&lt; ${quarantineDays} ngày</b> lập tức cách ly cấm bán.
                     </p>
@@ -307,7 +307,7 @@
                                 <span style="font-size:12px; font-weight:800; color:#c2410c;">${quarantineDays} - ${shelfLifeDays} ngày</span>
                             </div>
                             <p style="margin:0; font-size:11.5px; color:#9a3412; line-height:1.4;">
-                                Không xuất bán đơn lẻ giá gốc. Ưu tiên đưa vào các đợt Flash Sale giảm giá sâu nhằm thu hồi vốn nhanh (BR-51).
+                                Không xuất bán đơn lẻ giá gốc. Ưu tiên đưa vào các đợt Flash Sale giảm giá sâu nhằm thu hồi vốn nhanh.
                             </p>
                         </div>
 
@@ -483,7 +483,7 @@
             badge.style.color = '#fff';
             badge.innerText = 'CHỈ BÁN QUA FLASH SALE';
             desc.style.color = '#c2410c';
-            desc.innerText = 'Lô hàng còn hạn dưới cam kết xuất kho (' + SHELF_LIFE_DAYS + ' ngày). Theo quy tắc BR-51, lô này không bán giá thông thường mà chỉ được bán qua các chiến dịch Flash Sale giảm giá.';
+            desc.innerText = 'Lô hàng còn hạn dưới cam kết xuất kho (' + SHELF_LIFE_DAYS + ' ngày). Theo quy định, lô này không bán giá thông thường mà chỉ được bán qua các chiến dịch Flash Sale giảm giá.';
         } else {
             // An toàn (> 90 ngày)
             liveCard.style.background = '#f0fdf4';

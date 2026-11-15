@@ -1,0 +1,132 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Thông báo "đã hoàn tiền" cho khách (include trong _header.jspf, chỉ chạy khi khách đã đăng nhập).
+     1. Tải trang: gọi GET /orders/refund-notices (yêu cầu đã hoàn tiền 7 ngày gần đây) -> hiện những cái khách chưa đóng.
+        Nhờ vậy khách đóng trình duyệt rồi đăng nhập lại vẫn thấy.
+     2. Đang mở trang: WebSocket /orders/ws/refunds, staff bấm "Đã hoàn tiền" là hiện ngay; mất kết nối thì tự nối lại.
+     Cờ "đã xem" lưu ở localStorage theo tài khoản (không thêm cột DB). FE tuỳ chỉnh giao diện trong khối <style> bên dưới. --%>
+<c:if test="${not empty currentUser and currentUser.role == 'CUSTOMER'}">
+<style>
+    .pf-refund-stack { position: fixed; right: 20px; bottom: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; max-width: 360px; width: calc(100% - 32px); }
+    .pf-refund-toast { background: #fff; border-left: 5px solid #16a34a; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 14px 16px; font-family: inherit; animation: pfRefundIn .35s ease-out; position: relative; }
+    .pf-refund-toast h4 { margin: 0 0 6px; font-size: 15px; color: #15803d; display: flex; align-items: center; gap: 6px; }
+    .pf-refund-toast p { margin: 0 0 4px; font-size: 13px; color: #374151; line-height: 1.45; }
+    .pf-refund-toast .pf-refund-amount { font-weight: 800; color: #f47721; }
+    .pf-refund-toast a { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 700; color: #f47721; text-decoration: none; }
+    .pf-refund-toast button { position: absolute; top: 8px; right: 10px; border: 0; background: none; font-size: 18px; line-height: 1; color: #9ca3af; cursor: pointer; }
+    @keyframes pfRefundIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @media (max-width: 480px) { .pf-refund-stack { right: 16px; bottom: 16px; } }
+</style>
+<script>
+(function () {
+    var ctx = '${pageContext.request.contextPath}';
+    var storeKey = 'pf_refund_seen_${currentUser.accountId}';
+
+    function loadSeen() {
+        try { return JSON.parse(localStorage.getItem(storeKey) || '[]'); } catch (e) { return []; }
+    }
+    function markSeen(id) {
+        try {
+            var seen = loadSeen();
+            if (seen.indexOf(id) < 0) { seen.push(id); }
+            localStorage.setItem(storeKey, JSON.stringify(seen.slice(-50)));
+        } catch (e) { /* trình duyệt chặn localStorage: lần sau hiện lại, không sao */ }
+    }
+    function money(v) {
+        return Number(v || 0).toLocaleString('vi-VN') + ' ₫';
+    }
+    function when(v) {
+        if (!v) { return ''; }
+        var d = new Date(v);
+        return isNaN(d) ? '' : d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    function stack() {
+        var s = document.getElementById('pfRefundStack');
+        if (!s) {
+            s = document.createElement('div');
+            s.id = 'pfRefundStack';
+            s.className = 'pf-refund-stack';
+            s.setAttribute('role', 'status');
+            s.setAttribute('aria-live', 'polite');
+            document.body.appendChild(s);
+        }
+        return s;
+    }
+    function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) { e.className = cls; }
+        if (text != null) { e.textContent = text; }
+        return e;
+    }
+
+    function show(n) {
+        if (!n || n.returnId == null || document.getElementById('pfRefund-' + n.returnId)) { return; }
+        var box = el('div', 'pf-refund-toast');
+        box.id = 'pfRefund-' + n.returnId;
+
+        var close = el('button', null, '×');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Đóng');
+        close.onclick = function () { markSeen(n.returnId); box.remove(); };
+
+        var title = el('h4', null, '✔ Đã hoàn tiền yêu cầu trả hàng #' + n.returnId);
+        var p1 = el('p');
+        p1.appendChild(document.createTextNode('Cửa hàng đã hoàn '));
+        p1.appendChild(el('span', 'pf-refund-amount', money(n.refundAmount)));
+        p1.appendChild(document.createTextNode(' cho đơn #PFS-' + n.orderId + '.'));
+        box.appendChild(close);
+        box.appendChild(title);
+        box.appendChild(p1);
+        if (n.bankName || n.accountNo) {
+            box.appendChild(el('p', null, 'Vào tài khoản: ' + [n.bankName, n.accountNo].filter(Boolean).join(' - ')));
+        }
+        if (n.refundedAt) {
+            box.appendChild(el('p', null, 'Lúc ' + when(n.refundedAt)));
+        }
+        var link = el('a', null, 'Xem chi tiết →');
+        link.href = ctx + '/orders/' + n.orderId + '/returns/' + n.returnId;
+        link.onclick = function () { markSeen(n.returnId); };
+        box.appendChild(link);
+
+        stack().appendChild(box);
+    }
+
+    // 1. Thông báo khách chưa xem (khi đóng trình duyệt hoặc chưa đăng nhập lúc staff hoàn tiền)
+    function loadMissed() {
+        fetch(ctx + '/orders/refund-notices', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : []; })
+            .then(function (list) {
+                var seen = loadSeen();
+                (list || []).filter(function (n) { return seen.indexOf(n.returnId) < 0; })
+                    .slice(0, 3).forEach(show);
+            })
+            .catch(function () { /* lỗi mạng: lần tải trang sau thử lại */ });
+    }
+
+    // 2. Thông báo tức thời qua WebSocket
+    var retry = 1000, everOpened = false;
+    function connect() {
+        if (!('WebSocket' in window)) { return; }
+        var ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + ctx + '/orders/ws/refunds');
+        ws.onopen = function () {
+            retry = 1000;
+            if (everOpened) { loadMissed(); }   // nối lại sau khi rớt mạng: lấy bù thông báo trong lúc mất kết nối
+            everOpened = true;
+        };
+        ws.onmessage = function (e) {
+            try { show(JSON.parse(e.data)); } catch (err) { /* tin nhắn lạ: bỏ qua */ }
+        };
+        ws.onclose = function () {
+            setTimeout(connect, retry);
+            retry = Math.min(retry * 2, 30000);
+        };
+    }
+
+    function start() { loadMissed(); connect(); }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+})();
+</script>
+</c:if>

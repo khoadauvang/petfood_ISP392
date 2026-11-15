@@ -114,7 +114,7 @@
                                 <tr>
                                     <td>
                                         <div style="display:flex; align-items:center; gap:12px;">
-                                            <img src="${ctx}/images/products/${l.sku}/1.jpg" 
+                                            <img src="${ctx}${l.imageUrl}" 
                                                  class="product-thumb-img" 
                                                  alt="${l.productName}" 
                                                  onerror="this.src='https://via.placeholder.com/64/fff4df/f47721?text=PetFood'">
@@ -124,7 +124,7 @@
                                                     <span style="color:#b91c1c; font-size:11px; font-weight:700;"> (Flash Sale)</span>
                                                 </c:if>
                                                 <div style="font-size:11px; color:var(--text-secondary, #817872); margin-top:2px;">
-                                                    Mã SKU: <c:out value="${l.sku}"/>
+                                                    Mã sản phẩm: <c:out value="${l.sku}"/>
                                                 </div>
                                             </div>
                                         </div>

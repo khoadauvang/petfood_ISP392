@@ -64,7 +64,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>TỔNG QUAN</span> <span class="sep">&gt;</span> <span class="current">TỔNG QUAN VẬN HÀNH</span>
+<%--                <span>TỔNG QUAN</span> <span class="sep">&gt;</span> <span class="current">TỔNG QUAN VẬN HÀNH</span>--%>
             </div>
             <h1 style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
                 TỔNG QUAN VẬN HÀNH
@@ -73,13 +73,9 @@
                     THỜI GIAN THỰC
                 </span>
             </h1>
-            <p class="page-sub">Tổng quan về tình hình hoàn tất đơn hàng hôm nay, hàng đợi điều phối và các sai lệch trả hàng</p>
+<%--            <p class="page-sub">Tổng quan về tình hình hoàn tất đơn hàng hôm nay, hàng đợi điều phối và các sai lệch trả hàng</p>--%>
         </div>
-
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
-            <button type="button" class="export-btn" onclick="fetchStaffLiveStats()"><i class="ti ti-refresh"></i>Tự động đồng bộ mỗi 20 giây</button>
-            <button type="button" class="export-btn" style="background:#ea580c; color:#fff; border-color:#ea580c" onclick="fetchStaffLiveStats()"><i class="ti ti-rotate-clockwise"></i>Làm mới dữ liệu</button>
-        </div>
+        <%-- Đã bỏ 2 nút "Tự động đồng bộ mỗi 20 giây" và "Làm mới dữ liệu"; trang vẫn tự đồng bộ ngầm như cũ --%>
     </div>
 
     <%-- 4 KPI Stat Cards Screen 2 --%>
@@ -151,7 +147,6 @@
                     <h3 style="display:flex; align-items:center; gap:8px">
                         ĐƠN HÀNG CẦN CHÚ Ý <span class="pill-badge orange">${attentionOrders != null ? attentionOrders.size() : 0} Đơn chờ</span>
                     </h3>
-                    <p style="font-size:12px; color:var(--text-muted); margin:2px 0 0">Hàng đợi các đơn PENDING cần duyệt hoặc có yêu cầu từ khách</p>
                 </div>
 
                 <div style="display:flex; gap:8px">
@@ -223,7 +218,6 @@
             <div class="split-head">
                 <div>
                     <h3>YÊU CẦU TRẢ HÀNG GẦN ĐÂY</h3>
-                    <p style="font-size:12px; color:var(--text-muted); margin:2px 0 0">Hộp thư phân loại và kiểm tra sản phẩm hoàn</p>
                 </div>
                 <a href="${ctx}/staff/returns" class="link-more">Xem tất cả <i class="ti ti-arrow-right"></i></a>
             </div>

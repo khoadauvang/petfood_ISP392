@@ -201,16 +201,6 @@
                 </c:choose>
                 <span class="pill-badge gray" style="font-size:12px">Mã ${isPromotion ? '#KM-' : '#FS-'}${sale.id}</span>
             </h1>
-            <p class="page-sub">
-                <c:choose>
-                    <c:when test="${isPromotion}">
-                        Chương trình ưu đãi giảm giá định kỳ dành cho các sản phẩm &amp; lô hàng bảo đảm hạn sử dụng tiêu chuẩn trên 90 ngày.
-                    </c:when>
-                    <c:otherwise>
-                        Chiến dịch kích cầu xả hàng cận hạn theo chuẩn điều phối FEFO &amp; đồng bộ giá bán tự động.
-                    </c:otherwise>
-                </c:choose>
-            </p>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
@@ -294,18 +284,12 @@
                 <h2 style="font-size:22px; font-weight:800; margin:0 0 10px; color:var(--text-logo)">
                     <c:out value="${sale.name}"/>
                 </h2>
-                <c:choose>
-                    <c:when test="${isPromotion}">
-                        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin:0 0 18px">
-                            <c:out value="${not empty sale.description ? sale.description : 'Chương trình khuyến mãi áp dụng mức ưu đãi giá đặc biệt cho các lô hàng bảo đảm chất lượng hạn sử dụng trên 90 ngày.'}"/>
-                        </p>
-                    </c:when>
-                    <c:otherwise>
-                        <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin:0 0 18px">
-                            Chiến dịch kích cầu xả kho các sản phẩm cận hạn theo thuật toán điều phối FEFO, giúp thu hồi vốn lưu động nhanh chóng và tối ưu hóa diện tích kho chứa.
-                        </p>
-                    </c:otherwise>
-                </c:choose>
+                <%-- Chỉ hiện mô tả thật của chiến dịch (nếu có), bỏ câu giới thiệu chung --%>
+                <c:if test="${not empty sale.description}">
+                    <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6; margin:0 0 18px">
+                        <c:out value="${sale.description}"/>
+                    </p>
+                </c:if>
 
                 <div style="display:inline-flex; align-items:center; gap:10px; font-size:13.5px; font-weight:700; color:#9a3412; background:#ffedd5; padding:8px 14px; border-radius:10px; margin-bottom:18px">
                     <i class="ti ti-calendar" style="color:#ea580c; font-size:18px"></i>
@@ -363,7 +347,7 @@
 
             <div style="font-size:13px; font-weight:700; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between">
                 <span>● Tỷ lệ hấp thụ toàn chiến dịch: <b><fmt:formatNumber value="${totalAllocated > 0 ? (totalSold * 100.0 / totalAllocated) : 0}" maxFractionDigits="1"/>%</b></span>
-                <small style="font-weight:normal; color:#166534">${isPromotion ? 'Chuẩn khuyến mãi bán lẻ' : 'Chuẩn điều phối FEFO'}</small>
+                <small style="font-weight:normal; color:#166534">${isPromotion ? 'Chuẩn khuyến mãi bán lẻ' : 'Chuẩn xả hàng cận hạn'}</small>
             </div>
         </div>
     </section>
@@ -376,12 +360,11 @@
                     Danh sách sản phẩm &amp; Lô hàng áp dụng (${isPromotion ? '&gt; 90 ngày' : '&lt; 90 ngày'})
                     <span class="pill-badge orange">${items != null ? items.size() : 0} suất bán</span>
                 </h3>
-                <small style="color:var(--text-muted); margin-top:2px; display:block">Dữ liệu bán hàng ghi nhận theo thời gian thực từ POS chi nhánh và Online Store.</small>
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
                 <div style="position:relative; min-width:220px">
                     <i class="ti ti-search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-placeholder); font-size:14px"></i>
-                    <input type="search" id="flashSaleSearchInput" placeholder="Tìm theo tên, SKU, mã lô..." oninput="filterFlashSaleTable(this.value)"
+                    <input type="search" id="flashSaleSearchInput" placeholder="Tìm theo tên, mã sản phẩm, mã lô..." oninput="filterFlashSaleTable(this.value)"
                            style="width:100%; padding:7px 10px 7px 32px; border-radius:10px; border:1px solid var(--line); font-size:12.5px">
                 </div>
                 <a href="javascript:void(0)" class="export-btn" style="padding:7px 12px; font-size:12.5px" onclick="exportItemsTable()"><i class="ti ti-file-spreadsheet"></i>Xuất Excel</a>
@@ -422,7 +405,7 @@
                 <thead>
                 <tr>
                     <th style="width:40px; text-align:center">STT</th>
-                    <th>SẢN PHẨM &amp; MÃ SKU</th>
+                    <th>TÊN &amp; MÃ SẢN PHẨM</th>
                     <th>LÔ HÀNG</th>
                     <th>HẠN SỬ DỤNG</th>
                     <th class="num">GIÁ GỐC</th>
@@ -451,7 +434,7 @@
                                         <div>
                                             <b style="color:var(--text-logo); font-size:13.5px"><c:out value="${i.productName}"/></b>
                                             <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px">
-                                                SKU: <code><c:out value="${i.sku}"/></code>
+                                                Mã sản phẩm: <code><c:out value="${i.sku}"/></code>
                                             </div>
                                         </div>
                                     </div>
@@ -535,7 +518,6 @@
         <div class="panel-head">
             <div>
                 <h3 style="font-size:16px; margin:0">Thông tin vận hành chiến dịch</h3>
-                <p style="margin:2px 0 0">Theo dõi tiến trình và lịch sử thiết lập của chiến dịch</p>
             </div>
             <i class="ti ti-info-circle" style="font-size:20px; color:var(--text-placeholder)"></i>
         </div>
@@ -587,7 +569,7 @@
                             </span>
                             Thêm sản phẩm / Suất bán Flash Sale
                         </h3>
-                        <small style="color:var(--text-muted); margin-top:2px; display:block">Chọn lô hàng cận hạn (&lt; 90 ngày) đang lưu kho theo quy tắc FEFO</small>
+                        <small style="color:var(--text-muted); margin-top:2px; display:block">Chọn lô hàng cận hạn (&lt; 90 ngày) đang lưu kho</small>
                     </div>
                     <button type="button" onclick="closeAddModal()" class="act-icon" style="font-size:20px"><i class="ti ti-x"></i></button>
                 </div>
@@ -600,7 +582,7 @@
                                 <div style="margin-bottom:16px">
                                     <label style="display:block; font-weight:700; font-size:13px; margin-bottom:6px">
                                         Chọn lô hàng cận hạn <span style="color:#ef4444">*</span> 
-                                        <span style="font-weight:normal; color:#ea580c">(${redLots.size()} lô đủ điều kiện theo quy tắc FEFO)</span>
+                                        <span style="font-weight:normal; color:#ea580c">(${redLots.size()} lô đủ điều kiện)</span>
                                     </label>
                                     <select name="lotId" id="lotSelect" required onchange="onLotChange(this)" class="form-control-custom">
                                         <option value="">-- Vui lòng chọn một lô hàng cận hạn --</option>
@@ -614,7 +596,7 @@
                                                     data-sale-price="${rl.salePrice}"
                                                     data-discount="${rl.discountPercent}"
                                                     data-name="<c:out value='${rl.productName}'/>">
-                                                [Lô #${rl.lotId}] <c:out value="${rl.productName}"/> (SKU: ${rl.sku}) | Còn ${rl.daysLeft} ngày | Tồn: ${rl.availableQty} | Flash Sale <fmt:formatNumber value="${rl.salePrice}" type="number"/>₫ (-${rl.discountPercent}%)
+                                                [Lô #${rl.lotId}] <c:out value="${rl.productName}"/> (Mã sản phẩm: ${rl.sku}) | Còn ${rl.daysLeft} ngày | Tồn: ${rl.availableQty} | Flash Sale <fmt:formatNumber value="${rl.salePrice}" type="number"/>₫ (-${rl.discountPercent}%)
                                             </option>
                                         </c:forEach>
                                     </select>
@@ -640,7 +622,7 @@
                                             <b id="infoAvail" style="color:#16a34a; font-size:14px"></b> <small>đơn vị</small>
                                         </div>
                                         <div class="metric-card" style="padding:10px 14px">
-                                            <small style="color:var(--text-muted); display:block; font-size:11px">MÃ SKU SẢN PHẨM</small>
+                                            <small style="color:var(--text-muted); display:block; font-size:11px">MÃ SẢN PHẨM</small>
                                             <code id="infoSku" style="font-size:13px; font-weight:700"></code>
                                         </div>
                                     </div>
@@ -678,13 +660,12 @@
                                 </div>
                                 <h4 style="margin:0 0 10px; font-size:16px; color:#9a3412">Không có lô hàng cận hạn nào sẵn sàng trong kho</h4>
                                 <div style="font-size:13px; color:var(--text-muted); line-height:1.6; margin:0 0 18px; text-align:left; background:#fffaf5; border:1px solid #fed7aa; border-radius:12px; padding:14px 18px;">
-                                    Theo <b>Quy định kiểm soát hạn sử dụng (FEFO - BR-63)</b>:<br>
+                                    Theo <b>Quy định kiểm soát hạn sử dụng</b>:<br>
                                     • Chỉ những lô hàng có HSD <b>cận hạn từ ${quarantineDays} đến dưới ${shelfLifeDays} ngày</b> mới được phép bán Flash Sale để kích cầu xả hàng.<br>
                                     • Các lô còn <b>&ge; ${shelfLifeDays} ngày</b> được cam kết giữ bán giá tiêu chuẩn (không bán tháo).<br>
-                                    • Các lô còn <b>&lt; ${quarantineDays} ngày</b> bị khóa bán (không được phép mở bán Flash Sale, BR-51).
+                                    • Các lô còn <b>&lt; ${quarantineDays} ngày</b> bị khóa bán (không được phép mở bán Flash Sale).
                                 </div>
                                 <div style="display:flex; justify-content:center; gap:10px">
-                                    <a href="${ctx}/staff/lots" class="btn-pill-outline" style="text-decoration:none"><i class="ti ti-building-warehouse"></i> Quản lý kho lô hàng</a>
                                     <button type="button" onclick="closeAddModal()" class="btn-flashsale" style="padding:8px 20px">Đóng</button>
                                 </div>
                             </div>

@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // Yêu cầu trả hàng của khách, nằm dưới /orders/** (chỉ CUSTOMER, chỉ đơn của chính mình).
-//   GET  /orders/{orderId}/returns/new          form: chọn sản phẩm + số lượng, lý do, 1-5 ảnh/video, tài khoản (COD)
+//   GET  /orders/{orderId}/returns/new          form: chọn sản phẩm + số lượng, lý do, 1-5 ảnh/video, tài khoản nhận hoàn
 //   POST /orders/{orderId}/returns/new          gửi yêu cầu
 //   GET  /orders/{orderId}/returns/{returnId}   theo dõi yêu cầu
 @Controller

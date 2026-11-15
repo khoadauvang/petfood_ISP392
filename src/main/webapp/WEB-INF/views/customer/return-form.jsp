@@ -188,13 +188,12 @@
                     <form:errors path="media" cssClass="error-hint"/>
                 </div>
 
-                <!-- BƯỚC 4: TÀI KHOẢN NHẬN TIỀN HOÀN (NẾU ĐƠN COD) -->
-                <c:if test="${cod}">
+                <!-- BƯỚC 4: TÀI KHOẢN NHẬN TIỀN HOÀN (cả đơn COD và VNPay, cửa hàng chuyển khoản thủ công) -->
                     <div class="card-box">
                         <div class="step-title-header">
                             <div class="step-title-left">
                                 <span class="step-circle">4</span>
-                                <span>Tài khoản nhận tiền hoàn (Đơn COD)</span>
+                                <span>Tài khoản nhận tiền hoàn</span>
                             </div>
                             <span class="step-badge-tag">Chuyển khoản ngân hàng</span>
                         </div>
@@ -217,7 +216,6 @@
                             <form:errors path="refundBankName" cssClass="error-hint"/>
                         </div>
                     </div>
-                </c:if>
 
                 <!-- NÚT GỬI YÊU CẦU -->
                 <div class="card-box" style="padding: 18px 28px;">

@@ -148,7 +148,7 @@
                 <span class="current">ĐÁNH GIÁ SẢN PHẨM</span>
             </div>
             <h1>ĐÁNH GIÁ SẢN PHẨM <span class="pill-badge orange">PHẢN HỒI &amp; KIỂM DUYỆT</span></h1>
-            <p class="page-sub">Theo dõi ý kiến phản hồi từ khách mua hàng, trả lời thắc mắc và kiểm duyệt hiển thị công khai.</p>
+<%--            <p class="page-sub">Theo dõi ý kiến phản hồi từ khách mua hàng, trả lời thắc mắc và kiểm duyệt hiển thị công khai.</p>--%>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px">
@@ -211,7 +211,7 @@
         <div style="flex:1; min-width:240px; position:relative">
             <i class="ti ti-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-placeholder); font-size:16px"></i>
             <input type="search" name="keyword" value="<c:out value='${filterKeyword}'/>"
-                   placeholder="Tìm theo Tên hoặc SKU sản phẩm..."
+                   placeholder="Tìm theo Tên hoặc mã sản phẩm..."
                    style="width:100%; padding:9px 14px 9px 38px; border-radius:12px; border:1px solid var(--line); font-size:13px">
         </div>
 

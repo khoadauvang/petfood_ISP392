@@ -2,8 +2,6 @@ package com.isp392.petfood.controller;
 
 import com.isp392.petfood.dto.LotForm;
 import com.isp392.petfood.dto.LotRow;
-import com.isp392.petfood.dto.ProductLotGroupDto;
-import com.isp392.petfood.enums.LotView;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.service.InventoryPolicy;
 import com.isp392.petfood.service.LotService;
@@ -11,7 +9,6 @@ import com.isp392.petfood.service.ProductAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,10 +22,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
 
 // Quản lý lô. /staff/** cho phép STAFF và ADMIN (SecurityConfig).
-//   GET  /staff/lots                     xem tồn theo lô: lọc theo tình trạng, sản phẩm, từ khoá; sắp xếp FEFO
+//   GET  /staff/lots                     màn hình tồn kho đã bỏ: chuyển về /staff/products
+//   Các URL dưới không còn nút nào trỏ tới (nhận hàng nay làm ở form thêm sản phẩm), chỉ giữ cho dữ liệu cũ;
+//   riêng /dispose vẫn dùng ở màn Cảnh báo hạn sử dụng.
 //   GET  /staff/lots/new?productId=..    form nhập lô       POST /staff/lots/new để lưu
 //   GET  /staff/lots/{id}/edit           sửa lô nhập nhầm   POST cùng URL để lưu
 //   POST /staff/lots/{id}/delete         xoá lô nhập nhầm
@@ -46,35 +44,10 @@ public class StaffLotController {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
     }
 
+    // Màn hình tồn kho đã bỏ (menu ẩn): số lượng xem ở trang quản lý sản phẩm. Link / bookmark cũ chuyển sang đó.
     @GetMapping
-    public String list(@RequestParam(name = "view", defaultValue = "ALL") LotView view,
-                       @RequestParam(name = "productId", required = false) Long productId,
-                       @RequestParam(name = "keyword", required = false) String keyword,
-                       @RequestParam(name = "stockStatus", required = false) String stockStatus,
-                       @RequestParam(name = "page", defaultValue = "1") int page,
-                       Model model) {
-        Page<LotRow> result = lotService.search(view, productId, keyword, Math.max(page, 1) - 1);
-        List<ProductLotGroupDto> productGroups = lotService.getProductLotGroups(view, productId, keyword, stockStatus);
-
-        model.addAttribute("productGroups", productGroups);
-        model.addAttribute("lots", result.getContent());
-        model.addAttribute("currentPage", result.getNumber() + 1);
-        model.addAttribute("totalPages", result.getTotalPages());
-        model.addAttribute("totalItems", result.getTotalElements());
-
-        model.addAttribute("filterView", view);
-        model.addAttribute("filterProductId", productId);
-        model.addAttribute("filterKeyword", keyword);
-        model.addAttribute("filterStockStatus", stockStatus);
-        model.addAttribute("filterQuery", QueryStrings.of(
-                "view", view, "productId", productId, "keyword", keyword, "stockStatus", stockStatus));
-
-        model.addAttribute("lotViews", LotView.values());
-        model.addAttribute("products", productAdminService.listOptions());
-        model.addAttribute("shelfLifeDays", inventoryPolicy.getShelfLifeCommitmentDays());
-        model.addAttribute("quarantineDays", inventoryPolicy.getQuarantineDays());
-        model.addAttribute("lotStats", lotService.getLotStats());
-        return "staff/lots/list";
+    public String list() {
+        return "redirect:/staff/products";
     }
 
     @GetMapping("/new")
@@ -158,7 +131,7 @@ public class StaffLotController {
         int onHand = lot.getOnHandQty();
         lotService.dispose(id);
         redirect.addFlashAttribute("successMessage",
-                "Đã tiêu hủy lô #" + id + " (" + lot.getSku() + "). Đã xuất hủy " + onHand + " đơn vị quá hạn khỏi kho.");
+                "Đã tiêu hủy " + onHand + " sản phẩm " + lot.getProductName() + " (" + lot.getSku() + ").");
         if (redirectUrl != null && !redirectUrl.isBlank()) {
             return "redirect:" + redirectUrl;
         }

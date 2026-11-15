@@ -312,7 +312,7 @@
                     <i class="ti ti-tag"></i>Khuyến mãi &amp; Flash Sale
                 </span>
             </h1>
-            <p class="page-sub">Quản lý Flash Sale và các chương trình giảm giá của cửa hàng.</p>
+<%--            <p class="page-sub">Quản lý Flash Sale và các chương trình giảm giá của cửa hàng.</p>--%>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
@@ -341,22 +341,15 @@
                             ${totalActiveProducts} mặt hàng đang áp dụng
                         </span>
                     </div>
-                    <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0 17px">
-                        Danh sách sản phẩm đang được giảm giá Flash Sale, kèm thời gian áp dụng và số lượng tham gia.
-                    </p>
                 </div>
 
-                <div class="active-campaign-chip">
-                    <i class="ti ti-bolt"></i>
-                    <span>Chiến dịch active: <b>${activeCampaignName}</b></span>
-                </div>
             </div>
 
             <%-- Filter bar BẢNG 1 --%>
             <div class="filter-toolbar">
                 <div class="filter-input-wrap">
                     <i class="ti ti-search"></i>
-                    <input type="search" id="b1-search" placeholder="Tìm theo tên sản phẩm, SKU hoặc mã lô (#LOT-...)" oninput="onFilterTable1Change()">
+                    <input type="search" id="b1-search" placeholder="Tìm theo tên sản phẩm, mã sản phẩm" oninput="onFilterTable1Change()">
                 </div>
 
                 <select id="b1-status" class="filter-select" onchange="onFilterTable1Change()">
@@ -372,7 +365,7 @@
                     <thead>
                     <tr>
                         <th style="min-width:260px">SẢN PHẨM</th>
-                        <th style="min-width:140px">MÃ LÔ &amp; HẠN DÙNG</th>
+                        <th style="min-width:140px">HẠN DÙNG</th>
                         <th style="min-width:110px">GIÁ GỐC</th>
                         <th style="min-width:160px">GIÁ FLASH SALE / MỨC GIẢM</th>
                         <th style="min-width:100px; text-align:center">SL THAM GIA</th>
@@ -408,13 +401,12 @@
                                                     <c:out value="${p.productName}"/>
                                                 </a>
                                                 <span style="font-size:12px; color:var(--text-muted); font-family:monospace">
-                                                    SKU: <c:out value="${p.sku}"/>
+                                                    Mã sản phẩm: <c:out value="${p.sku}"/>
                                                 </span>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div style="font-weight:700; font-family:monospace; color:#334155">${p.lotCode}</div>
                                         <div style="font-size:12px; color:${p.daysLeft lt 30 ? '#dc2626' : '#ea580c'}; display:flex; align-items:center; gap:4px">
                                             <i class="ti ti-calendar" style="font-size:13px"></i>
                                             <span>HSD: ${p.expiryDate} (${p.daysLeft} ngày)</span>
@@ -462,10 +454,12 @@
                                             <c:if test="${currentUser.role == 'ADMIN'}">
                                                 <c:choose>
                                                     <c:when test="${p.active}">
-                                                        <form method="post" action="${ctx}/staff/flash-sales/${p.saleId}/pause" style="margin:0; display:inline" onsubmit="return confirm('Tạm dừng chiến dịch Flash Sale chứa sản phẩm này?');">
+                                                        <%-- Dừng = kết thúc chiến dịch (ENDED) để phần chưa bán được trả về, không còn bị Flash Sale giữ chỗ.
+                                                             Muốn bán tiếp thì vào Cảnh báo hạn sử dụng bấm "Tạo Flash Sale" lại. --%>
+                                                        <form method="post" action="${ctx}/staff/flash-sales/${p.saleId}/end" style="margin:0; display:inline" onsubmit="return confirm('Dừng Flash Sale của sản phẩm này?\n\nSố lượng chưa bán sẽ được trả về. Muốn bán tiếp thì vào Cảnh báo hạn sử dụng bấm Tạo Flash Sale.');">
                                                             ${csrf}
                                                             <input type="hidden" name="redirectUrl" value="/staff/flash-sales">
-                                                            <button type="submit" class="act-icon icon-btn warning" title="Tạm dừng Flash Sale"><i class="ti ti-player-pause"></i></button>
+                                                            <button type="submit" class="act-icon icon-btn warning" title="Dừng Flash Sale (trả sản phẩm về)"><i class="ti ti-player-pause"></i></button>
                                                         </form>
                                                     </c:when>
                                                     <c:otherwise>
@@ -492,7 +486,7 @@
                             <tr>
                                 <td colspan="9" style="text-align:center; padding:36px; color:var(--text-muted)">
                                     <i class="ti ti-bolt-off" style="font-size:32px; opacity:0.5; display:block; margin-bottom:8px"></i>
-                                    Hiện chưa có mặt hàng nào tham gia Flash Sale. Vào mục <a href="${ctx}/staff/alerts" style="color:var(--color-primary); font-weight:700">Cảnh báo hạn sử dụng</a> để tạo Flash Sale tức thì cho lô cận date.
+                                    Hiện chưa có mặt hàng nào tham gia Flash Sale. Vào mục <a href="${ctx}/staff/alerts" style="color:var(--color-primary); font-weight:700">Cảnh báo hạn sử dụng</a> để tạo Flash Sale
                                 </td>
                             </tr>
                         </c:otherwise>
@@ -529,7 +523,7 @@
                         </span>
                     </div>
                     <p style="font-size:13px; color:var(--text-muted); margin:4px 0 0 0">
-                        Quản lý các chương trình ưu đãi, giảm giá định kỳ do Admin tạo áp dụng cho sản phẩm và lô hàng bình thường (>90 ngày).
+<%--                        Quản lý các chương trình ưu đãi, giảm giá định kỳ do Admin tạo áp dụng cho sản phẩm và lô hàng bình thường (>90 ngày).--%>
                     </p>
                 </div>
             </div>

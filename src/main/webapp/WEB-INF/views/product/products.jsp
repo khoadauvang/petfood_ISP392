@@ -47,7 +47,7 @@
                             <label for="keyword"><strong>Tìm kiếm</strong></label>
                             <input id="keyword" type="search" name="keyword"
                                    value="<c:out value='${filter.keyword}'/>"
-                                   placeholder="Tên, thương hiệu, SKU">
+                                   placeholder="Tên, thương hiệu, mã sản phẩm">
                         </div>
 
                         <div class="filter-group">

@@ -48,11 +48,13 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
     List<StockRow> sumSellableQuantity(@Param("productIds") Collection<Long> productIds,
                                        @Param("minExpiry") LocalDate minExpiry);
 
-    // Tồn thực tế (mọi lô) và tồn bán thường (lô còn hạn >= minExpiry trừ phần đang giữ chỗ khuyến mãi) của nhiều sản phẩm trong 1 câu.
+    // Tồn thực tế (mọi lô), tồn bán thường (lô còn hạn >= minExpiry trừ phần đang giữ chỗ khuyến mãi)
+    // và tồn cận hạn chỉ bán qua Flash Sale (lô RED: HSD trong [minFlashSaleExpiry, minExpiry)) của nhiều sản phẩm trong 1 câu.
     interface StockSummaryRow {
         Long getProductId();
         Long getOnHandQty();
         Long getSellableQty();
+        Long getFlashSaleQty();
     }
 
     @Query("""
@@ -60,7 +62,10 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
                    sum(l.onHandQty) as onHandQty,
                    sum(case when l.expiryDate >= :minExpiry and l.onHandQty > coalesce(r.reservedQty, 0L)
                             then l.onHandQty - coalesce(r.reservedQty, 0L)
-                            else 0L end) as sellableQty
+                            else 0L end) as sellableQty,
+                   sum(case when l.expiryDate >= :minFlashSaleExpiry and l.expiryDate < :minExpiry
+                            then l.onHandQty
+                            else 0L end) as flashSaleQty
             from Lot l
             left join (
                 select fsi.lot.id as lotId, sum(fsi.allocatedQty - fsi.soldQty) as reservedQty
@@ -73,7 +78,8 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
             group by l.product.id
             """)
     List<StockSummaryRow> summarizeStock(@Param("productIds") Collection<Long> productIds,
-                                         @Param("minExpiry") LocalDate minExpiry);
+                                         @Param("minExpiry") LocalDate minExpiry,
+                                         @Param("minFlashSaleExpiry") LocalDate minFlashSaleExpiry);
 
     boolean existsByProduct_Id(Long productId);
 

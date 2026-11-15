@@ -37,7 +37,7 @@
             </div>
 
             <h1 class="glass-title">Đăng ký tài khoản</h1>
-            <p class="glass-subtitle">Tham gia PetFood để chăm sóc thú cưng với dinh dưỡng chuẩn FEFO.</p>
+            <p class="glass-subtitle">Tham gia PetFood để chăm sóc thú cưng với dinh dưỡng date mới.</p>
 
             <%-- FORM ĐĂNG KÝ --%>
             <form:form method="post" action="${ctx}/register" modelAttribute="registerForm" class="glass-form" id="registerForm" novalidate="novalidate">

@@ -326,7 +326,6 @@
         <div class="page-head">
             <div>
                 <div class="screen-bc">
-                    <span>● PHÂN TÍCH &amp; VẬN HÀNH CỬA HÀNG</span>
                 </div>
                 <h1 style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
                     BẢNG ĐIỀU KHIỂN
@@ -335,7 +334,6 @@
                         THỜI GIAN THỰC
                     </span>
                 </h1>
-                <p class="page-sub">Tổng quan về hiệu suất kinh doanh, đơn hàng, tồn kho và chương trình hội viên.</p>
             </div>
 
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
@@ -357,7 +355,6 @@
             <a class="qbtn primary" href="${ctx}/staff/products/new"><i class="ti ti-circle-plus"></i>+ Thêm sản phẩm</a>
             <a class="qbtn" style="background:#fee2e2; border-color:#fca5a5; color:#991b1b" href="${ctx}/staff/flash-sales/new"><i class="ti ti-bolt" style="color:#ef4444"></i>Tạo chương trình</a>
             <a class="qbtn" href="${ctx}/staff/orders"><i class="ti ti-receipt"></i>Xem đơn hàng</a>
-            <a class="qbtn" href="${ctx}/staff/lots"><i class="ti ti-building-warehouse"></i>Xem tồn kho</a>
             <a class="qbtn" href="javascript:switchAdminTab('tab-revenue')"><i class="ti ti-chart-bar"></i>Xem báo cáo</a>
         </div>
 
@@ -458,8 +455,8 @@
                             Tổng doanh thu
                         </span>
                         <span style="display:inline-flex; align-items:center; gap:8px;">
-                            <span style="width:18px; height:2.5px; background:#64748b; border-radius:2px; display:inline-block;"></span>
-                            Mục tiêu
+<%--                            <span style="width:18px; height:2.5px; background:#64748b; border-radius:2px; display:inline-block;"></span>--%>
+<%--                            Mục tiêu--%>
                         </span>
                     </div>
                 </div>
@@ -506,7 +503,6 @@
                 <div class="panel-head">
                     <div>
                         <h3>Trạng thái đơn hàng</h3>
-                        <p>Tiến độ thực hiện theo thời gian thực</p>
                     </div>
                     <span class="kpi-ico" style="width:34px; height:34px; font-size:16px"><i class="ti ti-chart-pie"></i></span>
                 </div>
@@ -553,8 +549,8 @@
                     </c:choose>
                 </div>
 
-                <div class="panel-foot">
-                    <span style="font-weight:700; color:#10b981"><i class="ti ti-check" style="margin-right:4px"></i>Dữ liệu thời gian thực từ Database</span>
+                <%-- Bỏ dòng "Dữ liệu thời gian thực từ Database"; link dồn về bên phải như cũ --%>
+                <div class="panel-foot" style="justify-content:flex-end">
                     <a class="link-more" href="${ctx}/staff/orders">Quản lý đơn <i class="ti ti-arrow-right"></i></a>
                 </div>
             </div>
@@ -567,19 +563,19 @@
                 <div class="panel-head">
                     <div>
                         <div style="display:flex; align-items:center; gap:8px">
-                            <h3>Cảnh báo tồn kho</h3>
+                            <h3>Sản phẩm gần hết hàng</h3>
                             <span class="pill-badge red">Xuất hàng cận date ngay</span>
                         </div>
                     </div>
-                    <input type="search" placeholder="Tìm kiếm mã SKU..." style="padding:6px 10px; border-radius:10px; font-size:12px; border:1px solid var(--line); width:150px">
+                    <input type="search" placeholder="Tìm kiếm mã sản phẩm..." style="padding:6px 10px; border-radius:10px; font-size:12px; border:1px solid var(--line); width:150px">
                 </div>
 
                 <table>
                     <thead>
                     <tr>
                         <th>SẢN PHẨM</th>
-                        <th>MÃ SKU</th>
-                        <th>TỒN KHO / TỐI THIỂU</th>
+                        <th>MÃ SẢN PHẨM</th>
+                        <th>CÓ THỂ BÁN / NGƯỠNG</th>
                         <th>TRẠNG THÁI</th>
                         <th>THAO TÁC</th>
                     </tr>
@@ -609,12 +605,12 @@
                                                 <span class="pill-badge red">Hết hàng</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="pill-badge orange">Sắp hết hàng</span>
+                                                <span class="pill-badge orange">Gần hết hàng</span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
                                     <td>
-                                        <a href="${ctx}/staff/lots/new?productId=${item.productId}" class="act-icon" title="Nhập thêm hàng" style="background:#ea580c; color:#fff; width:auto; padding:4px 8px; font-size:12px; font-weight:700; border-radius:8px; text-decoration:none">Nhập thêm</a>
+                                        <a href="${ctx}/staff/products/${item.productId}" class="act-icon" title="Xem chi tiết sản phẩm" style="background:#ea580c; color:#fff; width:auto; padding:4px 8px; font-size:12px; font-weight:700; border-radius:8px; text-decoration:none">Xem</a>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -622,7 +618,7 @@
                         <c:otherwise>
                             <tr>
                                 <td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted)">
-                                    <i class="ti ti-circle-check" style="color:#10b981; font-size:18px; vertical-align:middle; margin-right:6px"></i>Tất cả sản phẩm đều có mức tồn kho an toàn
+                                    <i class="ti ti-circle-check" style="color:#10b981; font-size:18px; vertical-align:middle; margin-right:6px"></i>Tất cả sản phẩm đều còn đủ hàng
                                 </td>
                             </tr>
                         </c:otherwise>
@@ -630,9 +626,8 @@
                     </tbody>
                 </table>
 
-                <div class="panel-foot">
-                    <span>Dữ liệu tồn kho thời gian thực</span>
-                    <a class="link-more" href="${ctx}/staff/alerts">Quản lý tồn kho nâng cao <i class="ti ti-arrow-right"></i></a>
+                <div class="panel-foot" style="justify-content:flex-end">
+                    <a class="link-more" href="${ctx}/staff/alerts">Cảnh báo <i class="ti ti-arrow-right"></i></a>
                 </div>
             </div>
         </section>
@@ -644,7 +639,6 @@
                 <div class="panel-head">
                     <div>
                         <h3>Chương trình hội viên</h3>
-                        <p>Phân bổ hội viên trên các tài khoản hoạt động</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px">
                         <span class="pill-badge gold">
@@ -696,7 +690,7 @@
 
                 <div class="panel-foot">
                     <a class="link-more" href="javascript:switchAdminTab('tab-members')">Xem quyền lợi &amp; Cài đặt hạng <i class="ti ti-arrow-right"></i></a>
-                    <span class="hint">Cập nhật thời gian thực</span>
+<%--                    <span class="hint">Cập nhật thời gian thực</span>--%>
                 </div>
             </div>
 
@@ -705,7 +699,6 @@
                 <div class="panel-head">
                     <div>
                         <h3>Sản phẩm bán chạy nhất</h3>
-                        <p>Xếp hạng sản phẩm theo sản lượng bán</p>
                     </div>
                 </div>
 
@@ -726,7 +719,7 @@
                                     <td><span class="rank r${pStatus.count}">${pStatus.count}</span></td>
                                     <td>
                                         <b><c:out value="${p.name}"/></b>
-                                        <div class="sku">SKU: <c:out value="${p.sku}"/></div>
+                                        <div class="sku">Mã sản phẩm: <c:out value="${p.sku}"/></div>
                                     </td>
                                     <td class="num"><b>${p.quantity} món</b></td>
                                     <td class="num" style="color:#ea580c; font-weight:800"><fmt:formatNumber value="${p.revenue}" type="number"/> ₫</td>
@@ -764,11 +757,11 @@
                 <div>
                     <h1 style="font-size:24px; font-weight:800; color:#1e293b; margin:0 0 6px 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                         BÁO CÁO DOANH THU &amp; KINH DOANH
-                        <span style="display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px; background:#fff7ed; color:#ea580c; border:1px solid #ffedd5; font-size:11px; font-weight:800; letter-spacing:0.3px;">
-                            <i class="ti ti-lock" style="font-size:12px;"></i> DỮ LIỆU ĐỘC QUYỀN ADMIN
-                        </span>
+<%--                        <span style="display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:99px; background:#fff7ed; color:#ea580c; border:1px solid #ffedd5; font-size:11px; font-weight:800; letter-spacing:0.3px;">--%>
+<%--                            <i class="ti ti-lock" style="font-size:12px;"></i> DỮ LIỆU ĐỘC QUYỀN ADMIN--%>
+<%--                        </span>--%>
                     </h1>
-                    <p style="font-size:13.5px; color:#64748b; margin:0;">Theo dõi hiệu quả bán hàng, xu hướng đơn hàng và kết quả kinh doanh tổng thể.</p>
+<%--                    <p style="font-size:13.5px; color:#64748b; margin:0;">Theo dõi hiệu quả bán hàng, xu hướng đơn hàng và kết quả kinh doanh tổng thể.</p>--%>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 </div>
@@ -794,6 +787,8 @@
                         <button type="button" class="rev-quick-chip" id="chip-today" onclick="selectQuickChip(this, 'today')">Hôm nay</button>
                         <button type="button" class="rev-quick-chip" id="chip-week" onclick="selectQuickChip(this, 'week')">Tuần này</button>
                         <button type="button" class="rev-quick-chip active" id="chip-month" onclick="selectQuickChip(this, 'month')">Tháng này</button>
+                        <button type="button" class="rev-quick-chip" id="chip-3months" onclick="selectQuickChip(this, '3months')" title="3 tháng gần nhất, tính cả tháng này">3 tháng</button>
+                        <button type="button" class="rev-quick-chip" id="chip-6months" onclick="selectQuickChip(this, '6months')" title="6 tháng gần nhất, tính cả tháng này">6 tháng</button>
                         <button type="button" class="rev-quick-chip" id="chip-year" onclick="selectQuickChip(this, 'year')">Năm nay</button>
                     </div>
                 </div>
@@ -891,10 +886,10 @@
                             <span style="width:12px; height:12px; border-radius:3px; background:#ea580c; display:inline-block;"></span>
                             Tổng doanh thu
                         </span>
-                        <span style="display:inline-flex; align-items:center; gap:6px;">
-                            <span style="width:16px; height:2.5px; background:#64748b; border-radius:2px; display:inline-block;"></span>
-                            Mục tiêu
-                        </span>
+<%--                        <span style="display:inline-flex; align-items:center; gap:6px;">--%>
+<%--                            <span style="width:16px; height:2.5px; background:#64748b; border-radius:2px; display:inline-block;"></span>--%>
+<%--                            Mục tiêu--%>
+<%--                        </span>--%>
                     </div>
                 </div>
 
@@ -950,7 +945,8 @@
 
                 <div class="trend-chart-wrapper" id="screen12OrdersWrapper" style="position:relative; width:100%; user-select:none;">
                     <div style="display:flex; height:240px; position:relative;">
-                        <div style="width:32px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start; font-size:12px; font-weight:600; color:#94a3b8; padding-bottom:2px; flex-shrink:0;">
+                        <%-- Mốc trục dọc: JS (renderOrdersTrendChart) ghi lại theo số đơn thật, 80/60/40/20 chỉ là giá trị ban đầu --%>
+                        <div class="orders-y-labels" style="width:32px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-start; font-size:12px; font-weight:600; color:#94a3b8; padding-bottom:2px; flex-shrink:0;">
                             <span>80</span>
                             <span>60</span>
                             <span>40</span>
@@ -992,7 +988,6 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
                     <div>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Doanh thu theo danh mục sản phẩm</h3>
-                        <p style="font-size:12.5px; color:#64748b; margin:0;">Phân bổ doanh thu theo từng nhóm thức ăn thú cưng</p>
                     </div>
                     <span class="kpi-ico" style="width:34px; height:34px; font-size:16px; border-radius:10px;"><i class="ti ti-chart-pie"></i></span>
                 </div>
@@ -1158,7 +1153,6 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
                     <div>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Sản phẩm bán chạy nhất</h3>
-                        <p style="font-size:12.5px; color:#64748b; margin:0;">Xếp hạng theo tổng doanh thu</p>
                     </div>
                     <a href="${ctx}/staff/products" style="font-size:12.5px; font-weight:700; color:#ea580c; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
                         Xem toàn bộ danh mục <i class="ti ti-arrow-right"></i>
@@ -1170,7 +1164,7 @@
                         <thead>
                         <tr>
                             <th>HẠNG &amp; SẢN PHẨM</th>
-                            <th>MÃ SKU</th>
+                            <th>MÃ SẢN PHẨM</th>
                             <th>DANH MỤC</th>
                             <th style="text-align:right;">SỐ LƯỢNG ĐÃ BÁN</th>
                             <th style="text-align:right;">DOANH THU</th>
@@ -1285,7 +1279,6 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
                     <div>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Phương thức thanh toán</h3>
-                        <p style="font-size:12.5px; color:#64748b; margin:0;">Tỷ trọng doanh thu 2 kênh thanh toán</p>
                     </div>
                     <span class="kpi-ico" style="width:34px; height:34px; font-size:16px; border-radius:10px;"><i class="ti ti-credit-card"></i></span>
                 </div>
@@ -1343,7 +1336,6 @@
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
                 <div>
                     <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Tổng hợp doanh số hàng ngày</h3>
-                    <p style="font-size:12.5px; color:#64748b; margin:0;">Kiểm toán chi tiết giao dịch theo ngày</p>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <select id="screen12SortSelect" onchange="changeDailyAuditSort(this.value)" style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:700; color:#334155; cursor:pointer; font-family:inherit; outline:none; transition:all 0.15s ease;">
@@ -1413,9 +1405,6 @@
                         Quyền Quản trị viên • Chỉ xem
                     </span>
                 </h1>
-                <p class="page-sub" style="font-size:13px; color:#64748b; margin:0;">
-                    Báo cáo tổng hợp cơ cấu hạng, hành vi mua sắm và hiệu quả kinh doanh từ chương trình hội viên PetCare.
-                </p>
             </div>
 
             <div style="display:flex; align-items:center; gap:10px;">
@@ -1474,7 +1463,7 @@
             <div class="filter-meta-bar">
                 <div class="filter-meta-badge">
                     <span class="filter-pulse-dot"></span>
-                    <span>Đang lọc: <b id="s13FilterStatusLabel" style="color:#1e293b;">01/10/2026 - 31/10/2026</b> &bull; Phạm vi: <b>Toàn hệ thống PetCare Shop (Cửa hàng &amp; Online)</b></span>
+                    <span>Đang lọc: <b id="s13FilterStatusLabel" style="color:#1e293b;">01/10/2026 - 31/10/2026</b></span>
                 </div>
             </div>
         </div>
@@ -1525,7 +1514,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
                     <div>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0 0 3px 0;">Phân bổ hạng thành viên</h3>
-                        <p id="s13DonutSubtitle" style="font-size:12px; color:#64748b; margin:0;">Cơ cấu 3,842 hội viên theo các cấp bậc</p>
+<%--                        <p id="s13DonutSubtitle" style="font-size:12px; color:#64748b; margin:0;">Cơ cấu 3,842 hội viên theo các cấp bậc</p>--%>
                     </div>
                     <div style="width:34px; height:34px; border-radius:50%; border:1px solid #e2e8f0; display:grid; place-items:center; color:#64748b;">
                         <i class="ti ti-chart-pie" style="font-size:18px;"></i>
@@ -1737,16 +1726,16 @@
                 <div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <i class="ti ti-shopping-cart" style="color:#ea580c; font-size:20px;"></i>
-                        <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0;">Hành vi mua sắm của hội viên</h3>
+                        <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0;">Thống kê mua sắm của hội viên</h3>
                     </div>
                     <p style="font-size:12.5px; color:#64748b; margin:3px 0 0 0;">
-                        So sánh chuyên sâu về tỷ trọng doanh thu, số lượng đơn và giá trị đơn hàng trung bình (AOV) giữa các hạng.
+<%--                        So sánh chuyên sâu về tỷ trọng doanh thu, số lượng đơn và giá trị đơn hàng trung bình (AOV) giữa các hạng.--%>
                     </p>
                 </div>
                 <div>
-                    <span class="pill-badge orange" style="background:#fff7ed; border:1px solid #fed7aa; color:#ea580c; font-size:12px; font-weight:700; padding:6px 14px; border-radius:99px;">
-                        <i class="ti ti-shield-check" style="margin-right:4px;"></i> Dữ liệu giao dịch được xác thực
-                    </span>
+<%--                    <span class="pill-badge orange" style="background:#fff7ed; border:1px solid #fed7aa; color:#ea580c; font-size:12px; font-weight:700; padding:6px 14px; border-radius:99px;">--%>
+<%--                        <i class="ti ti-shield-check" style="margin-right:4px;"></i> Dữ liệu giao dịch được xác thực--%>
+<%--                    </span>--%>
                 </div>
             </div>
 
@@ -1853,10 +1842,10 @@
                     </div>
 
                     <%-- Khung insight nhận xét --%>
-                    <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:10px 14px; margin-top:16px; font-size:12px; color:#9a3412;">
-                        <b>Nhận xét văn hóa:</b>
-                        <span id="s13AovInsightText" style="margin-left:4px;">Hội viên Kim cương có giá trị đơn hàng trung bình (AOV) vượt trội.</span>
-                    </div>
+<%--                    <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:10px 14px; margin-top:16px; font-size:12px; color:#9a3412;">--%>
+<%--                        <b>Nhận xét văn hóa:</b>--%>
+<%--                        <span id="s13AovInsightText" style="margin-left:4px;">Hội viên Kim cương có giá trị đơn hàng trung bình (AOV) vượt trội.</span>--%>
+<%--                    </div>--%>
                 </div>
             </div>
         </div>
@@ -1869,9 +1858,9 @@
                         <i class="ti ti-tags" style="color:#ea580c; font-size:20px;"></i>
                         <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:0;">Hiệu quả chương trình hội viên</h3>
                     </div>
-                    <p style="font-size:12.5px; color:#64748b; margin:3px 0 0 0;">
-                        Đánh giá ROI chương trình khách hàng thân thiết, tác động kích cầu lên doanh số và tỷ lệ chuyển đổi.
-                    </p>
+<%--                    <p style="font-size:12.5px; color:#64748b; margin:3px 0 0 0;">--%>
+<%--                        Đánh giá ROI chương trình khách hàng thân thiết, tác động kích cầu lên doanh số và tỷ lệ chuyển đổi.--%>
+<%--                    </p>--%>
                 </div>
                 <div>
                     <span class="pill-badge orange" style="background:#fff7ed; border:1px solid #fed7aa; color:#ea580c; font-size:12.5px; font-weight:800; padding:6px 16px; border-radius:99px;" id="s13RoiBadge">
@@ -2600,7 +2589,18 @@
         }
         if (maxOrders === 0) maxOrders = 3;
 
-        const scaleCeiling = maxOrders / 0.76;
+        // Trục dọc chia 4 khoảng đều, mỗi khoảng là số nguyên "đẹp" (1, 2, 3, 5, 10, 20, 30, 50...) để mốc trên cùng >= ngày nhiều đơn nhất.
+        // Chiều cao cột tính theo đúng mốc trên cùng nên cột khớp với các mốc ghi bên trái.
+        const rawStep = maxOrders / 4;
+        const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+        let niceStep = [1, 2, 3, 5, 10].map(k => k * magnitude).find(v => v >= rawStep) || 10 * magnitude;
+        niceStep = Math.max(1, Math.ceil(niceStep));
+        const scaleCeiling = niceStep * 4;
+        const yLabelBox = wrapper.querySelector('.orders-y-labels');
+        if (yLabelBox) {
+            const spans = yLabelBox.querySelectorAll('span');
+            spans.forEach((sp, i) => { sp.textContent = String(niceStep * (spans.length - 1 - i)); });
+        }
         const container = wrapper.querySelector('.rev-bars-orders');
         const tooltip = wrapper.querySelector('.rev-tt-orders');
         const axisLabels = wrapper.querySelector('.trend-axis-labels');
@@ -2753,8 +2753,13 @@
         // Cập nhật nhãn trung bình đơn/ngày
         const avgBadge = document.getElementById('screen12OrdersAvgBadge');
         if (avgBadge) {
-            const totalOrders = dayOrderList.reduce((sum, d) => sum + d.count, 0);
-            const avg = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : '0.0';
+            // Chỉ tính tới hôm nay: lọc 01/11–30/11 mà hôm nay 13/11 thì chia cho 13 ngày (01/11–13/11),
+            // không chia cho cả những ngày chưa tới. Khoảng lọc đã qua hết thì tính đủ cả khoảng.
+            const now = new Date();
+            const todayIso = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            const elapsedDays = dayOrderList.filter(d => d.date <= todayIso);
+            const totalOrders = elapsedDays.reduce((sum, d) => sum + d.count, 0);
+            const avg = elapsedDays.length > 0 ? (totalOrders / elapsedDays.length).toFixed(1) : '0.0';
             avgBadge.innerHTML = '<i class="ti ti-chart-bar" style="font-size:13px;"></i> Trung bình: ' + avg + ' đơn/ngày';
         }
     }
@@ -3186,25 +3191,27 @@
 
         let prevStart, prevEnd, periodLabel;
 
-        const isFullMonth = (startDate.getDate() === 1 &&
-            endDate.getDate() === new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate() &&
-            startDate.getMonth() === endDate.getMonth() &&
-            startDate.getFullYear() === endDate.getFullYear());
-
         const isFullYear = (startDate.getMonth() === 0 && startDate.getDate() === 1 &&
             endDate.getMonth() === 11 && endDate.getDate() === 31 &&
             startDate.getFullYear() === endDate.getFullYear());
 
+        // Trọn N tháng (từ ngày 1 tới cuối tháng): Tháng này (N = 1), 3 tháng, 6 tháng... so với N tháng liền trước
+        const isFullMonths = (startDate.getDate() === 1 &&
+            endDate.getDate() === new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate() &&
+            endDate >= startDate);
+        const monthSpan = (endDate.getFullYear() - startDate.getFullYear()) * 12
+            + (endDate.getMonth() - startDate.getMonth()) + 1;
+
         const diffDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (isFullMonth) {
-            prevStart = new Date(startDate.getFullYear(), startDate.getMonth() - 1, 1);
-            prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
-            periodLabel = 'tháng trước';
-        } else if (isFullYear) {
+        if (isFullYear) {
             prevStart = new Date(startDate.getFullYear() - 1, 0, 1);
             prevEnd = new Date(startDate.getFullYear() - 1, 11, 31);
             periodLabel = 'năm trước';
+        } else if (isFullMonths) {
+            prevStart = new Date(startDate.getFullYear(), startDate.getMonth() - monthSpan, 1);
+            prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0);
+            periodLabel = monthSpan === 1 ? 'tháng trước' : (monthSpan + ' tháng trước đó');
         } else if (diffDays === 7) {
             prevEnd = new Date(startDate);
             prevEnd.setDate(prevEnd.getDate() - 1);
@@ -3313,6 +3320,10 @@
         const yearFromIso = now.getFullYear() + '-01-01';
         const yearToIso = now.getFullYear() + '-12-31';
 
+        // 3 tháng / 6 tháng: từ đầu tháng (này − 2 / − 5) tới cuối tháng này
+        const months3FromIso = toIso(new Date(now.getFullYear(), now.getMonth() - 2, 1));
+        const months6FromIso = toIso(new Date(now.getFullYear(), now.getMonth() - 5, 1));
+
         document.querySelectorAll('.rev-quick-chip').forEach(c => c.classList.remove('active'));
 
         if (fromVal === todayIso && toVal === todayIso) {
@@ -3321,6 +3332,10 @@
             document.getElementById('chip-week')?.classList.add('active');
         } else if (fromVal === monthFromIso && toVal === monthToIso) {
             document.getElementById('chip-month')?.classList.add('active');
+        } else if (fromVal === months3FromIso && toVal === monthToIso) {
+            document.getElementById('chip-3months')?.classList.add('active');
+        } else if (fromVal === months6FromIso && toVal === monthToIso) {
+            document.getElementById('chip-6months')?.classList.add('active');
         } else if (fromVal === yearFromIso && toVal === yearToIso) {
             document.getElementById('chip-year')?.classList.add('active');
         }
@@ -3358,6 +3373,13 @@
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             fromInput.value = toIso(startOfMonth);
+            toInput.value = toIso(endOfMonth);
+        } else if (period === '3months' || period === '6months') {
+            // N tháng gần nhất tính cả tháng này, lấy trọn tháng: VD đang tháng 11 thì 3 tháng = 01/09 → 30/11
+            const months = period === '3months' ? 3 : 6;
+            const startOfRange = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            fromInput.value = toIso(startOfRange);
             toInput.value = toIso(endOfMonth);
         } else if (period === 'year') {
             fromInput.value = now.getFullYear() + '-01-01';
@@ -4752,7 +4774,7 @@
                             topTbody.innerHTML = topList.map((p, idx) =>
                                 '<tr>' +
                                 '<td><span class="rank r' + (idx + 1) + '">' + (idx + 1) + '</span></td>' +
-                                '<td><b>' + escapeHtml(p.name || '') + '</b><div class="sku">SKU: ' + escapeHtml(p.sku || '') + '</div></td>' +
+                                '<td><b>' + escapeHtml(p.name || '') + '</b><div class="sku">Mã sản phẩm: ' + escapeHtml(p.sku || '') + '</div></td>' +
                                 '<td class="num"><b>' + Number(p.quantity || 0).toLocaleString('vi-VN') + ' món</b></td>' +
                                 '<td class="num" style="color:#ea580c; font-weight:800">' + Number(p.revenue || 0).toLocaleString('vi-VN') + ' ₫</td>' +
                                 '</tr>'

@@ -5,6 +5,7 @@ import com.isp392.petfood.dto.ReturnDetailDto;
 import com.isp392.petfood.dto.ReturnDetailDto.MediaDto;
 import com.isp392.petfood.dto.ReturnForm;
 import com.isp392.petfood.dto.ReturnLineDto;
+import com.isp392.petfood.dto.RefundNotice;
 import com.isp392.petfood.dto.ReturnRow;
 import com.isp392.petfood.dto.ReturnableLine;
 import com.isp392.petfood.entity.Customer;
@@ -39,6 +40,7 @@ import com.isp392.petfood.service.ReturnMediaStorage.Detected;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,13 +60,14 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // Trả hàng và hoàn tiền (module 7).
 //   Khách gửi: chỉ đơn COMPLETED trong 3 ngày (BR-32), mỗi dòng đơn trả một lần, kèm 1-5 ảnh/video (BR-33);
-//     hàng Flash Sale không trả với lý do hạn dùng (BR-35); đơn COD nhập đủ tài khoản nhận hoàn (LI-05).
+//     hàng Flash Sale không trả với lý do hạn dùng (BR-35); nhập đủ tài khoản nhận hoàn cho cả đơn COD và VNPay (LI-05).
 //   Staff: REQUESTED -> APPROVED | REJECTED (phải ghi lý do, BR-36) -> RECEIVED -> INSPECTED -> REFUNDED | CLOSED.
 //     Thẩm định từng dòng: RESTOCKED (cộng trả đúng lô gốc qua OrderItemLot) hoặc DISPOSED (BR-38);
 //     refund_amount = phần khách thực trả cho số lượng trả (sau giảm hạng, không gồm phí ship), BR-37.
@@ -93,6 +96,7 @@ public class ReturnService {
     private final MembershipPolicy membershipPolicy;
     private final MembershipService membershipService;
     private final ReturnMediaStorage mediaStorage;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== Phía khách =====
 
@@ -158,7 +162,7 @@ public class ReturnService {
             // BR-34: hàng đã mở bao bì chỉ được trả khi bị lỗi chất lượng / hư hỏng hoặc cận hạn / hết hạn
             if (line.isOpened() && form.getReason() == ReturnReason.WRONG_OR_MISSING) {
                 errors.put("lines", item.getProduct().getName()
-                        + ": sản phẩm giao sai/thiếu không được trả nếu đã mở bao bì (BR-34)");
+                        + ": sản phẩm giao sai/thiếu không được trả nếu đã mở bao bì");
             }
         }
 
@@ -169,10 +173,9 @@ public class ReturnService {
             errors.put("media", "Vui lòng gửi từ 1 đến " + MAX_MEDIA + " ảnh hoặc video làm bằng chứng");
         }
 
-        // Đơn COD: phải có đủ tài khoản nhận hoàn (LI-05); đơn VNPay không cần
-        boolean cod = order.getPaymentMethod() == PaymentMethod.COD;
-        if (cod && (blank(form.getRefundBankName()) || blank(form.getRefundAccountNo()) || blank(form.getRefundAccountHolder()))) {
-            errors.put("refundBankName", "Đơn COD: vui lòng nhập đủ ngân hàng, số tài khoản và chủ tài khoản để nhận tiền hoàn");
+        // Hoàn tiền làm thủ công bằng chuyển khoản (LI-05, mục 9.12) nên cả đơn COD và VNPay đều phải có tài khoản nhận hoàn
+        if (blank(form.getRefundBankName()) || blank(form.getRefundAccountNo()) || blank(form.getRefundAccountHolder())) {
+            errors.put("refundBankName", "Vui lòng nhập đủ ngân hàng, số tài khoản và chủ tài khoản để nhận tiền hoàn");
         }
         if (!errors.isEmpty()) {
             throw new BusinessRuleException(errors);
@@ -201,11 +204,9 @@ public class ReturnService {
         request.setOrder(order);
         request.setReason(form.getReason());
         request.setDescription(blank(form.getDescription()) ? null : form.getDescription().trim());
-        if (cod) {
-            request.setRefundBankName(form.getRefundBankName().trim());
-            request.setRefundAccountNo(form.getRefundAccountNo().trim());
-            request.setRefundAccountHolder(form.getRefundAccountHolder().trim());
-        }
+        request.setRefundBankName(form.getRefundBankName().trim());
+        request.setRefundAccountNo(form.getRefundAccountNo().trim());
+        request.setRefundAccountHolder(form.getRefundAccountHolder().trim());
         returnRequestRepository.save(request);
         for (ReturnForm.Line line : chosen) {
             returnItemRepository.save(new ReturnItem(request, orderItems.get(line.getOrderItemId()),
@@ -313,7 +314,7 @@ public class ReturnService {
     @Transactional
     public ReturnRequest reject(Long returnId, Long employeeId, String reason) {
         if (blank(reason)) {
-            throw new BusinessRuleException("Vui lòng nhập lý do từ chối (BR-36)");
+            throw new BusinessRuleException("Vui lòng nhập lý do từ chối");
         }
         ReturnRequest r = lock(returnId);
         requireStatus(r, ReturnStatus.REQUESTED, "từ chối");
@@ -355,10 +356,10 @@ public class ReturnService {
             if (line.getResult() == InspectionResult.RESTOCKED) {
                 String productName = item.getOrderItem().getProduct().getName();
                 if (Boolean.TRUE.equals(item.getOpened())) {
-                    throw new BusinessRuleException(productName + " đã mở bao bì nên không được phép tái nhập kho (BR-34/BR-38). Vui lòng chọn Tiêu huỷ.");
+                    throw new BusinessRuleException(productName + " đã mở bao bì nên không được phép tái nhập kho. Vui lòng chọn Tiêu huỷ.");
                 }
                 if (r.getReason() == ReturnReason.DAMAGED) {
-                    throw new BusinessRuleException(productName + " trả về do lỗi chất lượng / hư hỏng nên không được tái nhập kho (BR-38). Vui lòng chọn Tiêu huỷ.");
+                    throw new BusinessRuleException(productName + " trả về do lỗi chất lượng / hư hỏng nên không được tái nhập kho. Vui lòng chọn Tiêu huỷ.");
                 }
                 boolean hasValidLot = allOrderLots.stream()
                         .filter(x -> x.getOrderItem().getId().equals(item.getOrderItem().getId()))
@@ -367,7 +368,7 @@ public class ReturnService {
                                 && inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.BLOCKED
                                 && inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.EXPIRED);
                 if (!hasValidLot) {
-                    throw new BusinessRuleException(productName + ": lô gốc đã quá cận hạn (< 21 ngày), hết hạn hoặc đã tiêu huỷ nên không thể tái nhập kho (BR-51). Vui lòng chọn Tiêu huỷ.");
+                    throw new BusinessRuleException(productName + ": lô gốc đã quá cận hạn (< 21 ngày), hết hạn hoặc đã tiêu huỷ nên không thể tái nhập kho. Vui lòng chọn Tiêu huỷ.");
                 }
             }
         }
@@ -413,7 +414,26 @@ public class ReturnService {
         }
         // Cập nhật lại hạng hội viên sau khi hoàn tiền (BR-40)
         membershipService.recalculateAll();
+        // Báo ngay cho khách qua WebSocket (RefundNotifier gửi sau khi commit)
+        eventPublisher.publishEvent(new RefundNotifier.RefundedEvent(order.getCustomer().getId(), toNotice(r)));
         return r;
+    }
+
+    // Thông báo hoàn tiền trong số ngày gần đây, để trang khách hiện lại khi khách mở trình duyệt / đăng nhập lại.
+    // Không lưu cờ "đã xem" trong DB: trình duyệt nhớ các mã đã đóng (localStorage).
+    @Transactional(readOnly = true)
+    public List<RefundNotice> recentRefundNotices(Long customerId, int days) {
+        return returnRequestRepository.findRefundedOfCustomerSince(customerId, VnpayClient.nowVn().minusDays(days))
+                .stream().map(this::toNotice).toList();
+    }
+
+    private RefundNotice toNotice(ReturnRequest r) {
+        BigDecimal total = returnItemRepository.findByReturnId(r.getId()).stream()
+                .map(ReturnItem::getRefundAmount).filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        String acc = r.getRefundAccountNo();
+        String masked = blank(acc) ? null : acc.length() <= 4 ? acc : "****" + acc.substring(acc.length() - 4);
+        return new RefundNotice(r.getId(), r.getOrder().getId(), total, r.getRefundedAt(), r.getRefundBankName(), masked);
     }
 
     // Đơn RETURNED (khách không nhận hàng): tạo sẵn yêu cầu ở trạng thái APPROVED (chờ nhận hàng trả về kho)
@@ -491,7 +511,7 @@ public class ReturnService {
     private void requireWindow(Order order) {
         if (!withinWindow(order)) {
             throw new BusinessRuleException("Chỉ trả hàng cho đơn đã giao thành công trong vòng "
-                    + membershipPolicy.getReturnWindowDays() + " ngày (BR-32).");
+                    + membershipPolicy.getReturnWindowDays() + " ngày.");
         }
     }
 
@@ -553,7 +573,7 @@ public class ReturnService {
                             i.getOrderItem().getProduct().getFullSku(), i.getOrderItem().getProduct().getName(),
                             isFlash, isPromo, i.getOrderItem().getQuantity(), i.getQuantity(),
                             Boolean.TRUE.equals(i.getOpened()), maxRefund(i), i.getInspectionResult(),
-                            i.getInspectionNote(), i.getRefundAmount());
+                            i.getInspectionNote(), i.getRefundAmount(), i.getOrderItem().getProduct().getImageUrl());
                 })
                 .toList();
         BigDecimal refundTotal = lines.stream().map(ReturnLineDto::getRefundAmount)

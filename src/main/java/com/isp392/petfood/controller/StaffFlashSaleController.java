@@ -83,7 +83,7 @@ public class StaffFlashSaleController {
         try {
             FlashSale sale = flashSaleService.quickCreateFlashSaleForLot(lotId, user.getEmployeeId());
             redirect.addFlashAttribute("successMessage",
-                    "Đã kích hoạt Flash Sale ngay lập tức cho lô hàng #" + lotId + "! Mức giảm "
+                    "Đã kích hoạt Flash Sale ngay lập tức! Mức giảm "
                             + sale.getDiscountPercent() + "% (" + sale.getName() + ").");
         } catch (BusinessRuleException e) {
             redirect.addFlashAttribute("errorMessage", e.getMessage());

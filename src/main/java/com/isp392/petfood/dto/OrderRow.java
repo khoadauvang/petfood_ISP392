@@ -1,5 +1,7 @@
 package com.isp392.petfood.dto;
 
+import com.isp392.petfood.util.CustomerMask;
+
 import com.isp392.petfood.enums.OrderStatus;
 import com.isp392.petfood.enums.ReturnStatus;
 import lombok.AllArgsConstructor;
@@ -62,5 +64,14 @@ public class OrderRow {
         if (isReturned()) return "Đã hoàn trả";
         if (isReturnPending()) return "Đang xử lý hoàn trả";
         return status != null ? status.getLabel() : "";
+    }
+
+    // Bản đã che để hiện cho staff (giống màn Báo cáo hội viên); bản gốc vẫn dùng để tìm kiếm / gửi GHN
+    public String getMaskedCustomerName() {
+        return CustomerMask.name(customerName);
+    }
+
+    public String getMaskedCustomerEmail() {
+        return CustomerMask.email(customerEmail);
     }
 }

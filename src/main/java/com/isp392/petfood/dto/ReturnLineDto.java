@@ -23,11 +23,12 @@ public class ReturnLineDto {
     private final InspectionResult inspectionResult;
     private final String inspectionNote;
     private final BigDecimal refundAmount;
+    private final String imageUrl;               // ảnh đại diện (Product.image_url), có thể null
 
     public ReturnLineDto(Long returnItemId, Long productId, String sku, String productName, boolean flashSale,
                          int orderedQty, int quantity, boolean opened, BigDecimal maxRefund,
                          InspectionResult inspectionResult, String inspectionNote, BigDecimal refundAmount) {
         this(returnItemId, productId, sku, productName, flashSale, false, orderedQty, quantity, opened, maxRefund,
-                inspectionResult, inspectionNote, refundAmount);
+                inspectionResult, inspectionNote, refundAmount, null);
     }
 }

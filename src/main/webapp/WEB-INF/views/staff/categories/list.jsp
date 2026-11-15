@@ -20,7 +20,7 @@
                 <span class="current">QUẢN LÝ DANH MỤC</span>
             </div>
             <h1>QUẢN LÝ DANH MỤC <span class="pill-badge orange">PHÂN LOẠI THÚ CƯNG</span></h1>
-            <p class="page-sub">Phân nhóm sản phẩm thức ăn hạt, pate dinh dưỡng, cát vệ sinh và đồ dùng dành cho Chó &amp; Mèo.</p>
+<%--            <p class="page-sub">Phân nhóm sản phẩm thức ăn hạt, pate dinh dưỡng, cát vệ sinh và đồ dùng dành cho Chó &amp; Mèo.</p>--%>
         </div>
 
         <div>
@@ -83,7 +83,7 @@
         <div class="split-head">
             <div>
                 <h3 style="margin:0"><i class="ti ti-list" style="color:var(--color-primary)"></i>DANH SÁCH DANH MỤC SẢN PHẨM</h3>
-                <small style="color:var(--text-muted)">Hiển thị theo loại thú cưng và số lượng sản phẩm liên kết</small>
+<%--                <small style="color:var(--text-muted)">Hiển thị theo loại thú cưng và số lượng sản phẩm liên kết</small>--%>
             </div>
             <div style="font-size:13px; color:var(--text-muted)">
                 Tổng cộng: <b style="color:var(--color-primary)">${categories != null ? categories.size() : 0}</b> danh mục

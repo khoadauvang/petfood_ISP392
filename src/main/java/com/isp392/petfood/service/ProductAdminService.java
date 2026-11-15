@@ -8,10 +8,12 @@ import com.isp392.petfood.dto.ProductOption;
 import com.isp392.petfood.dto.ProductVariantDto;
 import com.isp392.petfood.dto.StockSummary;
 import com.isp392.petfood.entity.Category;
+import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Product;
 import com.isp392.petfood.entity.ProductImage;
 import com.isp392.petfood.enums.ProductStatus;
 import com.isp392.petfood.enums.Species;
+import com.isp392.petfood.enums.StockStatus;
 import com.isp392.petfood.exception.BusinessRuleException;
 import com.isp392.petfood.exception.InvalidImageException;
 import com.isp392.petfood.exception.NotFoundException;
@@ -82,9 +84,11 @@ public class ProductAdminService {
         return products.map(p -> new ProductAdminRow(p, stock.getOrDefault(p.getId(), StockSummary.EMPTY)));
     }
 
-    // Gom nhóm các sản phẩm thành dòng sản phẩm cha và các biến thể (Master-Detail Accordion)
+    // Gom nhóm các sản phẩm thành dòng sản phẩm cha và các biến thể (Master-Detail Accordion).
+    // stockStatus != null: chỉ giữ biến thể đúng tình trạng hàng đó; dòng không còn biến thể nào thì bỏ.
     @Transactional(readOnly = true)
-    public List<ProductGroupDto> getProductGroups(String keyword, Long categoryId, Species species, ProductStatus status) {
+    public List<ProductGroupDto> getProductGroups(String keyword, Long categoryId, Species species, ProductStatus status,
+                                                  StockStatus stockStatus) {
         Pageable pageable = Pageable.unpaged(Sort.by(Sort.Direction.DESC, "id"));
         Page<Product> page = productRepository.search(keyword, categoryId, species, status, pageable);
         List<Product> products = page.getContent();
@@ -96,14 +100,17 @@ public class ProductAdminService {
 
         for (Product p : products) {
             StockSummary ss = stock.getOrDefault(p.getId(), StockSummary.EMPTY);
-            ProductAdminRow row = new ProductAdminRow(p, ss);
+            StockStatus variantStock = StockStatus.of(ss.getSellableQty(), ss.getFlashSaleQty(), p.getLowStockThreshold());
+            if (stockStatus != null && variantStock != stockStatus) {
+                continue;
+            }
 
             // Tên gốc (bỏ quy cách ở cuối tên) để đặt tên nhóm; quy cách lấy thẳng từ cột variant
             String fullName = p.getName() != null ? p.getName().trim() : "";
             String baseName = baseName(fullName);
             String spec = p.getVariant();
 
-            // Các quy cách của cùng một dòng sản phẩm có chung sku (RC-KITTEN36 -> 400G, 2000G)
+            // Các quy cách của cùng một dòng sản phẩm có chung mã sản phẩm (05 -> 400G, 2000G)
             String baseSku = p.getSku();
             String groupKey = baseSku.toLowerCase(Locale.ROOT);
 
@@ -124,7 +131,6 @@ public class ProductAdminService {
             ProductVariantDto variant = ProductVariantDto.builder()
                     .id(p.getId())
                     .sku(p.getFullSku())
-                    .barcode(p.getBarcode())
                     .name(p.getName())
                     .spec(spec)
                     .sellingPrice(p.getSellingPrice())
@@ -133,7 +139,8 @@ public class ProductAdminService {
                     .lowStockThreshold(p.getLowStockThreshold())
                     .onHandQty(ss.getOnHandQty())
                     .sellableQty(ss.getSellableQty())
-                    .lowStock(row.isLowStock())
+                    .flashSaleQty(ss.getFlashSaleQty())
+                    .stockStatus(variantStock)
                     .build();
 
             group.getVariants().add(variant);
@@ -147,13 +154,19 @@ public class ProductAdminService {
             }
             group.setTotalOnHand(group.getTotalOnHand() + variant.getOnHandQty());
             group.setTotalSellable(group.getTotalSellable() + variant.getSellableQty());
+            group.setTotalFlashSale(group.getTotalFlashSale() + variant.getFlashSaleQty());
             if (variant.getStatus() == ProductStatus.ACTIVE) {
                 group.setActiveCount(group.getActiveCount() + 1);
+                // Chỉ nhắc với biến thể đang bán (BR-62); biến thể ngừng kinh doanh thì không cần
+                if (variantStock == StockStatus.LOW_STOCK) {
+                    group.setAnyLowStock(true);
+                } else if (variantStock == StockStatus.FLASH_SALE_ONLY) {
+                    group.setAnyFlashSaleOnly(true);
+                } else if (variantStock == StockStatus.OUT_OF_STOCK) {
+                    group.setAnyOutOfStock(true);
+                }
             } else {
                 group.setDiscontinuedCount(group.getDiscontinuedCount() + 1);
-            }
-            if (variant.isLowStock()) {
-                group.setAnyLowStock(true);
             }
             if ((group.getImageUrl() == null || group.getImageUrl().isBlank()) && variant.getImageUrl() != null) {
                 group.setImageUrl(variant.getImageUrl());
@@ -212,7 +225,7 @@ public class ProductAdminService {
     }
 
     // Form "Thêm biến thể" (/staff/products/new?variantOf=..): điền sẵn thông tin chung của sản phẩm gốc,
-    // giữ nguyên SKU dòng sản phẩm, tên bỏ phần quy cách, nhân viên chỉ nhập biến thể mới.
+    // giữ nguyên mã sản phẩm của dòng, tên bỏ phần quy cách, nhân viên chỉ nhập biến thể mới.
     // Ảnh để trống thì lấy ảnh sản phẩm gốc (xem create).
     @Transactional(readOnly = true)
     public ProductForm buildVariantForm(Long parentId) {
@@ -239,12 +252,16 @@ public class ProductAdminService {
     }
 
     // =====================================================================
-    // THÊM: Product + 1–5 ProductImage (+ lô đầu tiên nếu có) trong CÙNG một transaction.
+    // THÊM: Product + 1–5 ProductImage + lô đầu tiên (số lượng + HSD bắt buộc) trong CÙNG một transaction.
+    // Màn hình không còn trang nhập lô riêng: hàng chỉ vào hệ thống qua bước thêm sản phẩm / thêm biến thể.
     // Thiếu/lỗi ảnh nào thì không lưu gì cả (ghi chú 1 trong FoodPetShop_ProductImage.sql).
     // =====================================================================
     @Transactional
     public Product create(ProductForm form) {
         // 1. Kiểm tra hết rồi báo lỗi một lần, nhân viên sửa một lượt là xong
+        // Mã sản phẩm không lấy từ form: biến thể dùng mã của sản phẩm gốc, dòng mới được cấp số khi lưu (bước 2)
+        form.setSku(form.getVariantOf() != null ? findOrThrow(form.getVariantOf()).getSku() : null);
+
         Map<String, String> errors = new LinkedHashMap<>();
         Category category = checkCategory(form, errors);
         checkUnique(form, null, errors);
@@ -260,8 +277,12 @@ public class ProductAdminService {
         }
 
         // 2. Lưu Product trước để có product_id. saveAndFlush đẩy INSERT xuống DB ngay,
-        //    nếu SKU/mã vạch vừa bị người khác dùng thì UNIQUE báo lỗi ở đây, trước khi ghi file ảnh.
+        //    nếu mã vừa bị người khác dùng thì UNIQUE báo lỗi ở đây, trước khi ghi file ảnh.
+        if (form.getSku() == null) {
+            form.setSku(nextProductCode());
+        }
         Product product = new Product();
+        product.setSku(form.getSku());
         copy(form, category, product);
         saveAndFlush(product);
 
@@ -275,10 +296,8 @@ public class ProductAdminService {
         productImageRepository.saveAll(rows);
         product.setImageUrl(rows.get(0).getImageUrl());     // ảnh đại diện = ảnh số 1
 
-        // 4. Lô đầu tiên (nếu hàng về cùng lúc)
-        if (form.hasFirstLot()) {
-            lotService.receive(product, form.getFirstLotExpiryDate(), form.getFirstLotQty());
-        }
+        // 4. Lô đầu tiên: số lượng + HSD nhập cùng form (đã kiểm tra ở checkFirstLot)
+        lotService.receive(product, form.getFirstLotExpiryDate(), form.getFirstLotQty());
         return product;
     }
 
@@ -288,6 +307,7 @@ public class ProductAdminService {
     @Transactional
     public Product update(Long id, ProductForm form) {
         Product product = findOrThrow(id);
+        form.setSku(product.getSku());          // mã sản phẩm do hệ thống cấp, không cho sửa
 
         Map<String, String> errors = new LinkedHashMap<>();
         Category category = checkCategory(form, errors);
@@ -334,28 +354,41 @@ public class ProductAdminService {
         return product;
     }
 
-    // Xoá hẳn: chỉ cho sản phẩm tạo nhầm, chưa có lô / đơn hàng / giỏ hàng / đánh giá (BR-11).
-    // Trả về SKU để controller báo lại.
+    // Xoá hẳn: chỉ cho sản phẩm tạo nhầm, chưa bán ra đơn vị nào (mọi lô còn nguyên số lượng đã nhập)
+    // và chưa có đơn hàng / giỏ hàng / đánh giá / Flash Sale (BR-11). Lô đầu tiên tạo cùng sản phẩm bị xoá theo.
+    // Trả về mã sản phẩm để controller báo lại.
     @Transactional
     public String delete(Long id) {
         Product product = findOrThrow(id);
-        if (lotRepository.existsByProduct_Id(id)) {
+        List<Lot> lots = lotRepository.findByProduct_IdOrderByExpiryDateAscIdAsc(id);
+        if (!isDeletable(lots)) {
             throw new BusinessRuleException("Sản phẩm " + product.getFullSku()
-                    + " đã có lô hàng nên không xoá được (BR-11). Hãy chuyển sang Ngừng kinh doanh.");
+                    + " đã bán ra nên không xoá được. Hãy chuyển sang Ngừng kinh doanh.");
         }
         List<ProductImage> images = productImageRepository.findByProduct_IdOrderBySortOrderAsc(id);
-        productImageRepository.deleteAll(images);       // bảng con trước, bảng cha sau
+        lotRepository.deleteAll(lots);                  // bảng con trước, bảng cha sau
+        productImageRepository.deleteAll(images);
         productRepository.delete(product);
         try {
             productRepository.flush();
         } catch (DataIntegrityViolationException e) {
-            // CartItem / OrderItem / ProductReview... còn trỏ tới sản phẩm (khoá ngoại NO ACTION)
+            // CartItem / OrderItem / ProductReview / FlashSaleItem... còn trỏ tới sản phẩm (khoá ngoại NO ACTION)
             throw new BusinessRuleException("Sản phẩm " + product.getFullSku()
-                    + " đã phát sinh dữ liệu khác (giỏ hàng, đơn hàng, đánh giá...) nên không xoá được. "
+                    + " đã phát sinh dữ liệu khác (giỏ hàng, đơn hàng, đánh giá, Flash Sale...) nên không xoá được. "
                     + "Hãy chuyển sang Ngừng kinh doanh.");
         }
         images.forEach(image -> imageStorage.deleteAfterCommit(image.getImageUrl()));
         return product.getFullSku();
+    }
+
+    // Trang chi tiết dùng để quyết định có hiện nút Xoá hay không (service vẫn kiểm tra lại khi xoá)
+    @Transactional(readOnly = true)
+    public boolean isDeletable(Long id) {
+        return isDeletable(lotRepository.findByProduct_IdOrderByExpiryDateAscIdAsc(id));
+    }
+
+    private static boolean isDeletable(List<Lot> lots) {
+        return lots.stream().allMatch(Lot::isUntouched);
     }
 
     // =====================================================================
@@ -377,40 +410,31 @@ public class ProductAdminService {
         return category;
     }
 
-    // (SKU, biến thể) duy nhất; mã vạch duy nhất nếu có nhập (BR-08). excludeId = id sản phẩm đang sửa.
+    // (mã sản phẩm, biến thể) duy nhất (BR-08). excludeId = id sản phẩm đang sửa.
+    // Dòng sản phẩm mới chưa có mã (sku null) thì không thể trùng: số được cấp mới khi lưu.
     private void checkUnique(ProductForm form, Long excludeId, Map<String, String> errors) {
         if (form.getSku() == null || form.getVariant() == null) {
-            return;                                             // @Valid đã báo thiếu
+            return;
         }
         // mã đầy đủ dùng làm tên thư mục ảnh, DB chặn > 50 ký tự (CK_Product_variant)
         if (form.getFullSku().length() > 50) {
-            errors.put("variant", "SKU + biến thể (" + form.getFullSku() + ") dài quá 50 ký tự");
+            errors.put("variant", "Mã sản phẩm + biến thể (" + form.getFullSku() + ") dài quá 50 ký tự");
             return;
         }
         boolean skuTaken = (excludeId == null)
                 ? productRepository.existsBySkuAndVariant(form.getSku(), form.getVariant())
                 : productRepository.existsBySkuAndVariantAndIdNot(form.getSku(), form.getVariant(), excludeId);
         if (skuTaken) {
-            errors.put("variant", "SKU " + form.getSku() + " đã có biến thể " + form.getVariant()
+            errors.put("variant", "Mã sản phẩm " + form.getSku() + " đã có biến thể " + form.getVariant()
                     + " (" + form.getFullSku() + ")");
-        }
-        if (form.getBarcode() != null) {
-            boolean barcodeTaken = (excludeId == null)
-                    ? productRepository.existsByBarcode(form.getBarcode())
-                    : productRepository.existsByBarcodeAndIdNot(form.getBarcode(), excludeId);
-            if (barcodeTaken) {
-                errors.put("barcode", "Mã vạch " + form.getBarcode() + " đã được dùng cho sản phẩm khác");
-            }
         }
     }
 
-    // Lô đầu tiên: điền thì phải điền đủ HSD + số lượng; sản phẩm phải đang bán
+    // Lô đầu tiên: bắt buộc nhập số lượng + HSD khi thêm sản phẩm; sản phẩm phải đang bán mới nhận hàng được.
+    // Câu báo lỗi hiện ngay trên form nên không dùng chữ "lô" / "kho".
     private void checkFirstLot(ProductForm form, Map<String, String> errors) {
-        if (!form.hasFirstLot()) {
-            return;
-        }
         if (form.getFirstLotExpiryDate() == null) {
-            errors.put("firstLotExpiryDate", "Nhập lô đầu tiên thì cần cả hạn sử dụng");
+            errors.put("firstLotExpiryDate", "Vui lòng nhập hạn sử dụng");
         } else {
             String problem = lotService.expiryProblemForNewLot(form.getFirstLotExpiryDate());
             if (problem != null) {
@@ -418,10 +442,10 @@ public class ProductAdminService {
             }
         }
         if (form.getFirstLotQty() == null) {
-            errors.put("firstLotQty", "Nhập lô đầu tiên thì cần cả số lượng");
+            errors.put("firstLotQty", "Vui lòng nhập số lượng");
         }
         if (form.getStatus() != ProductStatus.ACTIVE) {
-            errors.put("status", "Sản phẩm ngừng kinh doanh thì không nhập lô đầu tiên");
+            errors.put("status", "Sản phẩm thêm mới phải ở trạng thái Đang bán");
         }
     }
 
@@ -516,9 +540,15 @@ public class ProductAdminService {
         try {
             productRepository.saveAndFlush(product);
         } catch (DataIntegrityViolationException e) {
-            // Hai người lưu cùng SKU / mã vạch gần như cùng lúc: kiểm tra exists đã qua nhưng UNIQUE của DB chặn lại
-            throw new BusinessRuleException("SKU hoặc mã vạch vừa được dùng cho sản phẩm khác, hãy kiểm tra lại");
+            // Hai người lưu cùng mã + biến thể gần như cùng lúc: kiểm tra exists đã qua nhưng UNIQUE của DB chặn lại
+            throw new BusinessRuleException("Mã sản phẩm và biến thể này vừa được dùng cho sản phẩm khác, hãy kiểm tra lại");
         }
+    }
+
+    // Mã sản phẩm cho dòng mới: số lớn nhất hiện có + 1, tối thiểu 2 chữ số (01, 02 ... 99, 100).
+    // Câu lấy số giữ khoá tới hết transaction của create nên hai người tạo cùng lúc không bị trùng số.
+    private String nextProductCode() {
+        return String.format("%02d", productRepository.findMaxNumericSkuForUpdate() + 1);
     }
 
     private Product findOrThrow(Long id) {
@@ -526,10 +556,9 @@ public class ProductAdminService {
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sản phẩm #" + id));
     }
 
+    // Không chép mã sản phẩm (sku): create tự gán, update giữ nguyên.
     private static void copy(ProductForm form, Category category, Product product) {
-        product.setSku(form.getSku());
         product.setVariant(form.getVariant());
-        product.setBarcode(form.getBarcode());          // null nếu bỏ trống (UNIQUE có lọc chỉ xét dòng khác NULL)
         product.setName(form.getName());
         product.setBrand(form.getBrand());
         product.setDescription(form.getDescription());
@@ -541,14 +570,16 @@ public class ProductAdminService {
         product.setStatus(form.getStatus());
     }
 
-    // productId -> (tồn thực tế, tồn bán thường), 1 câu query cho cả danh sách
+    // productId -> (tồn thực tế, tồn bán thường, tồn chỉ bán qua Flash Sale), 1 câu query cho cả danh sách
     private Map<Long, StockSummary> loadStock(List<Long> productIds) {
         if (productIds.isEmpty()) {
             return Map.of();
         }
-        return lotRepository.summarizeStock(productIds, inventoryPolicy.minSellableExpiry()).stream()
+        return lotRepository.summarizeStock(productIds, inventoryPolicy.minSellableExpiry(),
+                        inventoryPolicy.minFlashSaleExpiry()).stream()
                 .collect(Collectors.toMap(StockSummaryRow::getProductId,
-                        row -> new StockSummary(orZero(row.getOnHandQty()), orZero(row.getSellableQty()))));
+                        row -> new StockSummary(orZero(row.getOnHandQty()), orZero(row.getSellableQty()),
+                                orZero(row.getFlashSaleQty()))));
     }
 
     private static long orZero(Long value) {

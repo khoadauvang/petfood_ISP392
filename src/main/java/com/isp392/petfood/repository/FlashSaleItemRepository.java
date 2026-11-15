@@ -73,6 +73,26 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
             """)
     long reservedByOtherSales(@Param("lotId") Long lotId, @Param("excludeSaleId") Long excludeSaleId);
 
+    // Phần chưa bán của lô đang nằm trong chiến dịch đang chạy / nháp (màn Cảnh báo ẩn lô cận hạn đã được Flash Sale giữ hết).
+    // Không tính chiến dịch tạm dừng: lô đó vẫn hiện ở Cảnh báo để bấm "Tạo Flash Sale" chạy lại.
+    @Query("""
+            select coalesce(sum(fsi.allocatedQty - fsi.soldQty), 0) from FlashSaleItem fsi
+            where fsi.lot.id = :lotId
+              and fsi.flashSale.status in (com.isp392.petfood.enums.FlashSaleStatus.ACTIVE, com.isp392.petfood.enums.FlashSaleStatus.DRAFT)
+              and fsi.allocatedQty > fsi.soldQty
+            """)
+    long reservedByLiveSales(@Param("lotId") Long lotId);
+
+    // Các suất của lô nằm trong chiến dịch đang chạy / tạm dừng (dùng khi bấm "Tạo Flash Sale" ở màn Cảnh báo:
+    // chiến dịch tạm dừng vẫn giữ chỗ lô nên phải chạy lại chiến dịch đó thay vì tạo mới)
+    @Query("""
+            select fsi from FlashSaleItem fsi join fetch fsi.flashSale fs
+            where fsi.lot.id = :lotId
+              and fs.status in (com.isp392.petfood.enums.FlashSaleStatus.ACTIVE, com.isp392.petfood.enums.FlashSaleStatus.PAUSED)
+            order by fs.id desc
+            """)
+    List<FlashSaleItem> findOpenByLot(@Param("lotId") Long lotId);
+
     // Số suất còn lại của chiến dịch (= 0 thì bán hết, scheduler kết thúc chiến dịch)
     @Query("select coalesce(sum(fsi.allocatedQty - fsi.soldQty), 0) from FlashSaleItem fsi where fsi.flashSale.id = :saleId")
     long remainingOfSale(@Param("saleId") Long saleId);

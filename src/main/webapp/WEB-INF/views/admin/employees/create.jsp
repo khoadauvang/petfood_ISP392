@@ -20,7 +20,6 @@
         <div class="page-header-row" style="margin-bottom: 1.25rem;">
             <div>
                 <h1 class="page-title" style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #0f172a;">TẠO TÀI KHOẢN NHÂN VIÊN MỚI</h1>
-                <p class="page-subtitle" style="margin: 0; color: #64748b; font-size: 0.88rem;">Cấp tài khoản đăng nhập nội bộ cho nhân sự vận hành hoặc quản trị viên.</p>
             </div>
         </div>
 
@@ -53,7 +52,7 @@
                             <form:options items="${roles}"/>
                         </form:select>
                         <div style="font-size: 0.76rem; color: #64748b; margin-top: 0.25rem;">
-                            <strong>STAFF:</strong> Quản lý kho, FEFO, đơn hàng, trả hàng và CSKH. <strong>ADMIN:</strong> Toàn quyền hệ thống, quản lý nhân viên và báo cáo doanh thu.
+                            <strong>STAFF:</strong> Quản lý kho, hạn sử dụng, đơn hàng, trả hàng và CSKH. <strong>ADMIN:</strong> Toàn quyền hệ thống, quản lý nhân viên và báo cáo doanh thu.
                         </div>
                         <form:errors path="role" cssClass="err" cssStyle="color: #dc2626; font-size: 0.76rem;"/>
                     </div>

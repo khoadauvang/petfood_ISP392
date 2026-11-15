@@ -206,18 +206,12 @@ public class FlashSaleService {
         long daysLeft = inventoryPolicy.daysLeft(lot.getExpiryDate());
         if (daysLeft < inventoryPolicy.getQuarantineDays()) {
             throw new BusinessRuleException("Lô #" + lotId + " còn dưới " + inventoryPolicy.getQuarantineDays()
-                    + " ngày thuộc diện tiêu hủy (BR-51/63), không được phép mở Flash Sale!");
+                    + " ngày thuộc diện tiêu hủy, không được phép mở Flash Sale!");
         }
         if (daysLeft >= inventoryPolicy.getShelfLifeCommitmentDays()) {
             throw new BusinessRuleException("Lô #" + lotId + " còn " + daysLeft + " ngày (>= "
                     + inventoryPolicy.getShelfLifeCommitmentDays()
-                    + " ngày) thuộc diện bán thường/khuyến mãi thường, không mở Flash Sale cận hạn (BR-63)!");
-        }
-
-        // Kiểm tra tồn kho khả dụng (đã trừ phần giữ chỗ ở các chiến dịch chưa kết thúc khác, BR-68)
-        long availableQty = available(lot, 0L);
-        if (availableQty <= 0) {
-            throw new BusinessRuleException("Lô #" + lotId + " hiện đã hết hàng hoặc đã được phân bổ toàn bộ tồn kho trong một chiến dịch đang chạy/nháp khác (BR-68).");
+                    + " ngày) thuộc diện bán thường/khuyến mãi thường, không mở Flash Sale cận hạn!");
         }
 
         int discountPercent = (daysLeft < inventoryPolicy.getDeepDiscountDays())
@@ -229,8 +223,46 @@ public class FlashSaleService {
         LocalDateTime now = VnpayClient.nowVn();
         LocalDateTime endTime = now.plusDays(7); // mặc định Flash Sale 7 ngày
 
+        // Lô đã nằm trong một Flash Sale chưa kết thúc: đang chạy thì báo; đang tạm dừng thì chạy lại chính chiến dịch đó
+        // (chiến dịch tạm dừng vẫn giữ chỗ phần chưa bán của lô, BR-68, nên tạo mới sẽ luôn báo hết hàng)
+        for (FlashSaleItem open : flashSaleItemRepository.findOpenByLot(lotId)) {
+            FlashSale existing = open.getFlashSale();
+            if (existing.getSaleType() != SaleType.FLASH_SALE) {
+                continue;
+            }
+            if (existing.getStatus() == FlashSaleStatus.ACTIVE) {
+                throw new BusinessRuleException("Sản phẩm " + product.getName() + " (HSD " + lot.getExpiryDate().format(DATE)
+                        + ") đang có Flash Sale chạy rồi: " + existing.getName() + ".");
+            }
+            // PAUSED -> ACTIVE: cập nhật lại mức giảm theo số ngày còn lại, gia hạn 7 ngày nếu đã/sắp quá giờ,
+            // và cộng thêm phần tồn chưa bị chiến dịch khác giữ chỗ vào suất
+            // Suất mới = đã bán + toàn bộ phần lô chưa bị chiến dịch khác giữ (không vượt tồn của lô, BR-68)
+            long free = available(lot, existing.getId());
+            if (free <= 0) {
+                throw new BusinessRuleException("Sản phẩm " + product.getName() + " (HSD " + lot.getExpiryDate().format(DATE)
+                        + ") đã bán hết, không còn hàng để chạy Flash Sale.");
+            }
+            open.setAllocatedQty((int) (open.getSoldQty() + free));
+            open.setSalePrice(salePrice);
+            existing.setDiscountPercent(discountPercent);
+            existing.setStatus(FlashSaleStatus.ACTIVE);
+            if (existing.getEndTime() == null || !now.plusHours(1).isBefore(existing.getEndTime())) {
+                existing.setEndTime(endTime);
+            }
+            existing.syncMeta();
+            log.info("Chạy lại Flash Sale tạm dừng #{} cho lô #{} (giảm {}%)", existing.getId(), lotId, discountPercent);
+            return existing;
+        }
+
+        // Kiểm tra tồn kho khả dụng (đã trừ phần giữ chỗ ở các chiến dịch chưa kết thúc khác, BR-68)
+        long availableQty = available(lot, 0L);
+        if (availableQty <= 0) {
+            throw new BusinessRuleException("Sản phẩm " + product.getName() + " (HSD " + lot.getExpiryDate().format(DATE)
+                    + ") hiện đã hết hàng hoặc đã nằm hết trong một chương trình khác chưa kết thúc.");
+        }
+
         FlashSale sale = new FlashSale();
-        sale.setName("Flash Sale Cận Hạn - " + product.getName() + " (#LOT-" + lot.getId() + ")");
+        sale.setName("Flash Sale Cận Hạn - " + product.getName() + " (HSD " + lot.getExpiryDate().format(DATE) + ")");
         sale.setSaleType(SaleType.FLASH_SALE);
         sale.setDiscountPercent(discountPercent);
         sale.setDescription("Xả kho cấp tốc theo hạn dùng (" + daysLeft + " ngày còn lại)");
@@ -309,13 +341,13 @@ public class FlashSaleService {
 
             if (inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.OK) {
                 throw new BusinessRuleException("Lô #" + lotId + " (" + lot.getProduct().getName()
-                        + ") không đảm bảo hạn dùng >= 90 ngày (BR-12/54)!");
+                        + ") không đảm bảo hạn dùng >= 90 ngày!");
             }
 
             long avail = available(lot, 0L);
             if (avail <= 0) {
                 throw new BusinessRuleException("Lô #" + lotId + " (" + lot.getProduct().getName()
-                        + ") đã hết suất khả dụng (đã được phân bổ cho chương trình khác, BR-68).");
+                        + ") đã hết suất khả dụng (đã được phân bổ cho chương trình khác).");
             }
 
             int allocQty = form.getQuantityForLot(lotId, (int) avail);
@@ -323,7 +355,7 @@ public class FlashSaleService {
                 throw new BusinessRuleException("Số lượng phân bổ cho lô #" + lotId + " phải từ 1 trở lên.");
             }
             if (allocQty > avail) {
-                throw new BusinessRuleException("Lô #" + lotId + " chỉ còn khả dụng " + avail + " sản phẩm (BR-68).");
+                throw new BusinessRuleException("Lô #" + lotId + " chỉ còn khả dụng " + avail + " sản phẩm.");
             }
             validatedLots.put(lot, allocQty);
         }
@@ -349,7 +381,7 @@ public class FlashSaleService {
                     .multiply(keep).divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
             if (salePrice.signum() <= 0 || salePrice.compareTo(lot.getProduct().getSellingPrice()) >= 0) {
                 throw new BusinessRuleException("discountPercent",
-                        "Giá sau giảm của " + lot.getProduct().getName() + " không hợp lệ (BR-67).");
+                        "Giá sau giảm của " + lot.getProduct().getName() + " không hợp lệ.");
             }
 
             FlashSaleItem item = new FlashSaleItem();
@@ -486,15 +518,15 @@ public class FlashSaleService {
 
                 ExpiryLevel level = inventoryPolicy.levelOf(lot.getExpiryDate());
                 if (currentType == SaleType.PROMOTION && level != ExpiryLevel.OK) {
-                    throw new BusinessRuleException("Lô #" + lotId + " không đảm bảo hạn dùng >= 90 ngày cho Chương trình khuyến mãi (BR-12/54).");
+                    throw new BusinessRuleException("Lô #" + lotId + " không đảm bảo hạn dùng >= 90 ngày cho Chương trình khuyến mãi.");
                 }
                 if (currentType == SaleType.FLASH_SALE && level != ExpiryLevel.RED) {
-                    throw new BusinessRuleException("Lô #" + lotId + " không nằm trong ngưỡng cận hạn 21-89 ngày cho Flash Sale (BR-63).");
+                    throw new BusinessRuleException("Lô #" + lotId + " không nằm trong ngưỡng cận hạn 21-89 ngày cho Flash Sale.");
                 }
 
                 long avail = available(lot, id);
                 if (avail <= 0) {
-                    throw new BusinessRuleException("Lô #" + lotId + " đã hết tồn khả dụng (đã phân bổ ở chiến dịch khác, BR-68).");
+                    throw new BusinessRuleException("Lô #" + lotId + " đã hết tồn khả dụng (đã phân bổ ở chiến dịch khác).");
                 }
 
                 BigDecimal newSalePrice = (currentType == SaleType.FLASH_SALE)
@@ -508,7 +540,7 @@ public class FlashSaleService {
                     throw new BusinessRuleException("Số lượng phân bổ cho lô #" + lotId + " phải từ 1 trở lên.");
                 }
                 if (allocQty > avail) {
-                    throw new BusinessRuleException("Lô #" + lotId + " chỉ còn khả dụng tối đa " + avail + " sản phẩm (BR-68).");
+                    throw new BusinessRuleException("Lô #" + lotId + " chỉ còn khả dụng tối đa " + avail + " sản phẩm.");
                 }
 
                 if (item != null) {
@@ -567,10 +599,10 @@ public class FlashSaleService {
         Map<String, String> errors = new LinkedHashMap<>();
         if (sale.getSaleType() == SaleType.FLASH_SALE && inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.RED) {
             errors.put("lotId", "Chỉ lô còn " + inventoryPolicy.getQuarantineDays() + " đến dưới "
-                    + inventoryPolicy.getShelfLifeCommitmentDays() + " ngày mới đưa vào Flash Sale (BR-63)");
+                    + inventoryPolicy.getShelfLifeCommitmentDays() + " ngày mới đưa vào Flash Sale");
         } else if (sale.getSaleType() == SaleType.PROMOTION && inventoryPolicy.levelOf(lot.getExpiryDate()) != ExpiryLevel.OK) {
             errors.put("lotId", "Chỉ lô còn từ " + inventoryPolicy.getShelfLifeCommitmentDays()
-                    + " ngày trở lên mới đưa vào Chương trình khuyến mãi (BR-12/54)");
+                    + " ngày trở lên mới đưa vào Chương trình khuyến mãi");
         }
         if (flashSaleItemRepository.existsByFlashSale_IdAndLot_Id(saleId, lot.getId())) {
             errors.put("lotId", "Lô này đã có trong chiến dịch");
@@ -586,11 +618,11 @@ public class FlashSaleService {
 
         if (salePrice.signum() <= 0 || salePrice.compareTo(product.getSellingPrice()) >= 0) {
             errors.put("lotId", "Không tính được giá giảm thấp hơn giá bán thường "
-                    + product.getSellingPrice().toPlainString() + "đ (BR-67)");
+                    + product.getSellingPrice().toPlainString() + "đ");
         }
         long available = available(lot, saleId);
         if (form.getAllocatedQty() > available) {
-            errors.put("allocatedQty", "Lô chỉ còn dành được " + available + " sản phẩm (BR-68)");
+            errors.put("allocatedQty", "Lô chỉ còn dành được " + available + " sản phẩm");
         }
         if (!errors.isEmpty()) {
             throw new BusinessRuleException(errors);

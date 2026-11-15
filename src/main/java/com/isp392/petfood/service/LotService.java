@@ -181,7 +181,7 @@ public class LotService {
     // Trả về câu báo lỗi, hoặc null nếu hợp lệ.
     public String expiryProblemForNewLot(LocalDate expiryDate) {
         if (expiryDate != null && !expiryDate.isAfter(inventoryPolicy.today())) {
-            return "Hạn sử dụng phải sau ngày nhập kho (sau hôm nay)";
+            return "Hạn sử dụng phải sau hôm nay";
         }
         return null;
     }
@@ -194,7 +194,7 @@ public class LotService {
         Lot lot = findOrThrow(id);
         requireUntouched(lot, "sửa");
         if (flashSaleItemRepository.existsByLot_Id(id)) {
-            throw new BusinessRuleException("Lô #" + id + " đang nằm trong chương trình Khuyến mãi / Flash Sale nên không sửa được (BR-68). Hãy gỡ lô khỏi chương trình trước.");
+            throw new BusinessRuleException("Lô #" + id + " đang nằm trong chương trình Khuyến mãi / Flash Sale nên không sửa được. Hãy gỡ lô khỏi chương trình trước.");
         }
 
         LocalDate receivedDate = lot.getReceivedAt().toLocalDate();
@@ -237,7 +237,7 @@ public class LotService {
         ExpiryLevel level = inventoryPolicy.levelOf(lot.getExpiryDate());
         if (level != ExpiryLevel.BLOCKED && level != ExpiryLevel.EXPIRED) {
             throw new BusinessRuleException("Chỉ được tiêu hủy các lô hàng đã quá hạn hoặc còn dưới "
-                    + inventoryPolicy.getQuarantineDays() + " ngày (BR-51). Lô #" + id + " hiện còn "
+                    + inventoryPolicy.getQuarantineDays() + " ngày. Lô #" + id + " hiện còn "
                     + inventoryPolicy.daysLeft(lot.getExpiryDate()) + " ngày hạn sử dụng.");
         }
 

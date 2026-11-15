@@ -39,12 +39,8 @@
                 <i class="ti ti-receipt"></i>Quản lý đơn hàng</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/flash-sales')) ? 'active' : ''}" href="${ctx}/staff/flash-sales">
                 <i class="ti ti-percentage"></i>Chương trình</a>
-        </details>
-
-        <details class="sb-group" open>
-            <summary>Quản lý kho &amp; đổi trả <i class="ti ti-chevron-down"></i></summary>
-            <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/lots')) ? 'active' : ''}" href="${ctx}/staff/lots">
-                <i class="ti ti-building-warehouse"></i>Tồn kho</a>
+            <%-- Gộp nhóm "Hạn sử dụng & đổi trả" cũ vào đây. Mục "Tồn kho" đã bỏ cho cả staff và admin:
+                 số lượng xem ở Quản lý sản phẩm --%>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/alerts')) ? 'active' : ''}" href="${ctx}/staff/alerts">
                 <i class="ti ti-alert-triangle"></i>Cảnh báo hạn sử dụng</a>
             <a class="sb-link ${navUri.startsWith(ctx.concat('/staff/returns')) ? 'active' : ''}" href="${ctx}/staff/returns">
@@ -88,11 +84,11 @@
 
     <form class="tb-search" method="get" action="${ctx}/staff/products" role="search">
         <i class="ti ti-search"></i>
-        <input type="search" name="keyword" id="tb-search-input" placeholder="Tìm sản phẩm theo tên, SKU... (Ctrl + K)" autocomplete="off">
+        <input type="search" name="keyword" id="tb-search-input" placeholder="Tìm sản phẩm theo tên, mã sản phẩm... (Ctrl + K)" autocomplete="off">
     </form>
 
     <div class="tb-right">
-        <a class="icon-btn" href="${ctx}/staff/alerts" title="Cảnh báo kho" aria-label="Cảnh báo kho">
+        <a class="icon-btn" href="${ctx}/staff/alerts" title="Cảnh báo hạn sử dụng" aria-label="Cảnh báo hạn sử dụng">
             <i class="ti ti-bell"></i><span class="dot"></span></a>
 
         <details class="tb-user">

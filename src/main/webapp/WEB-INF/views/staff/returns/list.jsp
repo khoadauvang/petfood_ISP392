@@ -338,10 +338,10 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>QUẢN LÝ KHO &amp; ĐỔI TRẢ</span> <span class="sep">&gt;</span> <span class="current">QUẢN LÝ TRẢ HÀNG</span>
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <span class="current">QUẢN LÝ TRẢ HÀNG</span>
             </div>
             <h1>QUẢN LÝ TRẢ HÀNG</h1>
-            <p class="page-sub">Theo dõi yêu cầu đổi trả hàng, xác nhận hàng hoàn và xử lý tái nhập kho.</p>
+<%--            <p class="page-sub">Theo dõi yêu cầu đổi trả hàng, xác nhận hàng hoàn và xử lý tái nhập kho.</p>--%>
         </div>
 
 
@@ -370,7 +370,7 @@
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Chờ kiểm tra hàng</span><span class="kpi-ico purple"><i class="ti ti-box"></i></span></div>
             <div class="kpi-value" style="color:#7c3aed">${returnCounts.received != null ? returnCounts.received : 0}</div>
-            <div class="kpi-meta"><span class="badge purple">Đã đến kho · Chờ QC</span></div>
+            <div class="kpi-meta"><span class="badge purple">Đã đến shop · Chờ QC</span></div>
         </div>
 
         <div class="panel kpi reveal">
@@ -382,7 +382,7 @@
         <div class="panel kpi reveal">
             <div class="kpi-top"><span class="kpi-label">Đã hoàn tất</span><span class="kpi-ico green"><i class="ti ti-circle-check"></i></span></div>
             <div class="kpi-value" style="color:#10b981">${returnCounts.completed != null ? returnCounts.completed : 0}</div>
-            <div class="kpi-meta"><span class="badge ok">Đã hoàn tiền &amp; xử lý kho</span></div>
+            <div class="kpi-meta"><span class="badge ok">Đã hoàn tiền &amp; xử lý</span></div>
         </div>
     </section>
 
@@ -432,7 +432,6 @@
                         <i class="ti ti-list" style="color:var(--color-primary)"></i> DANH SÁCH YÊU CẦU TRẢ HÀNG
                         <span class="pill-badge orange">${totalItems != null ? totalItems : (returnCounts.total != null ? returnCounts.total : 0)} yêu cầu</span>
                     </h3>
-                    <small style="color:var(--text-muted)">Hàng đợi thẩm định và hoàn tiền</small>
                 </div>
                 <div style="font-size:12px; color:var(--text-muted)">
                     Sắp xếp: <b style="color:var(--color-primary)">Mới nhất ↓</b>
@@ -570,7 +569,7 @@
                                 </span>
                             </h3>
                             <div class="detail-sub" id="detail-time" style="font-size:12px; color:var(--text-muted)">
-                                Gửi lúc: <b>${rDetail.createdAtText}</b> · Đơn gốc: <a href="${ctx}/staff/orders?orderId=${rDetail.orderId}" style="color:#ea580c; font-weight:700">#ORD-${rDetail.orderId}</a> · Mã phiếu: #RR-00${rDetail.id}
+                                Gửi lúc: <b>${rDetail.createdAtText}</b> · Đơn gốc: <a href="${ctx}/staff/orders?orderId=${rDetail.orderId}" style="color:#ea580c; font-weight:700">#ORD-${rDetail.orderId}</a>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px">
@@ -676,7 +675,7 @@
                     <c:set var="step4Cls" value="${rDetail.status == 'INSPECTED' or rDetail.status == 'REFUNDED' or rDetail.status == 'CLOSED' ? 'completed' : (rDetail.status == 'RECEIVED' ? 'active' : '')}"/>
                     <c:set var="step5Cls" value="${rDetail.status == 'REFUNDED' or rDetail.status == 'CLOSED' ? 'completed' : (rDetail.status == 'INSPECTED' ? 'active' : '')}"/>
                     <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:8px">
-                        TIẾN TRÌNH XỬ LÝ ĐỔI TRẢ (BR-36)
+                        TIẾN TRÌNH XỬ LÝ ĐỔI TRẢ
                     </div>
                     <div class="order-stepper" id="return-stepper" style="margin-bottom:16px">
                         <div class="stepper-step completed">
@@ -797,7 +796,7 @@
                                                         <c:forEach var="res" items="${inspectionResults}">
                                                             <c:set var="isRestockBlocked" value="${res == 'RESTOCKED' and cannotRestock}"/>
                                                             <label style="font-size:12px; font-weight:600; cursor:${isRestockBlocked ? 'not-allowed' : 'pointer'}; opacity:${isRestockBlocked ? '0.5' : '1'}; display:inline-flex; align-items:center; gap:4px"
-                                                                   title="${isRestockBlocked ? 'Không được tái nhập kho sản phẩm đã mở bao bì hoặc hàng lỗi/hư hỏng (BR-38)' : ''}">
+                                                                   title="${isRestockBlocked ? 'Không được tái nhập kho sản phẩm đã mở bao bì hoặc hàng lỗi/hư hỏng' : ''}">
                                                                 <input type="radio" name="lines[${s.index}].result" value="${res}" required
                                                                        ${isRestockBlocked ? 'disabled' : ''}
                                                                        ${cannotRestock and res == 'DISPOSED' ? 'checked' : ''}
@@ -1135,7 +1134,7 @@
 
         const timeEl = document.getElementById('detail-time');
         if (timeEl) {
-            timeEl.innerHTML = 'Gửi lúc: <b>' + escapeHtml(ret.createdAtText || '--') + '</b> · Đơn gốc: <a href="' + ctx + '/staff/orders?orderId=' + ret.orderId + '" style="color:#ea580c; font-weight:700">#ORD-' + ret.orderId + '</a> · Mã phiếu: #RR-00' + ret.id;
+            timeEl.innerHTML = 'Gửi lúc: <b>' + escapeHtml(ret.createdAtText || '--') + '</b> · Đơn gốc: <a href="' + ctx + '/staff/orders?orderId=' + ret.orderId + '" style="color:#ea580c; font-weight:700">#ORD-' + ret.orderId + '</a>';
         }
 
         // Urgent Banner (#detail-alerts-container)
@@ -1267,7 +1266,7 @@
                         '    </label>' +
                         '  </div>' +
                         '  <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:6px">' +
-                        '    <label style="font-size:12px; font-weight:600; cursor:' + (cannotRestock ? 'not-allowed' : 'pointer') + '; opacity:' + (cannotRestock ? '0.5' : '1') + '; display:inline-flex; align-items:center; gap:4px" title="' + (cannotRestock ? 'Không được tái nhập kho sản phẩm đã mở bao bì hoặc hàng lỗi/hư hỏng (BR-38)' : '') + '">' +
+                        '    <label style="font-size:12px; font-weight:600; cursor:' + (cannotRestock ? 'not-allowed' : 'pointer') + '; opacity:' + (cannotRestock ? '0.5' : '1') + '; display:inline-flex; align-items:center; gap:4px" title="' + (cannotRestock ? 'Không được tái nhập kho sản phẩm đã mở bao bì hoặc hàng lỗi/hư hỏng' : '') + '">' +
                         '      <input type="radio" name="lines[' + idx + '].result" value="RESTOCKED" required ' + (cannotRestock ? 'disabled' : '') + ' style="accent-color:#9333ea">' +
                         '      Tái nhập về lô gốc' +
                         '    </label>' +

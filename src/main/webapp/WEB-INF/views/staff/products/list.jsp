@@ -3,7 +3,10 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
-<%-- Model: productGroups, products, currentPage, totalPages, totalItems, categories, speciesList, productStatuses, filterKeyword, filterCategoryId, filterSpecies, filterStatus, filterQuery, productCounts --%>
+<%-- Model: productGroups, products, currentPage, totalPages, totalItems, categories, speciesList, productStatuses, stockStatuses, filterKeyword, filterCategoryId, filterSpecies, filterStatus, filterStockStatus, filterQuery --%>
+<%-- Trang này gộp luôn bảng tồn kho cũ. Bảng biến thể (theo FE): Quy cách / Tên biến thể / Giá niêm yết / Số lượng / Flash Sale / Trạng thái / Thao tác.
+     Số lượng (giá thường) = sellableQty, kèm nhãn Gần hết hàng / Chỉ còn hàng Flash Sale / Hết hàng; Flash Sale = hàng cận hạn chỉ bán qua Flash Sale.
+     Không hiện hạn sử dụng, lô hay chữ "tồn", "kho" trên giao diện (dữ liệu bên dưới vẫn tính theo lô). --%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -75,6 +78,7 @@
             text-transform: uppercase !important;
             padding: 9px 12px !important;
             border-bottom: 1px solid #ffd8b8 !important;
+            white-space: nowrap;
             text-align: left;
             letter-spacing: .04em;
         }
@@ -126,65 +130,28 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <span class="current">QUẢN LÝ SẢN PHẨM &amp; BIẾN THỂ</span>
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <span class="current"></span>
             </div>
-            <h1>QUẢN LÝ SẢN PHẨM &amp; BIẾN THỂ</h1>
-            <p class="page-sub">Các biến thể quy cách (vd: 400g, 2kg) được gom nhóm chung theo từng dòng sản phẩm. Bấm vào dòng để xem chi tiết từng biến thể.</p>
+            <h1>QUẢN LÝ SẢN PHẨM</h1>
+<%--            <p class="page-sub">Các biến thể quy cách (vd: 400g, 2kg) được gom nhóm chung theo từng dòng sản phẩm. Bấm vào dòng để xem chi tiết từng biến thể.</p>--%>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
             <button type="button" class="btn-pill-outline" onclick="toggleAllAccordions()" id="btn-toggle-all">
                 <i class="ti ti-arrows-vertical"></i><span id="text-toggle-all">Mở rộng tất cả</span>
             </button>
-            <a href="javascript:void(0)" class="btn-pill-outline" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>Xuất Excel</a>
             <a href="${ctx}/staff/products/new" class="btn-flashsale">
                 <i class="ti ti-plus"></i>Thêm sản phẩm mới
             </a>
         </div>
     </div>
 
-    <%-- 3 KPI Cards Screen 3 (Số liệu tính toán thực tế từ hệ thống) --%>
-    <section class="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 20px">
-        <div class="panel kpi reveal">
-            <div class="kpi-top">
-                <span class="kpi-label">TỔNG SỐ BIẾN THỂ (SKU)</span>
-                <span class="kpi-ico orange"><i class="ti ti-package"></i></span>
-            </div>
-            <div class="kpi-value">
-                ${productCounts.total != null ? productCounts.total : (totalItems != null ? totalItems : 0)} <small>mã SKU</small>
-            </div>
-            <div class="kpi-meta"><span class="badge orange">Gồm <b>${productGroups != null ? productGroups.size() : 0}</b> dòng sản phẩm chính</span></div>
-        </div>
-
-        <div class="panel kpi reveal">
-            <div class="kpi-top">
-                <span class="kpi-label">ĐANG KINH DOANH</span>
-                <span class="kpi-ico green"><i class="ti ti-check"></i></span>
-            </div>
-            <div class="kpi-value" style="color:#10b981">
-                ${productCounts.active != null ? productCounts.active : 0} <small>biến thể</small>
-            </div>
-            <div class="kpi-meta"><span class="badge ok">Đang mở bán trên hệ thống</span></div>
-        </div>
-
-        <div class="panel kpi reveal">
-            <div class="kpi-top">
-                <span class="kpi-label">TẠM NGỪNG KINH DOANH</span>
-                <span class="kpi-ico gray"><i class="ti ti-player-pause"></i></span>
-            </div>
-            <div class="kpi-value" style="color:#6b7280">
-                ${productCounts.discontinued != null ? productCounts.discontinued : 0} <small>biến thể</small>
-            </div>
-            <div class="kpi-meta"><span class="badge gray">Tạm ngưng hoặc lưu trữ</span></div>
-        </div>
-    </section>
-
     <%-- Filter Bar Screen 3 --%>
     <form method="get" action="${ctx}/staff/products" class="filters" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
         <div style="flex:1; min-width:260px; position:relative">
             <i class="ti ti-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-placeholder)"></i>
             <input type="text" name="keyword" value="<c:out value='${filterKeyword}'/>"
-                   placeholder="Tìm theo tên sản phẩm, biến thể, mã SKU hoặc mã vạch (EAN)..."
+                   placeholder="Tìm theo tên sản phẩm, biến thể, hoặc mã sản phẩm..."
                    style="width:100%; padding:9px 12px 9px 36px; border-radius:12px; border:1px solid var(--line); font-size:13px">
         </div>
 
@@ -209,6 +176,14 @@
             </c:forEach>
         </select>
 
+        <%-- Lọc theo tình trạng hàng: Còn hàng / Gần hết hàng / Hết hàng (tính theo số lượng có thể bán) --%>
+        <select name="stockStatus" style="padding:9px 14px; border-radius:12px; border:1px solid var(--line); font-size:13px">
+            <option value="">Tất cả tình trạng hàng</option>
+            <c:forEach var="ss" items="${stockStatuses}">
+                <option value="${ss}" ${ss == filterStockStatus ? 'selected' : ''}>${ss.label}</option>
+            </c:forEach>
+        </select>
+
         <button type="submit" class="btn-pill-primary"><i class="ti ti-filter"></i>Lọc</button>
         <a href="${ctx}/staff/products" class="act-icon" title="Đặt lại bộ lọc"><i class="ti ti-rotate"></i></a>
     </form>
@@ -218,22 +193,24 @@
         <div class="split-head" style="padding:16px 20px; background:#fff; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
             <div>
                 <h3 style="margin:0; font-size:15px; font-weight:800; color:var(--text-logo)">
-                    <i class="ti ti-packages" style="color:var(--color-primary)"></i> DANH SÁCH DÒNG SẢN PHẨM
+                    <i class="ti ti-packages" style="color:var(--color-primary)"></i> DANH SÁCH SẢN PHẨM
                 </h3>
-                <small style="color:var(--text-muted)">Nhấp vào dòng sản phẩm để mở rộng chi tiết các biến thể quy cách (vd: 400g, 2kg)</small>
+<%--                <small style="color:var(--text-muted)">Nhấp vào dòng sản phẩm để mở rộng chi tiết các biến thể quy cách (vd: 400g, 2kg)</small>--%>
             </div>
             <div style="font-size:13px; color:var(--text-muted)">
-                Hiển thị: <b>${productGroups != null ? productGroups.size() : 0}</b> dòng sản phẩm (${totalItems != null ? totalItems : 0} biến thể)
+                Hiển thị: <b>${productGroups != null ? productGroups.size() : 0}</b> sản phẩm (${totalItems != null ? totalItems : 0} biến thể)
             </div>
         </div>
 
         <table style="margin:0; width:100%; border-collapse:collapse; border:0; box-shadow:none">
             <thead>
-            <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:11px; font-weight:800; color:#64748b; text-align:left; letter-spacing:.04em; text-transform:uppercase;">
+            <%-- white-space:nowrap: tiêu đề cột không xuống hàng, cột tên sản phẩm co lại nhường chỗ --%>
+            <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:11px; font-weight:800; color:#64748b; text-align:left; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;">
                 <th style="padding:14px 16px; width:64px; text-align:center;">ẢNH</th>
-                <th style="padding:14px 16px; min-width:260px">TÊN DÒNG SẢN PHẨM &amp; BIẾN THỂ</th>
-                <th style="padding:14px 16px;">MÃ SKU GỐC</th>
+                <th style="padding:14px 16px; min-width:260px">TÊN SẢN PHẨM &amp; BIẾN THỂ</th>
+                <th style="padding:14px 16px;">MÃ SẢN PHẨM</th>
                 <th style="padding:14px 16px; text-align:right;" class="num">GIÁ NIÊM YẾT</th>
+                <th style="padding:14px 16px; text-align:right;" title="Tổng số lượng bán giá thường của các biến thể">SỐ LƯỢNG (GIÁ THƯỜNG)</th>
                 <th style="padding:14px 16px; min-width:160px">TRẠNG THÁI</th>
                 <th style="padding:14px 16px; text-align:center; min-width:210px">THAO TÁC / BIẾN THỂ</th>
             </tr>
@@ -291,8 +268,14 @@
                                             <span style="color:#0284c7; font-weight:700">
                                                 <i class="ti ti-layers-subtract" style="font-size:12px"></i> ${g.variantCount} biến thể (${g.specsSummary})
                                             </span>
+                                            <c:if test="${g.anyOutOfStock}">
+                                                <span class="pill-badge red" style="font-size:11px; padding:1px 6px">Có biến thể hết hàng</span>
+                                            </c:if>
+                                            <c:if test="${g.anyFlashSaleOnly}">
+                                                <span class="pill-badge purple" style="font-size:11px; padding:1px 6px" title="Hết hàng giá thường, chỉ còn bán qua Flash Sale">Có biến thể chỉ còn hàng Flash Sale</span>
+                                            </c:if>
                                             <c:if test="${g.anyLowStock}">
-                                                <span class="pill-badge red" style="font-size:11px; padding:1px 6px">Cảnh báo tồn thấp</span>
+                                                <span class="pill-badge orange" style="font-size:11px; padding:1px 6px">Gần hết hàng</span>
                                             </c:if>
                                         </div>
                                     </div>
@@ -314,6 +297,12 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </b>
+                            </td>
+                            <td style="padding:14px 16px; text-align:right;">
+                                <b style="font-size:14px; color:${g.totalSellable == 0 ? '#ef4444' : 'var(--text-logo)'}"><fmt:formatNumber value="${g.totalSellable}"/></b> <small style="color:#64748b">sp</small>
+                                <c:if test="${g.totalFlashSale > 0}">
+                                    <div style="font-size:11px; color:#64748b; margin-top:2px">Flash Sale: <b style="color:#dc2626"><fmt:formatNumber value="${g.totalFlashSale}"/></b></div>
+                                </c:if>
                             </td>
                             <td style="padding:14px 16px;">
                                 <c:choose>
@@ -357,18 +346,18 @@
                         </tr>
 
                         <tr id="detail-${g.groupId}" class="variant-accordion-row" style="display:none; background:#fffcf9;">
-                            <td colspan="6" style="padding:0 20px 20px 20px; border-bottom:2px solid #fed7aa">
+                            <td colspan="7" style="padding:0 20px 20px 20px; border-bottom:2px solid #fed7aa">
                                 <div class="variant-accordion-card">
                                     <div class="variant-accordion-head">
                                         <div style="display:flex; align-items:center; gap:8px">
                                             <i class="ti ti-box" style="color:#ea580c; font-size:20px"></i>
                                             <b style="color:#9a3412; font-size:13px; text-transform:uppercase; letter-spacing:.04em">
-                                                CHI TI&#7870;T
+
                                             </b>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap">
                                             <span style="font-size:12px; color:#c2410c; font-weight:600">
-                                                <i class="ti ti-info-circle"></i> Tổng tồn: <b>${g.totalOnHand}</b> sp (Bán: <b>${g.totalSellable}</b> sp)
+<%--                                                <i class="ti ti-info-circle"></i> Số lượng giá thường: <b>${g.totalSellable}</b> sp · Flash Sale: <b>${g.totalFlashSale}</b> sp--%>
                                             </span>
                                             <c:if test="${g.activeCount > 0}">
                                                 <button type="button" class="btn-pill-secondary" style="padding:4px 10px; font-size:11px; border:1px solid #fed7aa; color:#c2410c; background:#fff7ed; cursor:pointer; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"
@@ -392,13 +381,12 @@
                                         <thead>
                                             <tr>
                                                 <th style="width:110px">QUY CÁCH</th>
-                                                <th>TÊN BIẾN THỂ &amp; SKU</th>
-                                                <th>MÃ VẠCH (EAN)</th>
+                                                <th>TÊN BIẾN THỂ</th>
                                                 <th class="num">GIÁ NIÊM YẾT</th>
-                                                <th style="text-align:right">TỒN THỰC</th>
-                                                <th style="text-align:right">KHẢ DỤNG</th>
+                                                <th style="text-align:right" title="Số lượng khách đặt mua được với giá thường">SỐ LƯỢNG (GIÁ THƯỜNG)</th>
+                                                <th style="text-align:right" title="Số lượng chỉ bán qua chương trình Flash Sale">FLASH SALE</th>
                                                 <th>TRẠNG THÁI</th>
-                                                <th style="text-align:right; width:140px">THAO TÁC</th>
+                                                <th style="text-align:right; width:110px">THAO TÁC</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -414,32 +402,31 @@
                                                             <c:out value="${v.name}"/>
                                                         </a>
                                                         <div style="font-size:11px; color:#64748b; margin-top:2px">
-                                                            SKU: <code style="font-size:11px; background:#f1f5f9; padding:1px 5px; border-radius:4px"><c:out value="${v.sku}"/></code>
-                                                            <c:if test="${v.lowStock}">
-                                                                <span class="pill-badge red" style="font-size:10px; margin-left:6px">Tồn thấp: ${v.sellableQty} sp</span>
-                                                            </c:if>
+                                                            Mã sản phẩm: <code style="font-size:11px; background:#f1f5f9; padding:1px 5px; border-radius:4px"><c:out value="${v.sku}"/></code>
                                                         </div>
-                                                    </td>
-                                                    <td>
-                                                        <c:choose>
-                                                            <c:when test="${not empty v.barcode}">
-                                                                <span style="font-family:monospace; font-size:12px; color:#475569"><c:out value="${v.barcode}"/></span>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <span style="color:#94a3b8">—</span>
-                                                            </c:otherwise>
-                                                        </c:choose>
                                                     </td>
                                                     <td class="num">
                                                         <b style="font-size:13px; color:${v.status == 'ACTIVE' ? 'var(--text-logo)' : '#9ca3af'}">
                                                             <fmt:formatNumber value="${v.sellingPrice}" type="number"/>₫
                                                         </b>
                                                     </td>
-                                                    <td style="text-align:right; font-weight:700">
-                                                        <fmt:formatNumber value="${v.onHandQty}"/> <small style="color:#64748b">sp</small>
+                                                    <td style="text-align:right">
+                                                        <b style="font-weight:800; color:${v.sellableQty == 0 ? '#ef4444' : 'var(--text-logo)'}"><fmt:formatNumber value="${v.sellableQty}"/></b> <small style="color:#64748b">sp</small>
+                                                        <%-- Nhãn tình trạng hàng (khớp bộ lọc), chỉ hiện khi gần hết / chỉ còn Flash Sale / hết --%>
+                                                        <c:choose>
+                                                            <c:when test="${v.stockStatus == 'FLASH_SALE_ONLY'}">
+                                                                <div style="margin-top:3px"><span class="pill-badge purple" style="font-size:10px; padding:1px 6px" title="Hết hàng giá thường, ${v.flashSaleQty} sản phẩm chỉ bán qua Flash Sale">${v.stockStatus.label}</span></div>
+                                                            </c:when>
+                                                            <c:when test="${v.stockStatus == 'OUT_OF_STOCK'}">
+                                                                <div style="margin-top:3px"><span class="pill-badge red" style="font-size:10px; padding:1px 6px">${v.stockStatus.label}</span></div>
+                                                            </c:when>
+                                                            <c:when test="${v.stockStatus == 'LOW_STOCK'}">
+                                                                <div style="margin-top:3px"><span class="pill-badge orange" style="font-size:10px; padding:1px 6px" title="Còn ≤ ngưỡng cảnh báo (${v.lowStockThreshold})">${v.stockStatus.label}</span></div>
+                                                            </c:when>
+                                                        </c:choose>
                                                     </td>
-                                                    <td style="text-align:right; font-weight:800; color:#ea580c">
-                                                        <fmt:formatNumber value="${v.sellableQty}"/> <small style="color:#64748b">sp</small>
+                                                    <td style="text-align:right; font-weight:700; color:${v.flashSaleQty > 0 ? '#dc2626' : '#94a3b8'}">
+                                                        <fmt:formatNumber value="${v.flashSaleQty}"/>
                                                     </td>
                                                     <td>
                                                         <c:choose>
@@ -453,7 +440,6 @@
                                                     </td>
                                                     <td style="text-align:right">
                                                         <div class="action-icons" style="justify-content:flex-end">
-                                                            <a href="${ctx}/staff/lots?keyword=${v.sku}" class="act-icon" title="Xem danh sách lô hàng của biến thể"><i class="ti ti-building-warehouse"></i></a>
                                                             <a href="${ctx}/staff/products/${v.id}/edit" class="act-icon" title="Chỉnh sửa biến thể"><i class="ti ti-edit"></i></a>
                                                             <form method="post" action="${ctx}/staff/products/${v.id}/toggle-status" style="display:inline">
                                                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
@@ -475,7 +461,7 @@
                 </c:when>
                 <c:otherwise>
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="empty-state" style="text-align:center; padding:45px 20px; color:var(--text-muted)">
                                 <i class="ti ti-package-off" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.5"></i>
                                 <b>Không tìm thấy sản phẩm nào</b>
@@ -490,7 +476,7 @@
 
         <%-- Pagination Screen 3 --%>
         <div class="panel-foot" style="padding:14px 20px; background:#fff; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
-            <span>Hiển thị <b>${productGroups != null ? productGroups.size() : 0}</b> dòng sản phẩm (Tổng cộng <b>${totalItems != null ? totalItems : 0}</b> biến thể SKU)</span>
+            <span>Hiển thị <b>${productGroups != null ? productGroups.size() : 0}</b> sản phẩm (Tổng cộng <b>${totalItems != null ? totalItems : 0}</b> biến thể)</span>
             <div style="display:flex; align-items:center; gap:12px">
                 <div class="pager" style="margin:0">
                     <c:if test="${totalPages > 1}">
@@ -564,53 +550,15 @@
         }
     }
 
-    // Tự động mở rộng nếu đang tìm kiếm từ khóa
+    // Tự động mở rộng nếu đang tìm theo từ khóa hoặc lọc theo tình trạng hàng (để thấy ngay biến thể nào khớp)
     document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.querySelector('input[name="keyword"]');
-        if (searchInput && searchInput.value.trim().length > 0) {
+        const stockSelect = document.querySelector('select[name="stockStatus"]');
+        if ((searchInput && searchInput.value.trim().length > 0) || (stockSelect && stockSelect.value)) {
             toggleAllAccordions();
         }
     });
 
-    // Xuất file CSV/Excel đơn giản cho biến thể
-    function exportExcel() {
-        const rows = [];
-        rows.push(["Dòng sản phẩm", "Quy cách", "Mã SKU", "Mã vạch", "Giá bán (VND)", "Tồn thực", "Tồn bán", "Trạng thái"]);
-
-        <c:forEach var="g" items="${productGroups}">
-            <c:forEach var="v" items="${g.variants}">
-                rows.push([
-                    "${g.baseName}",
-                    "${v.spec}",
-                    "${v.sku}",
-                    "${not empty v.barcode ? v.barcode : ''}",
-                    "${v.sellingPrice}",
-                    "${v.onHandQty}",
-                    "${v.sellableQty}",
-                    "${v.status}"
-                ]);
-            </c:forEach>
-        </c:forEach>
-
-        if (rows.length <= 1) {
-            alert("Không có dữ liệu sản phẩm để xuất.");
-            return;
-        }
-
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-        rows.forEach(rowArray => {
-            let row = rowArray.map(item => '"' + (item ? (item + '').replace(/"/g, '""') : '') + '"').join(",");
-            csvContent += row + "\r\n";
-        });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "Danh_Sach_San_Pham_Bien_The_" + new Date().toISOString().slice(0, 10) + ".csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
 
     // ========================================================
     // THAO TÁC HÀNG LOẠT CHO TOÀN BỘ BIẾN THỂ CỦA DÒNG SẢN PHẨM
@@ -660,7 +608,7 @@
         const msg = '⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ DÒNG SẢN PHẨM NÀY?\n\n' +
                     'Tên sản phẩm: "' + productName + '"\n' +
                     'Gồm ' + variants.length + ' biến thể: ' + variants.map(v => v.sku).join(', ') + '\n\n' +
-                    'LƯU Ý QUAN TRỌNG: Chỉ những biến thể chưa từng nhập lô hàng hoặc phát sinh đơn hàng mới được phép xóa (theo quy tắc BR-11). Nếu sản phẩm đã phát sinh lô hàng, hệ thống sẽ yêu cầu chuyển sang Tạm ngưng bán.';
+                    'LƯU Ý QUAN TRỌNG: Chỉ những biến thể chưa bán ra và chưa phát sinh đơn hàng mới được phép xóa. Nếu sản phẩm đã bán ra, hệ thống sẽ yêu cầu chuyển sang Tạm ngưng bán.';
 
         if (!confirm(msg)) return;
 
@@ -679,7 +627,7 @@
                     body: formData
                 });
                 if (resp.url && resp.url.includes('/staff/products/' + v.id)) {
-                    errorMsg = 'Sản phẩm "' + productName + '" (SKU: ' + v.sku + ') đã có lô hàng hoặc đơn hàng trong hệ thống nên không thể xóa (BR-11).\n\nHãy chọn "Tạm ngưng bán cả dòng" để ẩn khỏi gian hàng!';
+                    errorMsg = 'Sản phẩm "' + productName + '" (Mã sản phẩm: ' + v.sku + ') đã bán ra hoặc có đơn hàng trong hệ thống nên không thể xóa.\n\nHãy chọn "Tạm ngưng bán cả dòng" để ẩn khỏi gian hàng!';
                     break;
                 }
             }

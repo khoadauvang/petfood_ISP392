@@ -69,14 +69,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<String> findShopBrands();
 
     // ===== Kiểm tra trùng trước khi lưu (DB vẫn là chốt chặn cuối bằng UNIQUE) =====
-    // (sku, variant) là UNIQUE: RC-KITTEN36 + 400G
+    // (sku, variant) là UNIQUE: 05 + 400G
     boolean existsBySkuAndVariant(String sku, String variant);
 
     boolean existsBySkuAndVariantAndIdNot(String sku, String variant, Long id);   // khi sửa: bỏ qua chính nó
 
-    boolean existsByBarcode(String barcode);
-
-    boolean existsByBarcodeAndIdNot(String barcode, Long id);
+    // Mã sản phẩm (sku) là số thứ tự 01, 02...: lấy số lớn nhất hiện có (0 nếu chưa có), bỏ qua mã chữ kiểu cũ.
+    // UPDLOCK + HOLDLOCK giữ khoá tới hết transaction thêm sản phẩm: hai người cùng tạo dòng mới
+    // không lấy trùng số (trùng số mà khác quy cách thì UNIQUE (sku, variant) không chặn được).
+    @Query(value = """
+            select isnull(max(try_cast(sku as int)), 0)
+            from Product with (updlock, holdlock)
+            where sku not like '%[^0-9]%' and sku <> ''
+            """, nativeQuery = true)
+    int findMaxNumericSkuForUpdate();
 
     // ===== Dùng khi sửa / xoá danh mục =====
     boolean existsByCategory_Id(Long categoryId);
@@ -105,7 +111,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             where (:keyword is null
                    or p.name like concat('%', :keyword, '%')
                    or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%')
-                   or p.barcode like concat('%', :keyword, '%')
                    or p.brand like concat('%', :keyword, '%'))
               and (:categoryId is null or c.id = :categoryId)
               and (:species is null or p.species = :species)
@@ -116,7 +121,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             where (:keyword is null
                    or p.name like concat('%', :keyword, '%')
                    or concat(p.sku, '-', p.variant) like concat('%', :keyword, '%')
-                   or p.barcode like concat('%', :keyword, '%')
                    or p.brand like concat('%', :keyword, '%'))
               and (:categoryId is null or p.category.id = :categoryId)
               and (:species is null or p.species = :species)

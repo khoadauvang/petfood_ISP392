@@ -3,7 +3,9 @@ package com.isp392.petfood.service;
 import com.isp392.petfood.dto.AlertSummary;
 import com.isp392.petfood.dto.LotRow;
 import com.isp392.petfood.dto.LowStockRow;
+import com.isp392.petfood.enums.ExpiryLevel;
 import com.isp392.petfood.enums.ProductStatus;
+import com.isp392.petfood.repository.FlashSaleItemRepository;
 import com.isp392.petfood.repository.LotRepository;
 import com.isp392.petfood.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class InventoryAlertService {
 
     private final ProductRepository productRepository;
     private final LotRepository lotRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final LotService lotService;
     private final InventoryPolicy inventoryPolicy;
 
@@ -35,11 +38,15 @@ public class InventoryAlertService {
                 .toList();
     }
 
-    // Hết hạn trước đứng đầu (FEFO)
+    // Hết hạn trước đứng đầu. Lô cận hạn (RED) đã được Flash Sale đang chạy / nháp giữ hết số còn lại thì ẩn:
+    // tạo Flash Sale thành công là sản phẩm rời màn Cảnh báo, dừng Flash Sale (kết thúc) thì hiện lại.
+    // Lô dưới 21 ngày / quá hạn luôn hiện vì cần tiêu huỷ.
     @Transactional(readOnly = true)
     public List<LotRow> nearExpiryLots() {
         return lotRepository.findInStockExpiringBefore(inventoryPolicy.minSellableExpiry()).stream()
                 .map(lotService::toRow)
+                .filter(lot -> lot.getLevel() != ExpiryLevel.RED
+                        || flashSaleItemRepository.reservedByLiveSales(lot.getId()) < lot.getOnHandQty())
                 .toList();
     }
 

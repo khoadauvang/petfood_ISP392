@@ -246,8 +246,8 @@
             <div class="screen-bc">
                 <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <span class="current">QUẢN LÝ ĐƠN HÀNG</span>
             </div>
-            <h1>QUẢN LÝ ĐƠN HÀNG <span id="realtime-badge" class="pill-badge gray" title="Đang kết nối...">ĐỒNG BỘ THỜI GIAN THỰC</span></h1>
-            <p class="page-sub">Xem danh sách và xử lý chi tiết đơn hàng trực tiếp ngay tại chỗ trên một màn hình.</p>
+            <h1>QUẢN LÝ ĐƠN HÀNG</h1>
+<%--            <p class="page-sub">Xem danh sách và xử lý chi tiết đơn hàng trực tiếp ngay tại chỗ trên một màn hình.</p>--%>
         </div>
     </div>
 
@@ -354,7 +354,6 @@
                     <h3 style="margin:0; font-size:15px; font-weight:800; color:var(--text-logo)">
                         <i class="ti ti-list" style="color:var(--color-primary)"></i> DANH SÁCH ĐƠN HÀNG
                     </h3>
-                    <small style="color:var(--text-muted)">Bấm vào dòng để xem chi tiết và xử lý ở khung bên phải</small>
                 </div>
                 <div style="font-size:12px; color:var(--text-muted)">
                     Sắp xếp: <b style="color:var(--color-primary)">Mới nhất ↓</b>
@@ -389,11 +388,11 @@
                                                 <c:out value="${empty o.customerName ? 'K' : o.customerName.substring(0, 1)}"/>
                                             </div>
                                             <div style="min-width:0">
-                                                <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${o.customerName}">
-                                                    <c:out value="${empty o.customerName ? 'Khách hàng #' += o.id : o.customerName}"/>
+                                                <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${o.maskedCustomerName}">
+                                                    <c:out value="${empty o.customerName ? 'Khách hàng #' += o.id : o.maskedCustomerName}"/>
                                                 </b>
-                                                <small style="color:var(--text-muted); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${o.customerEmail}">
-                                                    <c:out value="${empty o.customerEmail ? 'N/A' : o.customerEmail}"/>
+                                                <small style="color:var(--text-muted); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${o.maskedCustomerEmail}">
+                                                    <c:out value="${empty o.customerEmail ? 'N/A' : o.maskedCustomerEmail}"/>
                                                 </small>
                                             </div>
                                         </div>
@@ -495,7 +494,7 @@
                                 </span>
                             </h3>
                             <div style="font-size:12px; color:var(--text-muted)">
-                                Đặt lúc: <b>${selectedOrder.createdAtText}</b> · Kênh: Bán lẻ trực tuyến
+                                Đặt lúc: <b>${selectedOrder.createdAtText}</b>
                             </div>
                         </div>
                     </div>
@@ -689,17 +688,17 @@
                         <div class="info-box">
                             <div class="info-box-title"><i class="ti ti-user"></i>Khách nhận hàng</div>
                             <div class="info-box-name" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap">
-                                <span><c:out value="${selectedOrder.customerName}"/></span>
+                                <span><c:out value="${selectedOrder.maskedCustomerName}"/></span>
                                 <span style="display:inline-flex; align-items:center; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:700; ${orderTierStyle}">
                                     ${orderTierBadge}
                                 </span>
                             </div>
                             <div class="info-box-desc">
                                 <c:if test="${not empty selectedOrder.customerPhone}">
-                                    <div><i class="ti ti-phone"></i> <b><c:out value="${selectedOrder.customerPhone}"/></b></div>
+                                    <div><i class="ti ti-phone"></i> <b><c:out value="${selectedOrder.maskedCustomerPhone}"/></b></div>
                                 </c:if>
                                 <c:if test="${not empty selectedOrder.customerEmail}">
-                                    <div><i class="ti ti-mail"></i> <c:out value="${selectedOrder.customerEmail}"/></div>
+                                    <div><i class="ti ti-mail"></i> <c:out value="${selectedOrder.maskedCustomerEmail}"/></div>
                                 </c:if>
                             </div>
                         </div>
@@ -740,11 +739,6 @@
                                                 <i class="ti ${isPromoLine ? 'ti-discount-2' : 'ti-bolt'}"></i>${isPromoLine ? 'Chương trình' : 'Flash Sale'}
                                             </span>
                                         </c:if>
-                                        <c:forEach var="lot" items="${line.lots}">
-                                            <div style="font-size:11px; color:#475569; background:#f1f5f9; border-radius:6px; padding:2px 6px; display:inline-flex; align-items:center; gap:4px; margin-top:3px">
-                                                <i class="ti ti-building-warehouse" style="color:#0284c7"></i> <c:out value="${lot}"/>
-                                            </div>
-                                        </c:forEach>
                                     </div>
                                 </div>
                                 <div style="text-align:right; flex-shrink:0">

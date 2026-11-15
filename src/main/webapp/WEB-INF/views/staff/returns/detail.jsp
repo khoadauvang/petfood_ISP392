@@ -244,7 +244,7 @@
     <div class="page-head">
         <div>
             <div class="screen-bc">
-                <span>QUẢN LÝ KHO &amp; ĐỔI TRẢ</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/returns" style="color:inherit; text-decoration:none;">QUẢN LÝ TRẢ HÀNG</a>
+                <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <a href="${ctx}/staff/returns" style="color:inherit; text-decoration:none;">QUẢN LÝ TRẢ HÀNG</a>
                 <span class="sep">&gt;</span>
                 <span class="current">CHI TIẾT YÊU CẦU #${ret.id}</span>
             </div>
@@ -285,7 +285,7 @@
                 </span>
             </div>
             <p class="page-sub" style="margin-top:6px">
-                Gửi yêu cầu: <b>${ret.createdAtText}</b> · Phương thức: ${ret.paymentMethod.label} (${ret.paymentStatus.label}) · Mã phiếu: #RR-00${ret.id}
+                Gửi yêu cầu: <b>${ret.createdAtText}</b> · Phương thức: ${ret.paymentMethod.label} (${ret.paymentStatus.label})
             </p>
         </div>
 
@@ -384,7 +384,7 @@
     <%-- Thanh tiến trình 5 bước trực quan theo BR-36 --%>
     <div class="panel" style="margin-bottom:20px; padding:18px 24px">
         <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:12px">
-            QUY TRÌNH XỬ LÝ YÊU CẦU ĐỔI TRẢ (BR-36)
+            QUY TRÌNH XỬ LÝ YÊU CẦU ĐỔI TRẢ
         </div>
         <c:set var="stepIdx" value="${ret.status == 'REQUESTED' ? 1 : (ret.status == 'APPROVED' ? 2 : (ret.status == 'RECEIVED' ? 3 : (ret.status == 'INSPECTED' ? 4 : 5)))}"/>
         <c:if test="${ret.status == 'REJECTED'}"><c:set var="stepIdx" value="2"/></c:if>
@@ -481,7 +481,7 @@
                                             </b>
                                             <div style="display:flex; align-items:center; gap:6px; margin-top:2px">
                                                 <c:if test="${not empty l.sku}">
-                                                    <span style="font-size:11px; color:var(--text-muted)">SKU: ${l.sku}</span>
+                                                    <span style="font-size:11px; color:var(--text-muted)">Mã sản phẩm: ${l.sku}</span>
                                                 </c:if>
                                                 <c:if test="${l.promotion}">
                                                     <span class="pill-badge red" style="font-size:10px; padding:1px 6px">Chương trình</span>
@@ -562,7 +562,7 @@
                     <div class="info-card-title" style="color:#7e22ce; border-bottom-color:#e9d5ff">
                         <span style="display:flex; align-items:center; gap:8px">
                             <i class="ti ti-clipboard-check" style="color:#9333ea"></i>
-                            <span>THẨM ĐỊNH TỪNG SẢN PHẨM TẠI KHO (BR-38)</span>
+                            <span>THẨM ĐỊNH TỪNG SẢN PHẨM TẠI KHO</span>
                         </span>
                         <span class="pill-badge purple">BƯỚC THẨM ĐỊNH</span>
                     </div>

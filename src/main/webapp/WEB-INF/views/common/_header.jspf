@@ -1242,6 +1242,7 @@
 </div>
 
 <%@ include file="/WEB-INF/views/common/_mask-url.jspf" %>
+<%@ include file="/WEB-INF/views/common/_refund-notice.jspf" %>
 
 <script>
 // XỬ LÝ GỢI Ý TÌM KIẾM NHỎ GỌN TRÊN HEADER
