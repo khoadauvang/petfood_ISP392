@@ -514,7 +514,7 @@
                                     <c:choose>
                                         <c:when test="${not empty l.inspectionResult}">
                                             <span class="pill-badge ${l.inspectionResult.name() == 'RESTOCKED' ? 'green' : 'red'}" style="font-size:11px">
-                                                ${l.inspectionResult.label}
+                                                    ${l.inspectionResult.label}
                                             </span>
                                             <c:if test="${not empty l.inspectionNote}">
                                                 <div style="font-size:11px; color:var(--text-muted); margin-top:2px">
@@ -599,7 +599,7 @@
                                             <c:forEach var="r" items="${inspectionResults}">
                                                 <label style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer">
                                                     <form:radiobutton path="lines[${s.index}].result" value="${r}" required="required" style="accent-color:#9333ea"/>
-                                                    ${r.label}
+                                                        ${r.label}
                                                 </label>
                                             </c:forEach>
                                         </div>
@@ -684,7 +684,7 @@
                     <c:when test="${ret.status == 'REQUESTED'}">
                         <div style="margin-bottom:16px">
                             <form method="post" action="${ctx}/staff/returns/${ret.id}/approve">
-                                ${csrf}
+                                    ${csrf}
                                 <button type="submit" class="btn-flashsale" style="width:100%; font-size:14px; padding:12px; justify-content:center">
                                     <i class="ti ti-check" style="font-size:18px"></i> Duyệt chấp thuận yêu cầu
                                 </button>
@@ -699,7 +699,7 @@
                                 Từ chối yêu cầu này:
                             </b>
                             <form method="post" action="${ctx}/staff/returns/${ret.id}/reject">
-                                ${csrf}
+                                    ${csrf}
                                 <div style="margin-bottom:10px">
                                     <textarea name="rejectReason" maxlength="255" rows="3" required
                                               placeholder="Nhập lý do từ chối để thông báo đến khách hàng..."
@@ -716,7 +716,7 @@
                     <c:when test="${ret.status == 'APPROVED'}">
                         <div>
                             <form method="post" action="${ctx}/staff/returns/${ret.id}/receive">
-                                ${csrf}
+                                    ${csrf}
                                 <button type="submit" class="btn-flashsale" style="width:100%; font-size:14px; padding:12px; justify-content:center; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); box-shadow:0 2px 10px rgba(37, 99, 235, 0.3)">
                                     <i class="ti ti-package-import" style="font-size:18px"></i> Xác nhận đã nhận hàng tại kho
                                 </button>
@@ -750,7 +750,7 @@
                             </div>
 
                             <form method="post" action="${ctx}/staff/returns/${ret.id}/refunded">
-                                ${csrf}
+                                    ${csrf}
                                 <button type="submit" class="btn-flashsale" style="width:100%; font-size:14px; padding:12px; justify-content:center; background:linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow:0 2px 10px rgba(16, 185, 129, 0.3)">
                                     <i class="ti ti-check" style="font-size:18px"></i> Xác nhận đã chuyển khoản hoàn
                                 </button>
@@ -803,7 +803,7 @@
                     </div>
                     <div>
                         <b style="font-size:15px; color:var(--text-logo); display:block">
-                            <c:out value="${ret.customerName}"/>
+                            <c:out value="${ret.maskedCustomerName}"/>
                         </b>
                         <span style="font-size:12px; color:var(--text-muted)">Khách hàng thân thiết PetFood</span>
                     </div>
@@ -812,12 +812,12 @@
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px">
                     <div style="display:flex; align-items:center; gap:10px; color:var(--text-main)">
                         <i class="ti ti-mail" style="color:var(--color-primary); font-size:16px; flex-shrink:0"></i>
-                        <span style="word-break:break-all"><c:out value="${ret.customerEmail}"/></span>
+                        <span style="word-break:break-all"><c:out value="${ret.maskedCustomerEmail}"/></span>
                     </div>
                     <c:if test="${not empty ret.customerPhone}">
                         <div style="display:flex; align-items:center; gap:10px; color:var(--text-main)">
                             <i class="ti ti-phone" style="color:var(--color-primary); font-size:16px; flex-shrink:0"></i>
-                            <span><c:out value="${ret.customerPhone}"/></span>
+                            <span><c:out value="${ret.maskedCustomerPhone}"/></span>
                         </div>
                     </c:if>
                     <div style="display:flex; align-items:center; gap:10px; color:var(--text-main)">
@@ -901,7 +901,7 @@
                                 <i class="ti ${ret.status == 'REJECTED' ? 'ti-x' : 'ti-check'}"></i>
                             </div>
                             <div class="audit-title">
-                                ${ret.status == 'REJECTED' ? 'Nhân viên từ chối yêu cầu' : 'Nhân viên phê duyệt yêu cầu'}
+                                    ${ret.status == 'REJECTED' ? 'Nhân viên từ chối yêu cầu' : 'Nhân viên phê duyệt yêu cầu'}
                             </div>
                             <div class="audit-time"><c:out value="${ret.reviewedText}"/></div>
                         </li>

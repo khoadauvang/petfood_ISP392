@@ -3,6 +3,7 @@ package com.isp392.petfood.controller;
 import com.isp392.petfood.dto.ProductAdminRow;
 import com.isp392.petfood.dto.ProductForm;
 import com.isp392.petfood.dto.ProductGroupDto;
+import com.isp392.petfood.entity.Lot;
 import com.isp392.petfood.entity.Product;
 import com.isp392.petfood.enums.AgeGroup;
 import com.isp392.petfood.enums.ProductStatus;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,6 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 // Quản lý sản phẩm. /staff/** cho phép STAFF và ADMIN (SecurityConfig).
@@ -190,6 +195,47 @@ public class StaffProductController {
             redirect.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/staff/products/" + id;
         }
+    }
+
+    @PostMapping("/{id}/add-stock")
+    public String addStock(@PathVariable("id") Long id,
+                           @RequestParam(name = "quantity", required = false) Integer quantity,
+                           @RequestParam(name = "expiryDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiryDate,
+                           @RequestParam(name = "groupId", required = false) String groupId,
+                           @RequestParam(name = "filterQuery", required = false) String filterQuery,
+                           RedirectAttributes redirect) {
+        String targetUrl = "/staff/products";
+        List<String> params = new ArrayList<>();
+        if (filterQuery != null && !filterQuery.isBlank()) {
+            params.add(filterQuery);
+        }
+        if (groupId != null && !groupId.isBlank()) {
+            params.add("openGroup=" + groupId);
+        }
+        if (!params.isEmpty()) {
+            targetUrl += "?" + String.join("&", params);
+        }
+
+        try {
+            Lot savedLot = productAdminService.addStock(id, quantity, expiryDate);
+            String expStr = savedLot.getExpiryDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            redirect.addFlashAttribute("successMessage",
+                    "Đã cộng thêm " + savedLot.getReceivedQty() + " sản phẩm cho biến thể "
+                            + savedLot.getProduct().getFullSku() + " (HSD mới: " + expStr + ")");
+            switch (inventoryPolicy.levelOf(savedLot.getExpiryDate())) {
+                case RED -> redirect.addFlashAttribute("warningMessage", "Hạn sử dụng " + expStr + " còn dưới "
+                        + inventoryPolicy.getShelfLifeCommitmentDays()
+                        + " ngày: đợt hàng này được cộng vào cột Flash Sale và có thể đưa vào chương trình Flash Sale độc lập.");
+                case BLOCKED, EXPIRED -> redirect.addFlashAttribute("warningMessage", "Hạn sử dụng " + expStr + " còn dưới "
+                        + inventoryPolicy.getQuarantineDays() + " ngày: đợt hàng này không đủ điều kiện mở bán.");
+                default -> {
+                    // còn hạn dài (>= 90 ngày): cộng vào Số lượng (Giá thường)
+                }
+            }
+        } catch (BusinessRuleException e) {
+            redirect.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:" + targetUrl;
     }
 
     // productId == null: form thêm mới; có giá trị: form sửa (kèm ảnh hiện tại để xem trước)

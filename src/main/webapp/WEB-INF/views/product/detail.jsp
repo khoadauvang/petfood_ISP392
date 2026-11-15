@@ -73,10 +73,10 @@
                         </div>
                     </c:if>
 
-                    <div class="fefo-gallery-note">
-                        <i class="fi fi-rr-boxes"></i>
-                        <span>Kho tự động xuất hàng có hạn sử dụng gần nhất trước, đảm bảo chuẩn châu Âu.</span>
-                    </div>
+<%--                    <div class="fefo-gallery-note">--%>
+<%--                        <i class="fi fi-rr-boxes"></i>--%>
+<%--                        <span>Kho tự động xuất hàng có hạn sử dụng gần nhất trước, đảm bảo chuẩn châu Âu.</span>--%>
+<%--                    </div>--%>
                 </section>
 
                 <!-- CỘT PHẢI: THÔNG TIN CHI TIẾT & NÚT THÊM GIỎ / MUA NGAY -->
@@ -198,7 +198,7 @@
                                     </div>
                                 </div>
                                 <div class="avail-stock-pill">
-                                    <span>Tồn kho khả dụng: <strong>${product.sellableQty} sản phẩm</strong></span>
+                                    <span>Số lượng: <strong>${product.sellableQty} sản phẩm</strong></span>
                                 </div>
                                 <c:if test="${hasSaleOffer}">
                                     <div class="avail-stock-pill flash-remaining-pill">
@@ -233,7 +233,7 @@
                                     <c:if test="${not activeOffer.promotion}">
                                         <div class="flash-sale-expiry-row">
                                             <i class="fi fi-rr-calendar"></i>
-                                            <span>HSD lô Flash Sale: <strong><c:out value="${activeOffer.expiryText}"/></strong></span>
+                                            <span>HSD Flash Sale: <strong><c:out value="${activeOffer.expiryText}"/></strong></span>
                                             <span class="flash-days-pill">Còn ${activeOffer.daysLeft} ngày</span>
                                         </div>
                                     </c:if>

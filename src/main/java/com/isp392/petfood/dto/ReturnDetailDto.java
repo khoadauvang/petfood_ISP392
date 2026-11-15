@@ -4,6 +4,7 @@ import com.isp392.petfood.enums.PaymentMethod;
 import com.isp392.petfood.enums.PaymentStatus;
 import com.isp392.petfood.enums.ReturnReason;
 import com.isp392.petfood.enums.ReturnStatus;
+import com.isp392.petfood.util.CustomerMask;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -36,6 +37,19 @@ public class ReturnDetailDto {
     private final String receivedAtText;
     private final String inspectedByName;
     private final String refundedAtText;
+
+    // Bản đã che để hiện cho staff (giống Quản lý đơn hàng & Báo cáo hội viên)
+    public String getMaskedCustomerName() {
+        return CustomerMask.name(customerName);
+    }
+
+    public String getMaskedCustomerEmail() {
+        return CustomerMask.email(customerEmail);
+    }
+
+    public String getMaskedCustomerPhone() {
+        return CustomerMask.phone(customerPhone);
+    }
 
     @Getter
     public static class MediaDto {

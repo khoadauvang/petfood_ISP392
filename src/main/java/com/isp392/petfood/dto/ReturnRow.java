@@ -2,6 +2,7 @@ package com.isp392.petfood.dto;
 
 import com.isp392.petfood.enums.ReturnReason;
 import com.isp392.petfood.enums.ReturnStatus;
+import com.isp392.petfood.util.CustomerMask;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,4 +17,12 @@ public class ReturnRow {
     private final ReturnStatus status;
     private final String customerName;
     private final String customerEmail;
+
+    public String getMaskedCustomerName() {
+        return CustomerMask.name(customerName);
+    }
+
+    public String getMaskedCustomerEmail() {
+        return CustomerMask.email(customerEmail);
+    }
 }

@@ -341,7 +341,7 @@
                 <span>QUẢN LÝ BÁN HÀNG</span> <span class="sep">&gt;</span> <span class="current">QUẢN LÝ TRẢ HÀNG</span>
             </div>
             <h1>QUẢN LÝ TRẢ HÀNG</h1>
-<%--            <p class="page-sub">Theo dõi yêu cầu đổi trả hàng, xác nhận hàng hoàn và xử lý tái nhập kho.</p>--%>
+            <%--            <p class="page-sub">Theo dõi yêu cầu đổi trả hàng, xác nhận hàng hoàn và xử lý tái nhập kho.</p>--%>
         </div>
 
 
@@ -467,11 +467,11 @@
                                                 <c:out value="${empty r.customerName ? 'K' : r.customerName.substring(0, 1)}"/>
                                             </div>
                                             <div style="min-width:0">
-                                                <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${r.customerName}">
-                                                    <c:out value="${r.customerName}"/>
+                                                <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${r.maskedCustomerName}">
+                                                    <c:out value="${r.maskedCustomerName}"/>
                                                 </b>
-                                                <small style="color:var(--text-muted); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${r.customerEmail}">
-                                                    <c:out value="${empty r.customerEmail ? 'N/A' : r.customerEmail}"/>
+                                                <small style="color:var(--text-muted); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px" title="${r.maskedCustomerEmail}">
+                                                    <c:out value="${empty r.customerEmail ? 'N/A' : r.maskedCustomerEmail}"/>
                                                 </small>
                                             </div>
                                         </div>
@@ -480,7 +480,7 @@
                                     <td><span style="font-size:12.5px; white-space:nowrap">${r.reason.label}</span></td>
                                     <td style="white-space:nowrap">
                                         <span class="pill-badge ${r.status == 'REFUNDED' ? 'green' : (r.status == 'APPROVED' ? 'blue' : (r.status == 'RECEIVED' ? 'purple' : (r.status == 'INSPECTED' ? 'orange' : (r.status == 'REJECTED' ? 'red' : 'gold'))))}">
-                                            ${r.status.label}
+                                                ${r.status.label}
                                         </span>
                                     </td>
                                     <td style="text-align:center">
@@ -513,13 +513,13 @@
                 <c:if test="${totalPages > 1}">
                     <c:set var="pageUrlPrefix" value="?${not empty filterQuery ? filterQuery += '&' : ''}page="/>
                     <div class="pager" style="margin:0; display:flex; align-items:center; gap:4px; flex-wrap:wrap">
-                        <%-- Nút Về trang đầu & Trang trước --%>
+                            <%-- Nút Về trang đầu & Trang trước --%>
                         <c:if test="${currentPage > 1}">
                             <a href="${pageUrlPrefix}1" title="Về trang đầu" style="padding:0 9px; font-size:12px; font-weight:700">« Đầu</a>
                             <a href="${pageUrlPrefix}${currentPage - 1}" title="Trang trước" style="padding:0 9px; font-size:12px; font-weight:700">‹ Trước</a>
                         </c:if>
 
-                        <%-- Giới hạn 3 trang trước và sau currentPage --%>
+                            <%-- Giới hạn 3 trang trước và sau currentPage --%>
                         <c:set var="startPage" value="${currentPage - 3 > 1 ? currentPage - 3 : 1}"/>
                         <c:set var="endPage" value="${currentPage + 3 < totalPages ? currentPage + 3 : totalPages}"/>
 
@@ -542,7 +542,7 @@
                             <span style="color:#94a3b8; font-weight:700; padding:0 3px">...</span>
                         </c:if>
 
-                        <%-- Nút Trang sau & Đến trang cuối --%>
+                            <%-- Nút Trang sau & Đến trang cuối --%>
                         <c:if test="${currentPage < totalPages}">
                             <a href="${pageUrlPrefix}${currentPage + 1}" title="Trang tiếp theo" style="padding:0 9px; font-size:12px; font-weight:700">Sau ›</a>
                             <a href="${pageUrlPrefix}${totalPages}" title="Đến trang cuối" style="padding:0 9px; font-size:12px; font-weight:700">Cuối »</a>
@@ -556,7 +556,7 @@
         <c:choose>
             <c:when test="${not empty rDetail}">
                 <div class="panel drawer-sticky" id="return-drawer" style="box-shadow:var(--shadow-card); background:#ffffff">
-                    <%-- 1. Drawer Header --%>
+                        <%-- 1. Drawer Header --%>
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:14px">
                         <div>
                             <h3 style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 4px">
@@ -577,7 +577,7 @@
                         </div>
                     </div>
 
-                    <%-- 2. Banner trạng thái nghiệp vụ --%>
+                        <%-- 2. Banner trạng thái nghiệp vụ --%>
                     <div id="detail-alerts-container">
                         <c:choose>
                             <c:when test="${rDetail.status == 'REJECTED'}">
@@ -668,7 +668,7 @@
                         </c:choose>
                     </div>
 
-                    <%-- 3. Stepper 5 bước theo BR-36 --%>
+                        <%-- 3. Stepper 5 bước theo BR-36 --%>
                     <c:set var="isRejected" value="${rDetail.status == 'REJECTED'}"/>
                     <c:set var="step2Cls" value="${isRejected ? 'active' : (rDetail.status == 'REQUESTED' ? 'active' : 'completed')}"/>
                     <c:set var="step3Cls" value="${rDetail.status == 'REQUESTED' or isRejected ? '' : (rDetail.status == 'APPROVED' ? 'active' : 'completed')}"/>
@@ -719,7 +719,7 @@
                         </div>
                     </div>
 
-                    <%-- 4. Thao tác xử lý nghiệp vụ ngay tại chỗ --%>
+                        <%-- 4. Thao tác xử lý nghiệp vụ ngay tại chỗ --%>
                     <div class="action-card" id="return-action-card">
                         <div class="action-card-title">
                             <i class="ti ti-settings"></i>
@@ -730,7 +730,7 @@
                                 <c:when test="${rDetail.status == 'REQUESTED'}">
                                     <div style="margin-bottom:12px">
                                         <form method="post" action="${ctx}/staff/returns/${rDetail.id}/approve">
-                                            ${csrf}
+                                                ${csrf}
                                             <button type="submit" class="btn-flashsale" style="width:100%; font-size:13px; padding:10px; justify-content:center">
                                                 <i class="ti ti-check" style="font-size:16px"></i>Duyệt chấp thuận yêu cầu trả hàng
                                             </button>
@@ -741,7 +741,7 @@
                                             <i class="ti ti-ban"></i>Từ chối yêu cầu trả hàng này...
                                         </summary>
                                         <form method="post" action="${ctx}/staff/returns/${rDetail.id}/reject" style="margin-top:8px">
-                                            ${csrf}
+                                                ${csrf}
                                             <div style="margin-bottom:8px">
                                                 <textarea name="rejectReason" maxlength="255" rows="2" required placeholder="Nhập lý do từ chối để thông báo đến khách hàng..." style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #fca5a5; font-size:12px"></textarea>
                                             </div>
@@ -764,7 +764,7 @@
                                             </c:choose>
                                         </p>
                                         <form method="post" action="${ctx}/staff/returns/${rDetail.id}/receive">
-                                            ${csrf}
+                                                ${csrf}
                                             <button type="submit" class="btn-flashsale" style="width:100%; font-size:13px; padding:10px; justify-content:center; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important">
                                                 <i class="ti ti-package-import"></i>Xác nhận đã nhận hàng tại kho
                                             </button>
@@ -777,7 +777,7 @@
                                             <i class="ti ti-info-circle"></i> Vui lòng thực hiện thẩm định từng món bên dưới rồi bấm <b>Lưu thẩm định kho</b>.
                                         </div>
                                         <form method="post" action="${ctx}/staff/returns/${rDetail.id}/inspect">
-                                            ${csrf}
+                                                ${csrf}
                                             <c:forEach var="l" items="${rDetail.lines}" varStatus="s">
                                                 <div class="inspect-box">
                                                     <input type="hidden" name="lines[${s.index}].returnItemId" value="${l.returnItemId}">
@@ -798,10 +798,10 @@
                                                             <label style="font-size:12px; font-weight:600; cursor:${isRestockBlocked ? 'not-allowed' : 'pointer'}; opacity:${isRestockBlocked ? '0.5' : '1'}; display:inline-flex; align-items:center; gap:4px"
                                                                    title="${isRestockBlocked ? 'Không được tái nhập kho sản phẩm đã mở bao bì hoặc hàng lỗi/hư hỏng' : ''}">
                                                                 <input type="radio" name="lines[${s.index}].result" value="${res}" required
-                                                                       ${isRestockBlocked ? 'disabled' : ''}
-                                                                       ${cannotRestock and res == 'DISPOSED' ? 'checked' : ''}
+                                                                    ${isRestockBlocked ? 'disabled' : ''}
+                                                                    ${cannotRestock and res == 'DISPOSED' ? 'checked' : ''}
                                                                        style="accent-color:#9333ea">
-                                                                ${res.label}
+                                                                    ${res.label}
                                                             </label>
                                                         </c:forEach>
                                                     </div>
@@ -821,7 +821,7 @@
                                             <div style="font-size:20px; font-weight:800; color:#047857">₫<fmt:formatNumber value="${rDetail.refundTotal}" type="number"/></div>
                                         </div>
                                         <form method="post" action="${ctx}/staff/returns/${rDetail.id}/refunded">
-                                            ${csrf}
+                                                ${csrf}
                                             <button type="submit" class="btn-flashsale" style="width:100%; justify-content:center; padding:10px; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%) !important">
                                                 <i class="ti ti-cash"></i>Xác nhận đã chuyển khoản hoàn tiền
                                             </button>
@@ -842,7 +842,7 @@
                         </div>
                     </div>
 
-                    <%-- 5. Thông tin Khách hàng & Đơn hàng gốc --%>
+                        <%-- 5. Thông tin Khách hàng & Đơn hàng gốc --%>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px">
                         <div class="info-card" style="margin:0">
                             <div class="info-card-title">
@@ -853,13 +853,13 @@
                                     <c:out value="${empty rDetail.customerName ? 'K' : rDetail.customerName.substring(0, 1)}"/>
                                 </div>
                                 <div>
-                                    <b style="font-size:13px" id="detail-cust-name"><c:out value="${rDetail.customerName}"/></b><br>
+                                    <b style="font-size:13px" id="detail-cust-name"><c:out value="${rDetail.maskedCustomerName}"/></b><br>
                                     <small style="color:var(--text-muted)">Khách hàng PetFood</small>
                                 </div>
                             </div>
                             <div style="font-size:12px; color:var(--text-muted)" id="detail-cust-contact">
-                                <div><i class="ti ti-phone"></i> <b><c:out value="${empty rDetail.customerPhone ? 'Chưa cập nhật' : rDetail.customerPhone}"/></b></div>
-                                <div><i class="ti ti-mail"></i> <c:out value="${empty rDetail.customerEmail ? 'N/A' : rDetail.customerEmail}"/></div>
+                                <div><i class="ti ti-phone"></i> <b><c:out value="${empty rDetail.customerPhone ? 'Chưa cập nhật' : rDetail.maskedCustomerPhone}"/></b></div>
+                                <div><i class="ti ti-mail"></i> <c:out value="${empty rDetail.customerEmail ? 'N/A' : rDetail.maskedCustomerEmail}"/></div>
                             </div>
                         </div>
 
@@ -876,13 +876,13 @@
                             </div>
                             <div style="margin-top:6px">
                                 <span class="pill-badge orange" style="font-size:11px" id="detail-reason-badge">
-                                    ${rDetail.reason.label}
+                                        ${rDetail.reason.label}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <%-- 6. Lý do và Mô tả chi tiết --%>
+                        <%-- 6. Lý do và Mô tả chi tiết --%>
                     <div class="info-card">
                         <div class="info-card-title">
                             <span style="display:flex; align-items:center; gap:6px"><i class="ti ti-message-2"></i>LÝ DO &amp; MÔ TẢ TRẢ HÀNG</span>
@@ -892,7 +892,7 @@
                         </div>
                     </div>
 
-                    <%-- 7. Tài khoản nhận hoàn tiền (nếu có) --%>
+                        <%-- 7. Tài khoản nhận hoàn tiền (nếu có) --%>
                     <div class="info-card" id="detail-bank-card" style="${empty rDetail.refundBankName ? 'display:none;' : ''}">
                         <div class="info-card-title">
                             <span style="display:flex; align-items:center; gap:6px"><i class="ti ti-building-bank"></i>TÀI KHOẢN NHẬN HOÀN TIỀN</span>
@@ -914,7 +914,7 @@
                         </div>
                     </div>
 
-                    <%-- 8. Danh sách sản phẩm trả --%>
+                        <%-- 8. Danh sách sản phẩm trả --%>
                     <div class="info-card">
                         <div class="info-card-title">
                             <span style="display:flex; align-items:center; gap:6px"><i class="ti ti-box"></i>SẢN PHẨM HOÀN TRẢ (<span id="detail-item-count">${rDetail.lines.size()}</span> MẶT HÀNG)</span>
@@ -939,7 +939,7 @@
                         </div>
                     </div>
 
-                    <%-- 9. Hình ảnh / Video bằng chứng --%>
+                        <%-- 9. Hình ảnh / Video bằng chứng --%>
                     <div class="info-card" id="detail-media-card" style="${empty rDetail.media ? 'display:none;' : ''}">
                         <div class="info-card-title">
                             <span style="display:flex; align-items:center; gap:6px"><i class="ti ti-photo"></i>BẰNG CHỨNG HÌNH ẢNH / VIDEO</span>
@@ -963,7 +963,7 @@
                         </div>
                     </div>
 
-                    <%-- 10. Nhật ký tiến trình --%>
+                        <%-- 10. Nhật ký tiến trình --%>
                     <div class="info-card" style="margin-bottom:0">
                         <div class="info-card-title">
                             <span style="display:flex; align-items:center; gap:6px"><i class="ti ti-history"></i>NHẬT KÝ TIẾN TRÌNH</span>
@@ -1175,7 +1175,7 @@
                 revTimeFormatted = escapeHtml(rParts[0]) + '<br><small style="color:#64748b">' + escapeHtml(rParts[1]) + '</small>';
             }
 
-            stepperEl.innerHTML = 
+            stepperEl.innerHTML =
                 '<div class="stepper-step completed">' +
                 '  <div class="stepper-circle"><i class="ti ti-send"></i></div>' +
                 '  <span class="stepper-label">Gửi yêu cầu</span>' +
@@ -1212,7 +1212,7 @@
                 actionBodyEl.innerHTML =
                     '<div style="margin-bottom:12px">' +
                     '  <form method="post" action="' + ctx + '/staff/returns/' + ret.id + '/approve">' +
-                         csrfInputHtml +
+                    csrfInputHtml +
                     '    <button type="submit" class="btn-flashsale" style="width:100%; font-size:13px; padding:10px; justify-content:center">' +
                     '      <i class="ti ti-check" style="font-size:16px"></i>Duyệt chấp thuận yêu cầu trả hàng' +
                     '    </button>' +
@@ -1223,7 +1223,7 @@
                     '    <i class="ti ti-ban"></i>Từ chối yêu cầu trả hàng này...' +
                     '  </summary>' +
                     '  <form method="post" action="' + ctx + '/staff/returns/' + ret.id + '/reject" style="margin-top:8px">' +
-                         csrfInputHtml +
+                    csrfInputHtml +
                     '    <div style="margin-bottom:8px">' +
                     '      <textarea name="rejectReason" maxlength="255" rows="2" required placeholder="Nhập lý do từ chối để thông báo đến khách hàng..." style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #fca5a5; font-size:12px"></textarea>' +
                     '    </div>' +
@@ -1239,10 +1239,10 @@
                 actionBodyEl.innerHTML =
                     '<div>' +
                     '  <p style="font-size:12px; color:var(--text-muted); margin-bottom:8px">' +
-                         receiveNotice +
+                    receiveNotice +
                     '  </p>' +
                     '  <form method="post" action="' + ctx + '/staff/returns/' + ret.id + '/receive">' +
-                         csrfInputHtml +
+                    csrfInputHtml +
                     '    <button type="submit" class="btn-flashsale" style="width:100%; font-size:13px; padding:10px; justify-content:center; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important">' +
                     '      <i class="ti ti-package-import"></i>Xác nhận đã nhận hàng tại kho' +
                     '    </button>' +
@@ -1284,8 +1284,8 @@
                     '    <i class="ti ti-info-circle"></i> Vui lòng thực hiện thẩm định từng món bên dưới rồi bấm <b>Lưu thẩm định kho</b>.' +
                     '  </div>' +
                     '  <form method="post" action="' + ctx + '/staff/returns/' + ret.id + '/inspect">' +
-                         csrfInputHtml +
-                         inspectLinesHtml +
+                    csrfInputHtml +
+                    inspectLinesHtml +
                     '    <button type="submit" class="btn-flashsale" style="width:100%; justify-content:center; padding:10px; font-size:13px; background:linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important">' +
                     '      <i class="ti ti-check"></i>Lưu kết quả thẩm định kho (QC)' +
                     '    </button>' +
@@ -1299,7 +1299,7 @@
                     '    <div style="font-size:20px; font-weight:800; color:#047857">₫' + formatNumber(ret.refundTotal) + '</div>' +
                     '  </div>' +
                     '  <form method="post" action="' + ctx + '/staff/returns/' + ret.id + '/refunded">' +
-                         csrfInputHtml +
+                    csrfInputHtml +
                     '    <button type="submit" class="btn-flashsale" style="width:100%; justify-content:center; padding:10px; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%) !important">' +
                     '      <i class="ti ti-cash"></i>Xác nhận đã chuyển khoản hoàn tiền' +
                     '    </button>' +
@@ -1320,15 +1320,15 @@
 
         // Customer & Order
         const custNameEl = document.getElementById('detail-cust-name');
-        if (custNameEl) custNameEl.innerText = ret.customerName || 'Khách hàng';
+        if (custNameEl) custNameEl.innerText = ret.maskedCustomerName || ret.customerName || 'Khách hàng';
 
         const custAvatarEl = document.getElementById('detail-cust-avatar');
         if (custAvatarEl) custAvatarEl.innerText = (ret.customerName ? ret.customerName.charAt(0).toUpperCase() : 'K');
 
         const custContactEl = document.getElementById('detail-cust-contact');
         if (custContactEl) {
-            custContactEl.innerHTML = '<div><i class="ti ti-phone"></i> <b>' + escapeHtml(ret.customerPhone || 'Chưa cập nhật') + '</b></div>' +
-                '<div><i class="ti ti-mail"></i> ' + escapeHtml(ret.customerEmail || 'N/A') + '</div>';
+            custContactEl.innerHTML = '<div><i class="ti ti-phone"></i> <b>' + escapeHtml(ret.maskedCustomerPhone || ret.customerPhone || 'Chưa cập nhật') + '</b></div>' +
+                '<div><i class="ti ti-mail"></i> ' + escapeHtml(ret.maskedCustomerEmail || ret.customerEmail || 'N/A') + '</div>';
         }
 
         const orderLinkEl = document.getElementById('detail-order-link');

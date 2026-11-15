@@ -290,7 +290,7 @@
                 <div class="fefo-card">
                     <div class="fefo-card-icon"><i class="fi fi-rr-calendar-check"></i></div>
                     <h4>Chuẩn Date mới</h4>
-                    <p>Kiểm soát kho thông minh First-Expired-First-Out. Luôn cam kết hạn dùng xa trên 90 ngày, đảm bảo dinh dưỡng và mùi vị vẹn nguyên.</p>
+                    <p>Luôn cam kết hạn dùng xa trên 90 ngày, đảm bảo dinh dưỡng và mùi vị vẹn nguyên.</p>
                 </div>
 
                 <!-- Cột 3: Giao hỏa tốc 2 giờ -->

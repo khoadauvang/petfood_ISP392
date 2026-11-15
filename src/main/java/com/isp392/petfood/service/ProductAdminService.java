@@ -33,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -54,6 +56,7 @@ public class ProductAdminService {
 
     private static final int PAGE_SIZE = 20;
     private static final long MAX_IMAGE_BYTES = 5L * 1024 * 1024;   // khớp spring.servlet.multipart.max-file-size
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private static final Pattern SPEC_PATTERN = Pattern.compile(
             "(?i)(?:[\\s–-]+(?:vị\\s+[^\\d]+)?[\\s(]*(\\d+(?:[.,]\\d+)?\\s*(?:kg|g|gr|ml|l|hộp|gói|lon|bao|túi|can|viên|miếng|thùng|pcs))[)]?\\s*)$"
@@ -96,6 +99,16 @@ public class ProductAdminService {
         List<Long> ids = products.stream().map(Product::getId).toList();
         Map<Long, StockSummary> stock = loadStock(ids);
 
+        // Lấy danh sách các đợt hàng (Lot) đang còn tồn của từng biến thể để hiển thị và chặn nhập trùng HSD
+        Map<Long, List<Lot>> activeLotsByProduct = new HashMap<>();
+        if (!ids.isEmpty()) {
+            for (Lot l : lotRepository.findByProduct_IdInAndOnHandQtyGreaterThanOrderByExpiryDateAscIdAsc(ids, 0)) {
+                if (!LotService.isDisposed(l.getId()) && l.getExpiryDate() != null) {
+                    activeLotsByProduct.computeIfAbsent(l.getProduct().getId(), k -> new ArrayList<>()).add(l);
+                }
+            }
+        }
+
         Map<String, ProductGroupDto> groupMap = new LinkedHashMap<>();
 
         for (Product p : products) {
@@ -128,6 +141,15 @@ public class ProductAdminService {
                 groupMap.put(groupKey, group);
             }
 
+            List<Lot> activeLots = activeLotsByProduct.getOrDefault(p.getId(), List.of());
+            String existingExpiriesIso = activeLots.stream()
+                    .map(l -> l.getExpiryDate().toString())
+                    .distinct()
+                    .collect(Collectors.joining(","));
+            String existingExpiriesDisplay = activeLots.stream()
+                    .map(l -> l.getExpiryDate().format(DATE_FMT) + " (" + l.getOnHandQty() + " sp)")
+                    .collect(Collectors.joining(", "));
+
             ProductVariantDto variant = ProductVariantDto.builder()
                     .id(p.getId())
                     .sku(p.getFullSku())
@@ -141,6 +163,8 @@ public class ProductAdminService {
                     .sellableQty(ss.getSellableQty())
                     .flashSaleQty(ss.getFlashSaleQty())
                     .stockStatus(variantStock)
+                    .existingExpiriesIso(existingExpiriesIso)
+                    .existingExpiriesDisplay(existingExpiriesDisplay)
                     .build();
 
             group.getVariants().add(variant);
@@ -352,6 +376,43 @@ public class ProductAdminService {
                 ? ProductStatus.DISCONTINUED
                 : ProductStatus.ACTIVE);
         return product;
+    }
+
+    // Thêm số lượng cho biến thể kèm Hạn sử dụng (HSD) mới:
+    // - Tạo một đợt hàng (Lot) riêng để khi đưa đợt cận hạn vào Flash Sale / Khuyến mãi thì không ảnh hưởng các đợt khác.
+    // - HSD mới bắt buộc phải sau hôm nay và KHÁC với các HSD đang còn hàng của biến thể này.
+    // - Trên màn hình Quản lý sản phẩm, số lượng các đợt của cùng biến thể sẽ tự động được cộng gộp chung với nhau.
+    @Transactional
+    public Lot addStock(Long productId, Integer quantity, LocalDate expiryDate) {
+        Product product = findOrThrow(productId);
+        if (quantity == null || quantity < 1) {
+            throw new BusinessRuleException("Vui lòng nhập số lượng thêm vào từ 1 sản phẩm trở lên.");
+        }
+        if (expiryDate == null) {
+            throw new BusinessRuleException("Vui lòng chọn hạn sử dụng cho số lượng thêm mới.");
+        }
+        if (!expiryDate.isAfter(inventoryPolicy.today())) {
+            throw new BusinessRuleException("Hạn sử dụng phải sau ngày hôm nay (" + inventoryPolicy.today().format(DATE_FMT) + ").");
+        }
+
+        List<Lot> existingActiveLots = lotRepository.findByProduct_IdOrderByExpiryDateAscIdAsc(productId).stream()
+                .filter(l -> l.getOnHandQty() != null && l.getOnHandQty() > 0 && !LotService.isDisposed(l.getId()))
+                .toList();
+
+        for (Lot existing : existingActiveLots) {
+            if (expiryDate.equals(existing.getExpiryDate())) {
+                throw new BusinessRuleException("Hạn sử dụng " + expiryDate.format(DATE_FMT)
+                        + " đã trùng với đợt hàng hiện có của biến thể " + product.getFullSku()
+                        + ". Vui lòng chọn hạn sử dụng khác để khi thêm Flash Sale không bị ảnh hưởng lẫn nhau.");
+            }
+        }
+
+        Lot lot = new Lot();
+        lot.setProduct(product);
+        lot.setExpiryDate(expiryDate);
+        lot.setReceivedQty(quantity);
+        lot.setOnHandQty(quantity);
+        return lotRepository.save(lot);
     }
 
     // Xoá hẳn: chỉ cho sản phẩm tạo nhầm, chưa bán ra đơn vị nào (mọi lô còn nguyên số lượng đã nhập)

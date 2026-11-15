@@ -28,4 +28,6 @@ public class ProductVariantDto {
     private long sellableQty;        // cột "Số lượng": bán thường được (lô còn hạn >= 90 ngày, trừ phần giữ cho khuyến mãi)
     private long flashSaleQty;       // cột "Flash Sale": hàng cận hạn chỉ bán qua Flash Sale
     private StockStatus stockStatus; // còn hàng / gần hết hàng / hết hàng (theo sellableQty)
+    private String existingExpiriesIso;     // Danh sách HSD đang còn hàng (yyyy-MM-dd, cách nhau dấu phẩy) để chặn trùng HSD
+    private String existingExpiriesDisplay; // Danh sách HSD đang còn hàng để hiển thị trên modal (dd/MM/yyyy - SL sp)
 }

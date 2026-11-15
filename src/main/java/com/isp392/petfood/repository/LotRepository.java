@@ -89,6 +89,9 @@ public interface LotRepository extends JpaRepository<Lot, Long> {
     // Các lô của một sản phẩm theo thứ tự FEFO: hết hạn trước đứng trước, cùng hạn thì lô nhập trước (BR-53)
     List<Lot> findByProduct_IdOrderByExpiryDateAscIdAsc(Long productId);
 
+    // Các lô còn hàng của nhiều sản phẩm theo thứ tự HSD tăng dần
+    List<Lot> findByProduct_IdInAndOnHandQtyGreaterThanOrderByExpiryDateAscIdAsc(Collection<Long> productIds, int minOnHand);
+
     // ===== Trang "Tồn theo lô" =====
     // Tham số null thì bỏ qua điều kiện. minOnHand = 1 nghĩa là chỉ lấy lô còn hàng.
     @Query(value = """
